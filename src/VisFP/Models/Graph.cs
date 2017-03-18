@@ -20,18 +20,21 @@ namespace VisFP.Models
         public int from { get; set; } 
         public int to { get; set; }
         public string label { get; set; }
+        public string arrows { get; set; } = "to";
     }
 
     [JsonObject]
-    public class Graph
+    public class Graph<TNode,TEdge> 
+        where TNode: Node, new() 
+        where TEdge: Edge, new()
     {
-        public List<Node> nodes { get; protected set; }
-        public List<Edge> edges { get; protected set; }
+        public List<TNode> nodes { get; protected set; }
+        public List<TEdge> edges { get; protected set; }
 
         public Graph()
         {
-            nodes = new List<Node>();
-            edges = new List<Edge>();
+            nodes = new List<TNode>();
+            edges = new List<TEdge>();
         }
     }
 }
