@@ -2,6 +2,7 @@
 var container;
 var network;
 var options = {
+    nodes: { borderWidth: 2 },
     manipulation: {
         addNode: function (data, callback) {
             // filling in the popup DOM elements

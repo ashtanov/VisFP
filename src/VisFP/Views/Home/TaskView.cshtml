@@ -1,0 +1,21 @@
+@model VisFP.Models.RGViewModels.TaskViewModel
+
+@{
+    ViewData["Title"] = Model.TaskTitle;
+}
+<div>
+    <h4>@Model.TaskTitle</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.TaskText)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.TaskText)
+        </dd>
+    </dl>
+</div>
+<div>
+    @{await Html.RenderPartialAsync("GraphView", Model);}
+    <a asp-action="Index">Back to List</a>
+</div>

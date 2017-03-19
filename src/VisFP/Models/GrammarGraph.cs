@@ -21,7 +21,7 @@ namespace VisFP.Models
         {
             Dictionary<char, int> suppDict = new Dictionary<char, int>();
             int currId = 0;
-            foreach(var v in gram.Alph.NotTerminals)
+            foreach(var v in gram.Alph.NonTerminals)
             {
 
                 string color = (v == gram.Alph.InitState ? "rgba(0,255,0,0.7)" : "rgba(90,90,90,0.7)");

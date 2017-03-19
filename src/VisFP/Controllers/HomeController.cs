@@ -4,27 +4,49 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using VisFP.Models;
+using VisFP.Models.RGViewModels;
 
 namespace VisFP.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        //public IActionResult Index()
+        //{
+        //    var rg = RGGenerator.Instance.Generate(7, 3,
+        //        new Alphabet('S',
+        //            new[] { '1', '0', '2' },
+        //            new[] { 'S', 'U', 'V', 'W', 'X' })
+        //            );
+
+        //    var rnt = rg.ReachableNonterminals;
+        //    var vm = new RGViewModel(rg);
+        //    return View(vm);
+        //}
+
+        public IActionResult Index(int task)
         {
-            var rg = RGGenerator.Instance.Generate(6, 3, 
-                new Alphabet('S', 
-                    new[] { '1', '0', '2' }, 
-                    new[] { 'S', 'U', 'V', 'W', 'X' })
-                    );
+            switch (task)
+            {
+                case 1:
+                    return Task1();
+                default:
+                    return Error();
+            }
 
+        }
 
-            var g = new GrammarGraph(rg);
-            //for (int i = 1; i <= 4; ++i)
-            //    g.nodes.Add(new Models.Node { id = i, label = "Node " + i.ToString() });
-            //Random r = new Random();
-            //for (int i = 0; i < 2; ++i)
-            //    g.edges.Add(new Models.Edge { from = r.Next(1, 5), to = r.Next(1, 5), label = "Edge" });
-            return View(g);
+        public IActionResult Task1()
+        {
+            var rg = RGGenerator.Instance.Generate(7, 3,
+                        new Alphabet('S',
+                            new[] { '1', '0', '2' },
+                            new[] { 'S', 'U', 'V', 'W', 'X' })
+                        );
+            var rnt = rg.ReachableNonterminals;
+            var vm = new TaskViewModel(rg);
+            vm.TaskText = "Найдите недостижимый символ";
+            vm.TaskTitle = "Задача 1";
+            return View("TaskView", vm);
         }
 
         [HttpPost]
@@ -34,7 +56,7 @@ namespace VisFP.Controllers
             {
                 var d = Newtonsoft.Json.JsonConvert.DeserializeObject(graph);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
             }

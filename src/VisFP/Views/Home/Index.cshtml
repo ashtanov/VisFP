@@ -1,5 +1,9 @@
-﻿@model GrammarGraph
-@{
+﻿@{
     ViewData["Title"] = "Home Page";
 }
-@{await Html.RenderPartialAsync("GraphView", Model);}
+<ul>
+    @for (int i = 1; i <= 9; ++i)
+    {
+        <li><a href="/?task=@i">Задача @i</a></li>
+    }
+</ul>

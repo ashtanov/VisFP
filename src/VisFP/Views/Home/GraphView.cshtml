@@ -1,27 +1,36 @@
-@model GrammarGraph
-
+@model RGViewModel
 <div>
-
-    <h4>Graph</h4>
-    <hr />
-    <div id="mynetwork">
-        <div class="vis-network" tabindex="900" style="position: relative; overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-drag: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); width: 100%; height: 100%;">
-            <canvas width="800" height="600" style="position: relative; touch-action: none; user-select: none; -webkit-user-drag: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); width: 100%; height: 100%;"></canvas>
-            <div class="vis-manipulation" style="display: none;"></div>
-            <div class="vis-edit-mode" style="display: block;">
-                <div class="vis-button vis-edit vis-edit-mode" style="touch-action: pan-y; user-select: none; -webkit-user-drag: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
-                    <div class="vis-label">Edit</div>
+    <table>
+        <tr>
+            <td>
+                <div id="mynetwork">
+                    <div class="vis-network" tabindex="900" style="position: relative; overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-drag: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); width: 100%; height: 100%;">
+                        <canvas width="800" height="600" style="position: relative; touch-action: none; user-select: none; -webkit-user-drag: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); width: 100%; height: 100%;"></canvas>
+                        <div class="vis-manipulation" style="display: none;"></div>
+                        <div class="vis-edit-mode" style="display: block;">
+                            <div class="vis-button vis-edit vis-edit-mode" style="touch-action: pan-y; user-select: none; -webkit-user-drag: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
+                                <div class="vis-label">Edit</div>
+                            </div>
+                        </div>
+                        <div class="vis-close" style="display: none; touch-action: pan-y;"></div>
+                    </div>
                 </div>
-            </div>
-            <div class="vis-close" style="display: none; touch-action: pan-y;"></div>
-        </div>
-    </div>
+            </td>
+            <td>
+                <ul>
+                    @for (int i = 0; i < Model.Grammar.Rules.Count; i++)
+                    {
+                        <li>@Model.Grammar.Rules[i].ToString()</li>
+                    }
+                </ul>
+
+            </td>
+        </tr>
+    </table>
+
     <script>
-        buildGraph(@Json.Serialize(Model));
+        buildGraph(@Json.Serialize(Model.Graph));
     </script>
     <dl class="dl-horizontal"></dl>
 </div>
 <button onclick="saveGraph();">SaveCurrent</button>
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>

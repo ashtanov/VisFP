@@ -9,7 +9,7 @@ namespace VisFP.Models
     public class Alphabet
     {
         public readonly IReadOnlyList<char> Terminals;
-        public readonly IReadOnlyList<char> NotTerminals;
+        public readonly IReadOnlyList<char> NonTerminals;
         public readonly char InitState;
 
         public Alphabet(char init, char[] term, char[] notTerm)
@@ -22,7 +22,7 @@ namespace VisFP.Models
 
 
             Terminals = new List<char>(_terminals);
-            NotTerminals = new List<char>(_notTerminals);
+            NonTerminals = new List<char>(_notTerminals);
             InitState = init;
             if (!_notTerminals.Contains(init))
                 throw new Exception($"Начальный символ {init} должен содержаться в множестве нетерминалов!");
@@ -57,14 +57,14 @@ namespace VisFP.Models
                     new Rule(
                         Lnt: alph.InitState,
                         Rt: alph.Terminals[_rand.Next(alph.Terminals.Count)],
-                        Rnt: alph.NotTerminals[_rand.Next(alph.NotTerminals.Count)]
+                        Rnt: alph.NonTerminals[_rand.Next(alph.NonTerminals.Count)]
                     ));
             for (int i = 1; i < ntRuleCount; ++i)
             {
                 var curr = new Rule(
-                        Lnt: alph.NotTerminals[_rand.Next(alph.NotTerminals.Count)],
+                        Lnt: alph.NonTerminals[_rand.Next(alph.NonTerminals.Count)],
                         Rt: alph.Terminals[_rand.Next(alph.Terminals.Count)],
-                        Rnt: alph.NotTerminals[_rand.Next(alph.NotTerminals.Count)]
+                        Rnt: alph.NonTerminals[_rand.Next(alph.NonTerminals.Count)]
                     );
                 if(!result.Contains(curr))
                     result.Add(curr);
@@ -72,7 +72,7 @@ namespace VisFP.Models
             for (int i = 0; i < tRuleCount; ++i)
             {
                 var curr = new Rule(
-                          Lnt: alph.NotTerminals[_rand.Next(alph.NotTerminals.Count)],
+                          Lnt: alph.NonTerminals[_rand.Next(alph.NonTerminals.Count)],
                           Rt: alph.Terminals[_rand.Next(alph.Terminals.Count)],
                           Rnt: null
                       );
