@@ -12,8 +12,6 @@ namespace VisFP.Models
         public string color { get; set; }
     }
 
-
-
     [JsonObject]
     public class GrammarGraph : Graph<GNode, Edge>
     {

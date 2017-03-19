@@ -48,6 +48,18 @@ function objToArray(obj) {
    return $.map(obj, function (value, index) { return [value] })
 }
 
+function checkAnswer() {
+    
+    $.ajax({
+        type: "POST",
+        url: "/Home/Answer",
+        data: {
+            Answer: $('#answer').val(),
+            TaskId: $('#taskId').val()
+        }
+    });
+}
+
 function saveGraph() {
     
 

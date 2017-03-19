@@ -1,0 +1,24 @@
+﻿@model VisFP.Models.RGViewModels.AnswerViewModel
+
+<form asp-action="Answer">
+    <div class="form-horizontal">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-group">
+            <label asp-for="Answer" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="Answer" id="answer" class="form-control" />
+                <span asp-validation-for="Answer" class="text-danger" />
+            </div>
+        </div>
+        <input asp-for="TaskId" id="taskId" type="hidden" class="form-control" />
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="button" onclick="checkAnswer();" value="Проверить" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

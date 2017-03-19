@@ -1,4 +1,4 @@
-﻿{
+{
   "userSecretsId": "aspnet-VisFP-6faab4bb-31e3-44c2-9c76-529226a0c376",
 
   "dependencies": {
@@ -30,7 +30,7 @@
     "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.0.0",
     "Microsoft.Extensions.Configuration.Json": "1.0.0",
     "Microsoft.Extensions.Configuration.UserSecrets": "1.0.0",
-    "Microsoft.Extensions.Logging": "1.0.0",
+    "Microsoft.Extensions.Logging": "1.1.1",
     "Microsoft.Extensions.Logging.Console": "1.0.0",
     "Microsoft.Extensions.Logging.Debug": "1.0.0",
     "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0",
@@ -40,9 +40,10 @@
       "type": "build"
     },
     "Microsoft.VisualStudio.Web.CodeGenerators.Mvc": {
-      "version": "1.0.0-preview2-final",
-      "type": "build"
-    }
+        "version": "1.0.0-preview2-final",
+        "type": "build"
+    },
+    "Microsoft.EntityFrameworkCore.InMemory": "1.1.1"
   },
 
   "tools": {

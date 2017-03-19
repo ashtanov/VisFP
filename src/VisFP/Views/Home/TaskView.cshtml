@@ -1,4 +1,4 @@
-@model VisFP.Models.RGViewModels.TaskViewModel
+﻿@model VisFP.Models.RGViewModels.TaskViewModel
 
 @{
     ViewData["Title"] = Model.TaskTitle;
@@ -6,6 +6,20 @@
 <div>
     <h4>@Model.TaskTitle</h4>
     <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            <span>Алфавит</span>
+        </dt>
+        <dd>
+            Терминалы: @Html.Raw(string.Join(", ", Model.Grammar.Alph.Terminals.Select(x => $"<b>{x}</b>")))
+        </dd>
+        <dd>
+            Нетерминалы: @Html.Raw(string.Join(", ", Model.Grammar.Alph.NonTerminals.Select(x => $"<b>{x}</b>")))
+        </dd>
+        <dd>
+            Начальное состояние: <b>@Model.Grammar.Alph.InitState</b>
+        </dd>
+    </dl>
     <dl class="dl-horizontal">
         <dt>
             @Html.DisplayNameFor(model => model.TaskText)
@@ -17,5 +31,19 @@
 </div>
 <div>
     @{await Html.RenderPartialAsync("GraphView", Model);}
-    <a asp-action="Index">Back to List</a>
 </div>
+@{ await Html.RenderPartialAsync("AcceptAnswerView", new AnswerViewModel { TaskId = Model.Id }); }
+@*<form method="post" action="/Answer">
+    <input name="taskId" type="hidden" value="@Model.Id" />
+    <dl class="dl-horizontal">
+        <dt>
+            <span>Ответ</span>
+        </dt>
+        <dd>
+            <input name="answer" type="text" />
+            <input type="submit" value="Проверить" />
+        </dd>
+    </dl>
+</form>*@
+
+<a asp-action="Index">Back to List</a>

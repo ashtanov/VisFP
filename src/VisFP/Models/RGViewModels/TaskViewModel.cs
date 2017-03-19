@@ -8,6 +8,8 @@ namespace VisFP.Models.RGViewModels
 {
     public class TaskViewModel : RGViewModel
     {
+        public Guid Id { get; set; }
+
         public string TaskTitle { get; set; }
 
         [Display(Name = "Задание")]
