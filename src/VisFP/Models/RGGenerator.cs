@@ -29,6 +29,28 @@ namespace VisFP.Models
             if (!_notTerminals.Contains(init))
                 throw new Exception($"Начальный символ {init} должен содержаться в множестве нетерминалов!");
         }
+
+        public string Serialize()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+
+        public static Alphabet Deserialize(string jsonObject)
+        {
+            return null;
+        }
+
+        public static Alphabet GenerateRandom(int nonTermCount, int termCount)
+        {
+            Random r = new Random();
+            char initSymbol = 'S';
+            string nt = "TUVWXYZ";
+            string t = "1234567890abcdef";
+            return new Alphabet(
+                initSymbol,
+                t.OrderBy(x => r.Next()).Take(termCount).ToArray(),
+                new[] { initSymbol }.Union(nt.OrderBy(x => r.Next()).Take(nonTermCount-1)).ToArray());
+        }
     }
 
     public class RGGenerator

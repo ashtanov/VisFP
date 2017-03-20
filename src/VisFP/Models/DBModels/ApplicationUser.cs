@@ -9,6 +9,6 @@ namespace VisFP.Models.DBModels
     // Add profile data for application users by adding properties to the ApplicationUser class
     public class ApplicationUser : IdentityUser
     {
-        public ICollection<RgTask> Tasks { get; set; }
+        public ICollection<RgTaskProblem> Problems { get; set; }
     }
 }

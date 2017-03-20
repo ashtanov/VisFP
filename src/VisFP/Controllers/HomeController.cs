@@ -25,68 +25,68 @@ namespace VisFP.Controllers
 
         public async Task<IActionResult> Index(int task)
         {
-            switch (task)
+            var reqTask = _dbContext.Tasks.FirstOrDefault(x => x.TaskNumber == task);
+            if (reqTask != null)
             {
-                case 1:
-                    return await Task1();
-                case 2:
-                    return Task2();
-                default:
-                    return View();
+                switch (task)
+                {
+                    case 1:
+                        return await TaskSymbolsAnswer(reqTask,
+                            x => x.ReachableNonterminals.Length == x.Alph.NonTerminals.Count,
+                            y => string.Join(" ", y.Alph.NonTerminals.Except(y.ReachableNonterminals).OrderBy(z => z))
+                            );
+                    case 2:
+                        return await TaskSymbolsAnswer(reqTask,
+                            x => x.GeneratingNonterminals.Length == x.Alph.NonTerminals.Count,
+                            y => string.Join(" ", y.Alph.NonTerminals.Except(y.GeneratingNonterminals).OrderBy(z => z))
+                            );
+                    default:
+                        return View();
+                }
             }
+            return View();//Error!
 
         }
 
         [NonAction]
-        public async Task<IActionResult> Task1()
+        public async Task<IActionResult> TaskSymbolsAnswer(RgTask task,
+            Func<RegularGrammar, bool> conditionUntil,
+            Func<RegularGrammar, string> getAnswer)
         {
-            var alphabet = new Alphabet('S',
-                            new[] { '0', '1', '2' },
-                            new[] { 'S', 'U', 'V', 'W', 'X' });
+            var alphabet = Alphabet.GenerateRandom(
+                task.AlphabetNonTerminalsCount,
+                task.AlphabetTerminalsCount);
             RegularGrammar rg;
             do
             {
-                rg = RGGenerator.Instance.Generate(7, 3, alphabet);
-            } while (rg.ReachableNonterminals.Length == alphabet.NonTerminals.Count);
+                rg = RGGenerator.Instance.Generate(
+                    ntRuleCount: task.NonTerminalRuleCount,
+                    tRuleCount: task.TerminalRuleCount,
+                    alph: alphabet);
+            } while (conditionUntil(rg));
 
-            var cTask = new RgTask
+            var cTask = new RgTaskProblem
             {
-                RightAnswer = string.Join(" ", rg.Alph.NonTerminals.Except(rg.ReachableNonterminals).OrderBy(x => x)),
-                TaskNumber = 1,
-                TaskGrammar = rg.Serialize(),
+                RightAnswer = string.Join(" ", getAnswer(rg)),
+                TaskNumber = task.TaskNumber,
+                ProblemGrammar = rg.Serialize(),
                 User = _userManager.Users.First()
             };
-            _dbContext.Tasks.Add(cTask);
+            _dbContext.TaskProblems.Add(cTask);
             await _dbContext.SaveChangesAsync();
 
             var vm = new TaskViewModel(rg);
-            vm.TaskText = "Найдите недостижимый символ (нетерминал)";
-            vm.TaskTitle = "Задача 1. Недостижимые символы";
-            vm.Id = cTask.TaskId;
-            return View("TaskView", vm);
-        }
-
-        [NonAction]
-        public IActionResult Task2()
-        {
-            var rg = RGGenerator.Instance.Generate(6, 4,
-                        new Alphabet('S',
-                            new[] { '1', '0', '2' },
-                            new[] { 'S', 'U', 'V', 'W', 'X' })
-                        );
-            var gnt = rg.GeneratingNonterminals;
-            var vm = new TaskViewModel(rg);
-            vm.TaskText = "Найдите пустой символ (нетерминал)";
-            vm.TaskTitle = "Задача 2. Пустые символы";
-            vm.Id = new Guid();
+            vm.TaskText = task.TaskText;
+            vm.TaskTitle = task.TaskTitle;
+            vm.Id = cTask.ProblemId;
             return View("TaskView", vm);
         }
 
         [HttpPost]
         public async Task<JsonResult> Answer(AnswerViewModel avm)
         {
-            var problem = _dbContext.Tasks.First(x => x.TaskId == avm.TaskId);//может не быть таска!
-           //if (current.User != problem.User) return Error!
+            var problem = _dbContext.TaskProblems.FirstOrDefault(x => x.ProblemId == avm.TaskId);//может не быть таска!
+                                                                                                 //if (current.User != problem.User) return Error!
             var isCorrect = avm.Answer == problem.RightAnswer;
             _dbContext.Attempts.Add(
                 new RgAttempt
@@ -94,7 +94,7 @@ namespace VisFP.Controllers
                     Answer = avm.Answer,
                     Date = DateTime.Now,
                     IsCorrect = isCorrect,
-                    Task = problem
+                    Problem = problem
                 });
             await _dbContext.SaveChangesAsync();
             if (isCorrect)

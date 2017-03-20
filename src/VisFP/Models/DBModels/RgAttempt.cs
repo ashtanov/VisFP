@@ -15,8 +15,8 @@ namespace VisFP.Models.DBModels
         public string Answer { get; set; }
         public bool IsCorrect { get; set; }
 
-        public Guid TaskId { get; set; }
-        [ForeignKey("TaskId")]
-        public virtual RgTask Task { get; set; }
+        public Guid ProblemId { get; set; }
+        [ForeignKey("ProblemId")]
+        public RgTaskProblem Problem { get; set; }
     }
 }

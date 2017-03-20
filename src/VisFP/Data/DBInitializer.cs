@@ -20,6 +20,30 @@ namespace VisFP.Data
 
                 var user = new ApplicationUser { UserName = "Alex" };
                 var result = await manager.CreateAsync(user, "1234");
+
+                var dbcontext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                dbcontext.Tasks.Add(new RgTask
+                {
+                    TaskText = "Найдите ВСЕ недостижимые символы (нетерминалы)",
+                    TaskTitle = "Задача 1. Недостижимые символы",
+                    NonTerminalRuleCount = 7,
+                    TerminalRuleCount = 3,
+                    AlphabetNonTerminalsCount = 5,
+                    AlphabetTerminalsCount = 3,
+                    TaskNumber = 1
+                });
+
+                dbcontext.Tasks.Add(new RgTask
+                {
+                    TaskText = "Найдите ВСЕ пустые символы (нетерминалы)",
+                    TaskTitle = "Задача 2. Пустые символы",
+                    NonTerminalRuleCount = 7,
+                    TerminalRuleCount = 3,
+                    AlphabetNonTerminalsCount = 5,
+                    AlphabetTerminalsCount = 3,
+                    TaskNumber = 2
+                });
+                await dbcontext.SaveChangesAsync();
             }
         }
     }
