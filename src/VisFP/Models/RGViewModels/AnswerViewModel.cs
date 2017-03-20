@@ -11,5 +11,8 @@ namespace VisFP.Models.RGViewModels
         [Display(Name = "Ответ")]
         public string Answer { get; set; }
         public Guid TaskId { get; set; }
+        public int MaxAttemptsCount { get; set; }
+        public Alphabet Alph { get; set; }
+        public TaskAnswerType AnswerType { get; set; }
     }
 }

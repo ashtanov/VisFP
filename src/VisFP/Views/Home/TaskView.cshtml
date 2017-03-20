@@ -28,22 +28,14 @@
             @Html.DisplayFor(model => model.TaskText)
         </dd>
     </dl>
+
 </div>
 <div>
     @{await Html.RenderPartialAsync("GraphView", Model);}
 </div>
-@{ await Html.RenderPartialAsync("AcceptAnswerView", new AnswerViewModel { TaskId = Model.Id }); }
-@*<form method="post" action="/Answer">
-    <input name="taskId" type="hidden" value="@Model.Id" />
-    <dl class="dl-horizontal">
-        <dt>
-            <span>Ответ</span>
-        </dt>
-        <dd>
-            <input name="answer" type="text" />
-            <input type="submit" value="Проверить" />
-        </dd>
-    </dl>
-</form>*@
+
+@{ await Html.RenderPartialAsync("AcceptAnswerView",
+        new AnswerViewModel { TaskId = Model.Id, MaxAttemptsCount = Model.MaxAttempts, Alph = Model.Grammar.Alph }); }
 
 <a asp-action="Index">Back to List</a>
+<div>@Model.Generation</div>

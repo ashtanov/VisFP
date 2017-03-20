@@ -16,7 +16,9 @@ namespace VisFP.Models.DBModels
         public int AlphabetNonTerminalsCount { get; set; }
         public int TerminalRuleCount { get; set; }
         public int NonTerminalRuleCount { get; set; }
+        public int MaxAttempts { get; set; }
         public ICollection<RgTaskProblem> Problems { get; set; }
+        public TaskAnswerType AnswerType { get; set; }
 
     }
 }

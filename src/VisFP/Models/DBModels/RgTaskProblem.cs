@@ -22,6 +22,7 @@ namespace VisFP.Models.DBModels
 
         public string ProblemGrammar { get; set; }
         public string RightAnswer { get; set; }
+        public TaskAnswerType AnswerType { get; set; }
         public int MaxAttempts { get; set; }
         public ICollection<RgAttempt> Attempts { get; set; }
     }

@@ -15,6 +15,11 @@ namespace VisFP.Models.RGViewModels
         [Display(Name = "Задание")]
         public string TaskText { get; set; }
 
+        [Display(Name = "Попытки")]
+        public int MaxAttempts { get; set; }
+
+        public int Generation { get; set; }
+
         public TaskViewModel(RegularGrammar grammar)
             : base(grammar)
         {

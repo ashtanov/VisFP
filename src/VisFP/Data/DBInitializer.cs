@@ -24,24 +24,41 @@ namespace VisFP.Data
                 var dbcontext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 dbcontext.Tasks.Add(new RgTask
                 {
-                    TaskText = "Найдите ВСЕ недостижимые символы (нетерминалы)",
+                    TaskText = "Отметьте ВСЕ недостижимые символы (нетерминалы)",
                     TaskTitle = "Задача 1. Недостижимые символы",
                     NonTerminalRuleCount = 7,
                     TerminalRuleCount = 3,
                     AlphabetNonTerminalsCount = 5,
                     AlphabetTerminalsCount = 3,
-                    TaskNumber = 1
+                    MaxAttempts = 3,
+                    TaskNumber = 1,
+                    AnswerType = Models.TaskAnswerType.SymbolsAnswer
                 });
 
                 dbcontext.Tasks.Add(new RgTask
                 {
-                    TaskText = "Найдите ВСЕ пустые символы (нетерминалы)",
+                    TaskText = "Отметьте ВСЕ пустые символы (нетерминалы)",
                     TaskTitle = "Задача 2. Пустые символы",
                     NonTerminalRuleCount = 7,
                     TerminalRuleCount = 3,
                     AlphabetNonTerminalsCount = 5,
                     AlphabetTerminalsCount = 3,
-                    TaskNumber = 2
+                    MaxAttempts = 3,
+                    TaskNumber = 2,
+                    AnswerType = Models.TaskAnswerType.SymbolsAnswer
+                });
+
+                dbcontext.Tasks.Add(new RgTask
+                {
+                    TaskText = "Отметьте ВСЕ циклические символы (нетерминалы)",
+                    TaskTitle = "Задача 3. Циклические символы",
+                    NonTerminalRuleCount = 7,
+                    TerminalRuleCount = 3,
+                    AlphabetNonTerminalsCount = 5,
+                    AlphabetTerminalsCount = 3,
+                    MaxAttempts = 3,
+                    TaskNumber = 3,
+                    AnswerType = Models.TaskAnswerType.SymbolsAnswer
                 });
                 await dbcontext.SaveChangesAsync();
             }

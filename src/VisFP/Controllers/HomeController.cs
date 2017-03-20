@@ -40,6 +40,11 @@ namespace VisFP.Controllers
                             x => x.GeneratingNonterminals.Length == x.Alph.NonTerminals.Count,
                             y => string.Join(" ", y.Alph.NonTerminals.Except(y.GeneratingNonterminals).OrderBy(z => z))
                             );
+                    case 3:
+                        return await TaskSymbolsAnswer(reqTask,
+                            x => x.CyclicNonterminals.Length == 0,
+                            y => string.Join(" ", y.CyclicNonterminals.OrderBy(z => z))
+                            );
                     default:
                         return View();
                 }
@@ -48,6 +53,13 @@ namespace VisFP.Controllers
 
         }
 
+        /// <summary>
+        /// Генерация проблемы для задачи конкретного типа
+        /// </summary>
+        /// <param name="task">описание задачи</param>
+        /// <param name="conditionUntil">условие генарации грамматики (грамматики генерируются пока не выполнено это условие)</param>
+        /// <param name="getAnswer">метод получения ответа на задачу</param>
+        /// <returns></returns>
         [NonAction]
         public async Task<IActionResult> TaskSymbolsAnswer(RgTask task,
             Func<RegularGrammar, bool> conditionUntil,
@@ -57,28 +69,38 @@ namespace VisFP.Controllers
                 task.AlphabetNonTerminalsCount,
                 task.AlphabetTerminalsCount);
             RegularGrammar rg;
+            int generation = 0;
+
+            //генерируем грамматику пока не будет удовлетворять условию
             do
             {
                 rg = RGGenerator.Instance.Generate(
                     ntRuleCount: task.NonTerminalRuleCount,
                     tRuleCount: task.TerminalRuleCount,
                     alph: alphabet);
+                generation++;
             } while (conditionUntil(rg));
 
+            //записываем проблему в базу
             var cTask = new RgTaskProblem
             {
                 RightAnswer = string.Join(" ", getAnswer(rg)),
                 TaskNumber = task.TaskNumber,
                 ProblemGrammar = rg.Serialize(),
-                User = _userManager.Users.First()
+                User = _userManager.Users.First(),
+                MaxAttempts = task.MaxAttempts,
+                AnswerType = task.AnswerType
             };
             _dbContext.TaskProblems.Add(cTask);
             await _dbContext.SaveChangesAsync();
 
+            //формируем модель для показа
             var vm = new TaskViewModel(rg);
             vm.TaskText = task.TaskText;
             vm.TaskTitle = task.TaskTitle;
             vm.Id = cTask.ProblemId;
+            vm.MaxAttempts = cTask.MaxAttempts;
+            vm.Generation = generation;
             return View("TaskView", vm);
         }
 
@@ -86,21 +108,38 @@ namespace VisFP.Controllers
         public async Task<JsonResult> Answer(AnswerViewModel avm)
         {
             var problem = _dbContext.TaskProblems.FirstOrDefault(x => x.ProblemId == avm.TaskId);//может не быть таска!
-                                                                                                 //if (current.User != problem.User) return Error!
-            var isCorrect = avm.Answer == problem.RightAnswer;
-            _dbContext.Attempts.Add(
-                new RgAttempt
+            if (problem != null)
+            {
+                //if (current.User != problem.User) return Error!
+                var totalAttempts = _dbContext.Attempts.Count(x => x.ProblemId == problem.ProblemId);
+                if (totalAttempts < problem.MaxAttempts)
                 {
-                    Answer = avm.Answer,
-                    Date = DateTime.Now,
-                    IsCorrect = isCorrect,
-                    Problem = problem
-                });
-            await _dbContext.SaveChangesAsync();
-            if (isCorrect)
-                return new JsonResult(true);
-            else
-                return new JsonResult(false);
+                    if (problem.AnswerType == TaskAnswerType.SymbolsAnswer)
+                    {
+                        avm.Answer = string.Join(" ", avm.Answer.Split(' ').OrderBy(x => x));
+                    }
+                    var isCorrect = avm.Answer == problem.RightAnswer;
+                    _dbContext.Attempts.Add(
+                        new RgAttempt
+                        {
+                            Answer = avm.Answer,
+                            Date = DateTime.Now,
+                            IsCorrect = isCorrect,
+                            Problem = problem
+                        });
+                    await _dbContext.SaveChangesAsync();
+                    return new JsonResult(
+                        new AnswerResultViewModel
+                        {
+                            CurrentAttempt = totalAttempts + 2, //одна попытка сейчас добавилась, отсчет с 1
+                            AttemptsLeft = problem.MaxAttempts - (totalAttempts + 1),
+                            IsCorrect = isCorrect
+                        });
+                }
+                else
+                    return new JsonResult(new { block = true });
+            }
+            return new JsonResult("Задача не найдена") { StatusCode = 404 };
         }
 
         [HttpPost]

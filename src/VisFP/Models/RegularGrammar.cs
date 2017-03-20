@@ -48,8 +48,6 @@ namespace VisFP.Models
         [JsonIgnore]
         private char[] _reachableNonTerminals;
         [JsonIgnore]
-        private char[] _generatingNonTerminals;
-        [JsonIgnore]
         public char[] ReachableNonterminals
         {
             get
@@ -59,17 +57,6 @@ namespace VisFP.Models
                 return _reachableNonTerminals;
             }
         }
-        [JsonIgnore]
-        public char[] GeneratingNonterminals
-        {
-            get
-            {
-                if (_generatingNonTerminals == null)
-                    FindGeneratingNonTerminals();
-                return _generatingNonTerminals;
-            }
-        }
-
         private void FindReachableNonTerminals()
         {
             HashSet<char> reachable = new HashSet<char>();
@@ -91,21 +78,54 @@ namespace VisFP.Models
             _reachableNonTerminals = reachable.ToArray();
         }
 
+        [JsonIgnore]
+        private char[] _generatingNonTerminals;
+        [JsonIgnore]
+        public char[] GeneratingNonterminals
+        {
+            get
+            {
+                if (_generatingNonTerminals == null)
+                    FindGeneratingNonTerminals();
+                return _generatingNonTerminals;
+            }
+        }
         private void FindGeneratingNonTerminals()
         {
-            HashSet<char> generating = 
+            HashSet<char> generating =
                 new HashSet<char>(Rules
                     .Where(x => !x.Rnt.HasValue)
                     .Select(x => x.Lnt)
                     .Distinct());
             var prevSetLength = 0;
-            while(prevSetLength != generating.Count)
+            while (prevSetLength != generating.Count)
             {
                 prevSetLength = generating.Count;
-                foreach(var r in Rules.Where(x => x.Rnt.HasValue && generating.Contains(x.Rnt.Value)))
+                foreach (var r in Rules.Where(x => x.Rnt.HasValue && generating.Contains(x.Rnt.Value)))
                     generating.Add(r.Lnt);
             }
             _generatingNonTerminals = generating.ToArray();
+        }
+
+        [JsonIgnore]
+        private char[] _cyclicNonTerminals;
+        [JsonIgnore]
+        public char[] CyclicNonterminals
+        {
+            get
+            {
+                if (_cyclicNonTerminals == null)
+                    FindCyclicNonTerminals();
+                return _cyclicNonTerminals;
+            }
+        }
+        private void FindCyclicNonTerminals()
+        {
+            List<char> cyclic = new List<char>();
+            foreach (var r in Rules)
+                if (r.Rnt.HasValue && r.Rnt.Value == r.Lnt)
+                    cyclic.Add(r.Lnt);
+            _cyclicNonTerminals = cyclic.Distinct().ToArray();
         }
 
         public string Serialize()
