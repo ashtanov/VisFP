@@ -111,3 +111,17 @@ div.table_description {
     padding: 10px;
     text-align: center;
 }
+
+.answer {
+    text-align: center;
+    font-size: larger;
+    font-weight: bold;
+}
+
+.fail-answer {
+    color: #a94442;
+}
+
+.success-answer {
+    color: #3c763d;
+}

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -17,12 +18,18 @@ namespace VisFP.Data
             using (var scope = services.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
                 var manager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
+                await roleManager.CreateAsync(new IdentityRole { Name = "Admin" });
+                await roleManager.CreateAsync(new IdentityRole { Name = "User" });
 
-                var user = new ApplicationUser { UserName = "Alex" };
-                var result = await manager.CreateAsync(user, "1234");
+                var adminUser = new ApplicationUser { UserName = "Alex" };
+                await manager.CreateAsync(adminUser, "q1w2e3r4");
+                await manager.AddToRoleAsync(adminUser, "Admin");
 
-                
+                var simpleUser = new ApplicationUser { UserName = "Test" };
+                await manager.CreateAsync(simpleUser, "1234");
+                await manager.AddToRoleAsync(simpleUser, "User");
 
                 var dbcontext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 dbcontext.Tasks.Add(new RgTask

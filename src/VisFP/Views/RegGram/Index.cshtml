@@ -1,0 +1,10 @@
+﻿@model IEnumerable<int>
+@{
+    ViewData["Title"] = "Список задач";
+}
+<ul>
+    @foreach(var t in Model)
+    {
+        <li><a href="/RegGram/Task/@t">Задача @t</a></li>
+    }
+</ul>

@@ -1,0 +1,69 @@
+﻿@model VisFP.Models.RGViewModels.AnswerViewModel
+<dl class="dl-horizontal">
+    <dt>
+        Попытка
+    </dt>
+    <dd>
+        <strong><span id="attemptsCount">1</span></strong> из <strong>@Html.DisplayFor(model => model.MaxAttemptsCount)</strong>
+    </dd>
+</dl>
+<form asp-action="Answer">
+    <input asp-for="TaskId" id="taskId" autocomplete="off" type="hidden" class="form-control" />
+    <div class="form-horizontal">
+        @switch (Model.AnswerType)
+        {
+            case TaskAnswerType.SymbolsAnswer:
+                <div class="col-md-4" id="answerSymbols">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Отметьте необходимые символы</h3>
+                        </div>
+                        <div class="panel-body">
+
+                            @foreach (var nt in Model.Alph.NonTerminals)
+                            {
+                                <span class="button-checkbox">
+                                    <button type="button" class="btn btn-success active" data-color="success">@nt</button>
+                                    <input class="hidden answerCheckboxes" autocomplete="off" type="checkbox" value="@nt">
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <div id="answerCorrectness"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="button" id="sendAnswer" autocomplete="off" onclick="checkAnswer();" value="Проверить" class="btn btn-lg btn-success" />
+                    </div>
+                </div>
+                break;
+            default:
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="form-group">
+                            <label asp-for="Answer" class="col-md-2 control-label"></label>
+                            <div class="col-md-10">
+                                <input asp-for="Answer" autocomplete="off" id="answer" class="form-control" />
+                                <span asp-validation-for="Answer" class="text-danger" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-offset-2 col-md-10">
+                                <input type="button" id="sendAnswer" autocomplete="off" onclick="checkAnswer();" value="Проверить" class="btn btn-default" />
+                            </div>
+                        </div>
+                break;
+        }
+    </div>
+</form>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

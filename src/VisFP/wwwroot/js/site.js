@@ -92,7 +92,7 @@ onload = function () {
                 updateDisplay();
 
                 // Inject the icon if applicable
-                if ($button.find('.state-icon').length == 0) {
+                if ($button.find('.state-icon').length === 0) {
                     $button.prepend('<i class="state-icon ' + settings[$button.data('state')].icon + '"></i> ');
                 }
             }
@@ -120,19 +120,25 @@ function disableAnswerButton() {
 }
 
 function handleAnswer(answerResult) {
-    if (answerResult.block !== undefined || answerResult.attemptsLeft === 0) {
+    if (answerResult.block !== undefined ) {
         disableAnswerButton();
-        if (answerResult.block !== undefined)
-            console.log("Stop right there, criminal scum!");
+        console.log("Stop right there, criminal scum!");
     }
     else {
-        $("#attemptsCount").html(answerResult.currentAttempt);
         if (answerResult.isCorrect) {
             disableAnswerButton();
             $("#answerCorrectness").html("Ответ правильный!");
+            $("#answerCorrectness").removeClass();
+            $("#answerCorrectness").addClass("answer success-answer");
         }
-        else
+        else {
+            if(answerResult.attemptsLeft === 0)
+                disableAnswerButton();
             $("#answerCorrectness").html("Ответ неверный.");
+            $("#answerCorrectness").removeClass();
+            $("#answerCorrectness").addClass("answer fail-answer");
+            $("#attemptsCount").html(answerResult.currentAttempt);
+        }
         
     }
 } 
@@ -157,7 +163,7 @@ function checkAnswer() {
     }
     $.ajax({
         type: "POST",
-        url: "/Home/Answer",
+        url: "/RegGram/Answer",
         data: data,
         success: handleAnswer
     });
@@ -173,7 +179,7 @@ function saveGraph() {
         })
     };
     $.ajax({
-        url: "/Home/SaveGraph",
+        url: "/RegGram/SaveGraph",
         type: "POST",
         dataType: "json",
         data: data
