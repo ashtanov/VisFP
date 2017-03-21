@@ -8,6 +8,7 @@ using VisFP.Models.RGViewModels;
 using VisFP.Data;
 using Microsoft.AspNetCore.Identity;
 using VisFP.Models.DBModels;
+using Microsoft.Extensions.Logging;
 
 namespace VisFP.Controllers
 {
@@ -15,12 +16,16 @@ namespace VisFP.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _dbContext;
+        private readonly ILogger _logger;
+
         public HomeController(
             UserManager<ApplicationUser> userManager,
-            ApplicationDbContext dbContext)
+            ApplicationDbContext dbContext,
+            ILoggerFactory loggerFactory)
         {
             _userManager = userManager;
             _dbContext = dbContext;
+            _logger = loggerFactory.CreateLogger<HomeController>();
         }
 
         public async Task<IActionResult> Index(int task)
@@ -93,6 +98,7 @@ namespace VisFP.Controllers
             };
             _dbContext.TaskProblems.Add(cTask);
             await _dbContext.SaveChangesAsync();
+            _logger.LogInformation($"ProblemId: {cTask.ProblemId}, Generation: {generation}");
 
             //формируем модель для показа
             var vm = new TaskViewModel(rg);
@@ -116,7 +122,9 @@ namespace VisFP.Controllers
                 {
                     if (problem.AnswerType == TaskAnswerType.SymbolsAnswer)
                     {
-                        avm.Answer = string.Join(" ", avm.Answer.Split(' ').OrderBy(x => x));
+                        avm.Answer = avm.Answer != null
+                            ? string.Join(" ", avm.Answer.Split(' ').OrderBy(x => x))
+                            : "";
                     }
                     var isCorrect = avm.Answer == problem.RightAnswer;
                     _dbContext.Attempts.Add(

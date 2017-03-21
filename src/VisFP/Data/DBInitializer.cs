@@ -18,8 +18,11 @@ namespace VisFP.Data
             {
                 var manager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
+
                 var user = new ApplicationUser { UserName = "Alex" };
                 var result = await manager.CreateAsync(user, "1234");
+
+                
 
                 var dbcontext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 dbcontext.Tasks.Add(new RgTask

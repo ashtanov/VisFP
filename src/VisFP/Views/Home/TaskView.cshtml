@@ -20,20 +20,18 @@
             Начальное состояние: <b>@Model.Grammar.Alph.InitState</b>
         </dd>
     </dl>
-    <dl class="dl-horizontal">
-        <dt>
-            @Html.DisplayNameFor(model => model.TaskText)
-        </dt>
-        <dd>
-            @Html.DisplayFor(model => model.TaskText)
-        </dd>
-    </dl>
-
 </div>
 <div>
     @{await Html.RenderPartialAsync("GraphView", Model);}
 </div>
-
+<dl class="dl-horizontal">
+    <dt>
+        @Html.DisplayNameFor(model => model.TaskText)
+    </dt>
+    <dd>
+        @Html.DisplayFor(model => model.TaskText)
+    </dd>
+</dl>
 @{ await Html.RenderPartialAsync("AcceptAnswerView",
         new AnswerViewModel { TaskId = Model.Id, MaxAttemptsCount = Model.MaxAttempts, Alph = Model.Grammar.Alph }); }
 
