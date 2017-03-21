@@ -128,6 +128,53 @@ namespace VisFP.Models
             _cyclicNonTerminals = cyclic.Distinct().ToArray();
         }
 
+        public bool IsProper //приведенная ли?
+        {
+            get
+            {
+                return 
+                    ReachableNonterminals.Length == Alph.NonTerminals.Count 
+                    && GeneratingNonterminals.Length == Alph.NonTerminals.Count;
+            }
+        }
+
+        /// <summary>
+        /// Получить приведенную версию грамматики
+        /// </summary>
+        /// <returns>Если null - значит исходную привести нельзя!</returns>
+        public RegularGrammar GetProperVersion()
+        {
+            try
+            {
+                //удаление "бесплодных" символов
+                var emptySymbols = new HashSet<char>(Alph.NonTerminals.Except(GeneratingNonterminals));
+                var newRules = Rules
+                    .Where(x => !emptySymbols.Contains(x.Lnt) || (x.Rnt.HasValue && !emptySymbols.Contains(x.Rnt.Value))).ToList();
+                RegularGrammar tmp = new RegularGrammar(
+                    new Alphabet(
+                        Alph.InitState,
+                        Alph.Terminals.ToArray(),
+                        Alph.NonTerminals.Except(emptySymbols).ToArray()
+                        ),
+                    newRules);
+                //из получившейся грамматики удаляем недостижимые символы
+                var unreachableSymbols = new HashSet<char>(tmp.Alph.NonTerminals.Except(tmp.ReachableNonterminals));
+                var newRules2 = tmp.Rules
+                    .Where(x => !unreachableSymbols.Contains(x.Lnt) || (x.Rnt.HasValue && !unreachableSymbols.Contains(x.Rnt.Value))).ToList();
+                return
+                    new RegularGrammar(new Alphabet(
+                        tmp.Alph.InitState,
+                        tmp.Alph.Terminals.ToArray(),
+                        tmp.Alph.NonTerminals.Except(unreachableSymbols).ToArray()
+                        ),
+                    newRules2);
+            }
+            catch(ArgumentException ex)
+            {
+                return null;
+            }
+        }
+
         public string Serialize()
         {
             return JsonConvert.SerializeObject(this);

@@ -34,6 +34,16 @@ var options = {
     }
 };
 onload = function () {
+
+    $('#radioBtn a').on('click', function () {
+        var sel = $(this).data('title');
+        var tog = $(this).data('toggle');
+        $('#' + tog).prop('value', sel);
+
+        $('a[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('notActive');
+        $('a[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('notActive').addClass('active');
+    })
+
     $(function () {
         $('.button-checkbox').each(function () {
 
@@ -145,13 +155,20 @@ function handleAnswer(answerResult) {
 
 function checkAnswer() {
     var data;
-    if ($("#answerSymbols") !== undefined) {
+    if ($("#answerSymbols").length !== 0) {
         data ={ 
             Answer: objToArray(
                 $(".answerCheckboxes")
                 .filter(function (i, x) { return x.checked; })
                 .map(function (i, x) { return x.value })
             ).join(" "),
+            TaskId: $('#taskId').val()
+        };
+    }
+    else if ($("#yesNoAnswer").length !== 0)
+    {
+        data = {
+            Answer: $('#yesNoAnswer').val(),
             TaskId: $('#taskId').val()
         };
     }
@@ -168,6 +185,7 @@ function checkAnswer() {
         success: handleAnswer
     });
 }
+
 
 function saveGraph() {
     var dn = objToArray(network.body.data["nodes"]._data);

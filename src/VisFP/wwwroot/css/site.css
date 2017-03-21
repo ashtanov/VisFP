@@ -125,3 +125,9 @@ div.table_description {
 .success-answer {
     color: #3c763d;
 }
+
+.btn.notActive {
+    background-color: white;
+    color: black;
+}
+

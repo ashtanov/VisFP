@@ -7,6 +7,7 @@ namespace VisFP.Models
 {
     public enum TaskAnswerType
     {
-        SymbolsAnswer
+        SymbolsAnswer,
+        YesNoAnswer
     }
 }

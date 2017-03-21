@@ -27,7 +27,7 @@ namespace VisFP.Models
             NonTerminals = new List<char>(_notTerminals);
             InitState = init;
             if (!_notTerminals.Contains(init))
-                throw new Exception($"Начальный символ {init} должен содержаться в множестве нетерминалов!");
+                throw new ArgumentException($"Начальный символ {init} должен содержаться в множестве нетерминалов!");
         }
 
         public string Serialize()

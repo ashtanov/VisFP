@@ -18,6 +18,7 @@ namespace VisFP.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _dbContext;
         private readonly ILogger _logger;
+        private readonly Random _rand;
 
         public RegGramController(
             UserManager<ApplicationUser> userManager,
@@ -27,6 +28,7 @@ namespace VisFP.Controllers
             _userManager = userManager;
             _dbContext = dbContext;
             _logger = loggerFactory.CreateLogger<RegGramController>();
+            _rand = new Random();
         }
 
         [Authorize]
@@ -44,19 +46,25 @@ namespace VisFP.Controllers
                 switch (id)
                 {
                     case 1:
-                        return await TaskSymbolsAnswer(reqTask,
+                        return await GenerateProblem(reqTask,
                             x => x.ReachableNonterminals.Length == x.Alph.NonTerminals.Count,
                             y => string.Join(" ", y.Alph.NonTerminals.Except(y.ReachableNonterminals).OrderBy(z => z))
                             );
                     case 2:
-                        return await TaskSymbolsAnswer(reqTask,
+                        return await GenerateProblem(reqTask,
                             x => x.GeneratingNonterminals.Length == x.Alph.NonTerminals.Count,
                             y => string.Join(" ", y.Alph.NonTerminals.Except(y.GeneratingNonterminals).OrderBy(z => z))
                             );
                     case 3:
-                        return await TaskSymbolsAnswer(reqTask,
+                        return await GenerateProblem(reqTask,
                             x => x.CyclicNonterminals.Length == 0,
                             y => string.Join(" ", y.CyclicNonterminals.OrderBy(z => z))
+                            );
+                    case 4:
+                        bool isProper = _rand.Next(2) == 1;
+                        return await GenerateProblem(reqTask,
+                            x => x.IsProper != isProper,
+                            y => isProper ? "yes" : "no"
                             );
                     default:
                         return RedirectToAction("Index");
@@ -74,7 +82,7 @@ namespace VisFP.Controllers
         /// <param name="getAnswer">метод получения ответа на задачу</param>
         /// <returns></returns>
         [NonAction]
-        public async Task<IActionResult> TaskSymbolsAnswer(RgTask task,
+        public async Task<IActionResult> GenerateProblem(RgTask task,
             Func<RegularGrammar, bool> conditionUntil,
             Func<RegularGrammar, string> getAnswer)
         {
@@ -98,7 +106,7 @@ namespace VisFP.Controllers
             //записываем проблему в базу
             var cTask = new RgTaskProblem
             {
-                RightAnswer = string.Join(" ", getAnswer(rg)),
+                RightAnswer = getAnswer(rg),
                 TaskNumber = task.TaskNumber,
                 ProblemGrammar = rg.Serialize(),
                 User = user,
@@ -113,6 +121,7 @@ namespace VisFP.Controllers
             var vm = new TaskViewModel(rg);
             vm.TaskText = task.TaskText;
             vm.TaskTitle = task.TaskTitle;
+            vm.AnswerType = task.AnswerType;
             vm.Id = cTask.ProblemId;
             vm.MaxAttempts = cTask.MaxAttempts;
             vm.Generation = generation;

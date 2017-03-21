@@ -11,6 +11,7 @@ namespace VisFP.Models.RGViewModels
         public Guid Id { get; set; }
 
         public string TaskTitle { get; set; }
+        public TaskAnswerType AnswerType { get; set; }
 
         [Display(Name = "Задание")]
         public string TaskText { get; set; }

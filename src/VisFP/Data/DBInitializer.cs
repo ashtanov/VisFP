@@ -70,6 +70,19 @@ namespace VisFP.Data
                     TaskNumber = 3,
                     AnswerType = Models.TaskAnswerType.SymbolsAnswer
                 });
+
+                dbcontext.Tasks.Add(new RgTask
+                {
+                    TaskText = "Является ли заданая грамматика приведенной?",
+                    TaskTitle = "Задача 4. Приведенные грамматики",
+                    NonTerminalRuleCount = 4,
+                    TerminalRuleCount = 2,
+                    AlphabetNonTerminalsCount = 3,
+                    AlphabetTerminalsCount = 2,
+                    MaxAttempts = 1,
+                    TaskNumber = 4,
+                    AnswerType = Models.TaskAnswerType.YesNoAnswer
+                });
                 await dbcontext.SaveChangesAsync();
             }
         }

@@ -33,7 +33,7 @@
     </dd>
 </dl>
 @{ await Html.RenderPartialAsync("AcceptAnswerView",
-        new AnswerViewModel { TaskId = Model.Id, MaxAttemptsCount = Model.MaxAttempts, Alph = Model.Grammar.Alph }); }
+        new AnswerViewModel { TaskId = Model.Id, MaxAttemptsCount = Model.MaxAttempts, Alph = Model.Grammar.Alph, AnswerType = Model.AnswerType }); }
 
 <a asp-action="Index">Back to List</a>
 <div>@Model.Generation</div>
