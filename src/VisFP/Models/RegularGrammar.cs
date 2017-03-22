@@ -138,6 +138,14 @@ namespace VisFP.Models
             }
         }
 
+        public bool IsEmptyLanguage //порождает ли пустой язык?
+        {
+            get
+            {
+                return !GeneratingNonterminals.Contains(Alph.InitState);
+            }
+        }
+
         /// <summary>
         /// Получить приведенную версию грамматики
         /// </summary>

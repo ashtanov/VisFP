@@ -66,6 +66,13 @@ namespace VisFP.Controllers
                             x => x.IsProper != isProper,
                             y => isProper ? "yes" : "no"
                             );
+                    case 5:
+                        bool isEmptyLang = _rand.Next(2) == 1;
+                        return await GenerateProblem(reqTask,
+                            x => x.IsEmptyLanguage != isEmptyLang,
+                            y => isEmptyLang ? "yes" : "no"
+                            );
+                        
                     default:
                         return RedirectToAction("Index");
                 }
@@ -86,14 +93,14 @@ namespace VisFP.Controllers
             Func<RegularGrammar, bool> conditionUntil,
             Func<RegularGrammar, string> getAnswer)
         {
-            var user = await _userManager.GetUserAsync(User);
+            
             var alphabet = Alphabet.GenerateRandom(
                 task.AlphabetNonTerminalsCount,
                 task.AlphabetTerminalsCount);
             RegularGrammar rg;
             int generation = 0;
 
-            //генерируем грамматику пока не будет удовлетворять условию
+            //генерируем грамматику пока она удовлетворяет условию
             do
             {
                 rg = RGGenerator.Instance.Generate(
@@ -103,6 +110,7 @@ namespace VisFP.Controllers
                 generation++;
             } while (conditionUntil(rg));
 
+            var user = await _userManager.GetUserAsync(User);
             //записываем проблему в базу
             var cTask = new RgTaskProblem
             {

@@ -83,6 +83,19 @@ namespace VisFP.Data
                     TaskNumber = 4,
                     AnswerType = Models.TaskAnswerType.YesNoAnswer
                 });
+
+                dbcontext.Tasks.Add(new RgTask
+                {
+                    TaskText = "Является ли язык, порожденный заданной грамматикой, пустым?",
+                    TaskTitle = "Задача 5. Приведенные грамматики",
+                    NonTerminalRuleCount = 7,
+                    TerminalRuleCount = 2,
+                    AlphabetNonTerminalsCount = 3,
+                    AlphabetTerminalsCount = 2,
+                    MaxAttempts = 1,
+                    TaskNumber = 5,
+                    AnswerType = Models.TaskAnswerType.YesNoAnswer
+                });
                 await dbcontext.SaveChangesAsync();
             }
         }
