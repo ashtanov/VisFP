@@ -23,11 +23,11 @@ namespace VisFP.Data
                 await roleManager.CreateAsync(new IdentityRole { Name = "Admin" });
                 await roleManager.CreateAsync(new IdentityRole { Name = "User" });
 
-                var adminUser = new ApplicationUser { UserName = "Alex" };
+                var adminUser = new ApplicationUser { UserName = "Admin", RealName = "Администратор" };
                 await manager.CreateAsync(adminUser, "q1w2e3r4");
                 await manager.AddToRoleAsync(adminUser, "Admin");
 
-                var simpleUser = new ApplicationUser { UserName = "Test" };
+                var simpleUser = new ApplicationUser { UserName = "Test", RealName = "Тест Тестович" };
                 await manager.CreateAsync(simpleUser, "1234");
                 await manager.AddToRoleAsync(simpleUser, "User");
 

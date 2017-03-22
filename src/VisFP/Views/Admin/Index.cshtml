@@ -1,3 +1,66 @@
-﻿@{
+﻿@model AdminMainPageViewModel
+
+@{
     ViewData["Title"] = "Административная зона";
 }
+
+<h1>@ViewData["Title"]</h1>
+<h2>Добавить пользователя</h2>
+
+@{ await Html.RenderPartialAsync("CreateUser", new CreateUserViewModel()); }
+<hr />
+<h2>Список пользователей</h2>
+
+<table class="table table-hover table-bordered">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.AllUsers.First().UserName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AllUsers.First().RealName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AllUsers.First().IsAdmin)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AllUsers.First().Meta)
+            </th>
+            <th>
+                Действия
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.AllUsers)
+        {
+            <tr>
+                @if (item.IsAdmin)
+                {
+                    <td style="color: red; font-weight: bold;">
+                        @Html.DisplayFor(modelItem => item.UserName)
+                    </td>
+                }
+                else
+                {
+                    <td>
+                        @Html.DisplayFor(modelItem => item.UserName)
+                    </td>
+                }
+                <td>
+                    @Html.DisplayFor(modelItem => item.RealName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IsAdmin)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Meta)
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-primary">Изменить</button>
+                    <button class="btn btn-sm btn-danger">Удалить</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
