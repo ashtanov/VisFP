@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
-using VisFP.Models.DBModels;
+using VisFP.Data.DBModels;
 using VisFP.Models.AdminViewModels;
 
 namespace VisFP.Controllers
@@ -29,10 +29,11 @@ namespace VisFP.Controllers
         public async Task<IActionResult> Index()
         {
             List<UserForView> users = new List<UserForView>();
-            foreach(var u in _userManager.Users)
+            foreach (var u in _userManager.Users)
             {
-                var isCurrAdmin = await _userManager.IsInRoleAsync(u, "Admin");
-                users.Add(new UserForView(u, isCurrAdmin));
+                var roles = await _userManager.GetRolesAsync(u);
+                var userRole = (DbRole)Enum.Parse(typeof(DbRole), roles.First());
+                users.Add(new UserForView(u, userRole));
             }
             var model = new AdminMainPageViewModel
             {

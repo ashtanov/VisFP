@@ -8,7 +8,6 @@ namespace VisFP.Models.RGViewModels
     public class AnswerResultViewModel
     {
         public bool IsCorrect { get; set; }
-        public int CurrentAttempt { get; set; }
         public int AttemptsLeft { get; set; }
     }
 }

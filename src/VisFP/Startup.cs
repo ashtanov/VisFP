@@ -10,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VisFP.Data;
-using VisFP.Models.DBModels;
+using VisFP.Data.DBModels;
 using Microsoft.AspNetCore.Identity;
 
 namespace VisFP

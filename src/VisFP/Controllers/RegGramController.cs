@@ -7,9 +7,10 @@ using VisFP.Models;
 using VisFP.Models.RGViewModels;
 using VisFP.Data;
 using Microsoft.AspNetCore.Identity;
-using VisFP.Models.DBModels;
+using VisFP.Data.DBModels;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
+using VisFP.Data.DBModels;
 
 namespace VisFP.Controllers
 {
@@ -111,17 +112,22 @@ namespace VisFP.Controllers
             } while (conditionUntil(rg));
 
             var user = await _userManager.GetUserAsync(User);
+            //записываем граматику в базу
+            var cGrammar = new RGrammar
+            {
+                GrammarJson = rg.Serialize()
+            };
+            await _dbContext.RGrammars.AddAsync(cGrammar);
             //записываем проблему в базу
             var cTask = new RgTaskProblem
             {
                 RightAnswer = getAnswer(rg),
                 TaskNumber = task.TaskNumber,
-                ProblemGrammar = rg.Serialize(),
-                User = user,
+                CurrentGrammar = cGrammar,
                 MaxAttempts = task.MaxAttempts,
                 AnswerType = task.AnswerType
             };
-            _dbContext.TaskProblems.Add(cTask);
+            await _dbContext.TaskProblems.AddAsync(cTask);
             await _dbContext.SaveChangesAsync();
             _logger.LogInformation($"ProblemId: {cTask.ProblemId}, Generation: {generation}");
 
@@ -142,7 +148,7 @@ namespace VisFP.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             var problem = _dbContext.TaskProblems.FirstOrDefault(x => x.ProblemId == avm.TaskId);
-            if (problem != null || user != problem.User) //задача не принадлежит текущему юзеру или задачи нет
+            if (problem != null) //задачи нет
             {
                 var totalAttempts = _dbContext.Attempts.Count(x => x.ProblemId == problem.ProblemId);
                 if (totalAttempts < problem.MaxAttempts)
@@ -153,6 +159,7 @@ namespace VisFP.Controllers
                             ? string.Join(" ", avm.Answer.Split(' ').OrderBy(x => x))
                             : "";
                     }
+                    totalAttempts += 1; //добавили текущую попытку
                     var isCorrect = avm.Answer == problem.RightAnswer;
                     _dbContext.Attempts.Add(
                         new RgAttempt
@@ -166,8 +173,7 @@ namespace VisFP.Controllers
                     return new JsonResult(
                         new AnswerResultViewModel
                         {
-                            CurrentAttempt = totalAttempts + 2, //одна попытка сейчас добавилась, отсчет с 1
-                            AttemptsLeft = problem.MaxAttempts - (totalAttempts + 1),
+                            AttemptsLeft = problem.MaxAttempts - totalAttempts,
                             IsCorrect = isCorrect
                         });
                 }

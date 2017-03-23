@@ -21,7 +21,7 @@
                 @Html.DisplayNameFor(model => model.AllUsers.First().RealName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.AllUsers.First().IsAdmin)
+                @Html.DisplayNameFor(model => model.AllUsers.First().Role)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.AllUsers.First().Meta)
@@ -35,23 +35,29 @@
         @foreach (var item in Model.AllUsers)
         {
             <tr>
-                @if (item.IsAdmin)
+                @if (item.Role == DbRole.Admin)
                 {
                     <td style="color: red; font-weight: bold;">
                         @Html.DisplayFor(modelItem => item.UserName)
                     </td>
                 }
-                else
+                else if (item.Role == DbRole.Teacher)
                 {
-                    <td>
+                    <td style="color: blue; font-weight: bold;">
                         @Html.DisplayFor(modelItem => item.UserName)
                     </td>
+                }
+                else
+                {
+                <td>
+                    @Html.DisplayFor(modelItem => item.UserName)
+                </td>
                 }
                 <td>
                     @Html.DisplayFor(modelItem => item.RealName)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.IsAdmin)
+                    @item.Role.GetDisplayName()
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Meta)

@@ -1,4 +1,4 @@
-@model VisFP.Models.AdminViewModels.CreateUserViewModel
+﻿@model VisFP.Models.AdminViewModels.CreateUserViewModel
 
 <form asp-action="CreateUser">
     <div class="form-horizontal">
@@ -25,6 +25,17 @@
             </div>
         </div>
         <div class="form-group">
+            <label asp-for="Role" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <select class="selectpicker" title="Выберите роль">
+                    @foreach (DbRole role in Enum.GetValues(typeof(DbRole)))
+                    {
+                        <option value="@role">@role.GetDisplayName()</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
             <label asp-for="Email" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <input asp-for="Email" class="form-control" />
@@ -40,7 +51,7 @@
         </div>
         <div class="form-group">
             <div class="col-md-offset-2 col-md-10">
-                <input type="submit" value="�������" class="btn btn-default" />
+                <input type="submit" value="Создать" class="btn btn-default" />
             </div>
         </div>
     </div>

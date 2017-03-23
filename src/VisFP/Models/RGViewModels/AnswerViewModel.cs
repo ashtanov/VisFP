@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
+using VisFP.Data.DBModels;
 
 namespace VisFP.Models.RGViewModels
 {
@@ -12,7 +11,7 @@ namespace VisFP.Models.RGViewModels
         public string Answer { get; set; }
         public Guid TaskId { get; set; }
         public int MaxAttemptsCount { get; set; }
-        public Alphabet Alph { get; set; }
+        public IEnumerable<char> SymbolsCheckBox { get; set; }
         public TaskAnswerType AnswerType { get; set; }
     }
 }

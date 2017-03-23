@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using VisFP.Data.DBModels;
 
 namespace VisFP.Models.AdminViewModels
 {
@@ -17,6 +18,9 @@ namespace VisFP.Models.AdminViewModels
         public string Password { get; set; }
         [Display(Name = "Email")]
         public string Email { get; set; }
+        [Required]
+        [Display(Name = "Роль")]
+        public DbRole Role { get; set; }
         [Display(Name = "Дополнительная информация")]
         public string Meta { get; set; }
     }

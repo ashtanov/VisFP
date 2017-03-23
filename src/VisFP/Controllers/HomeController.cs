@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
-using VisFP.Models.DBModels;
+using VisFP.Data.DBModels;
 using VisFP.Models.HomeViewModels;
 
 namespace VisFP.Controllers

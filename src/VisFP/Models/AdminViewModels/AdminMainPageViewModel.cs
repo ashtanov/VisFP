@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using VisFP.Models.DBModels;
+using VisFP.Data.DBModels;
 
 namespace VisFP.Models.AdminViewModels
 {
@@ -13,16 +13,16 @@ namespace VisFP.Models.AdminViewModels
         public string UserName { get; set; }
         [Display(Name = "Имя пользователя")]
         public string RealName { get; set; }
-        [Display(Name = "Администратор")]
-        public bool IsAdmin { get; set; }
+        [Display(Name = "Роль")]
+        public DbRole Role { get; set; }
         [Display(Name = "Дополнительная информация")]
         public string Meta { get; set; }
 
-        public UserForView(ApplicationUser user, bool isAdmin)
+        public UserForView(ApplicationUser user, DbRole role)
         {
             UserName = user.UserName;
             RealName = user.RealName;
-            IsAdmin = isAdmin;
+            Role = role;
             Meta = user.Meta;
         }
     }

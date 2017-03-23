@@ -147,13 +147,13 @@ function handleAnswer(answerResult) {
             $("#answerCorrectness").html("Ответ неверный.");
             $("#answerCorrectness").removeClass();
             $("#answerCorrectness").addClass("answer fail-answer");
-            $("#attemptsCount").html(answerResult.currentAttempt);
         }
+        $("#attemptsCount").html(answerResult.attemptsLeft);
         
     }
 } 
 
-function checkAnswer() {
+function sendUserAnswer() {
     var data;
     if ($("#answerSymbols").length !== 0) {
         data ={ 
