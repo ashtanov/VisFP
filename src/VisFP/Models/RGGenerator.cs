@@ -106,5 +106,7 @@ namespace VisFP.Models
             result = result.OrderBy(x => x.Lnt).ToList();
             return new RegularGrammar(alph, result);
         }
+
+
     }
 }

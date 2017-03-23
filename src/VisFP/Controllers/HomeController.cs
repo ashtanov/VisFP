@@ -29,7 +29,8 @@ namespace VisFP.Controllers
                 return View(
                     new MainPageViewModel
                     {
-                        IsAdmin = await _userManager.IsInRoleAsync(user, "Admin")
+                        IsAdmin = await _userManager.IsInRoleAsync(user, Enum.GetName(typeof(DbRole), DbRole.Admin)),
+                        IsTeacher = await _userManager.IsInRoleAsync(user, Enum.GetName(typeof(DbRole),DbRole.Teacher))
                     });
             }
         }

@@ -3,11 +3,17 @@
     ViewData["Title"] = "Главная страница";
 }
 <h1>@ViewData["Title"]</h1>
-
-<ul>
-    @if (Model.IsAdmin)
-    {
-        <li><a href="/Admin">Административная зона</a></li>
-    }
-    <li><a href="/RegGram">Регулярные граматики</a></li>
-</ul>
+@if (Model.IsAdmin)
+{
+    <a class="btn btn-danger" href="/Admin">Административная зона</a>
+}
+@if (Model.IsTeacher || Model.IsAdmin)
+{
+    <a class="btn btn-primary" href="/Teacher">Управление группами и задачами</a>
+}
+<h2>Выберите раздел задач:</h2>
+<div class="list-group col-lg-5">
+    <a href="/RegGram" class="list-group-item">1. Регулярные граматики <span class="badge">5</span></a>
+    <a href="#" class="list-group-item">2. Конечные автоматы <span class="badge">0</span></a>
+    <a href="#" class="list-group-item">3. Сети петри <span class="badge">0</span></a>
+</div>
