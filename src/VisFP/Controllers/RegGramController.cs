@@ -48,18 +48,18 @@ namespace VisFP.Controllers
                 {
                     case 1:
                         return await GenerateProblem(reqTask,
-                            x => x.ReachableNonterminals.Length == x.Alph.NonTerminals.Count,
-                            y => string.Join(" ", y.Alph.NonTerminals.Except(y.ReachableNonterminals).OrderBy(z => z))
+                            x => x.ReachableNonterminals.Value.Length == x.Alph.NonTerminals.Count,
+                            y => string.Join(" ", y.Alph.NonTerminals.Except(y.ReachableNonterminals.Value).OrderBy(z => z))
                             );
                     case 2:
                         return await GenerateProblem(reqTask,
-                            x => x.GeneratingNonterminals.Length == x.Alph.NonTerminals.Count,
-                            y => string.Join(" ", y.Alph.NonTerminals.Except(y.GeneratingNonterminals).OrderBy(z => z))
+                            x => x.GeneratingNonterminals.Value.Length == x.Alph.NonTerminals.Count,
+                            y => string.Join(" ", y.Alph.NonTerminals.Except(y.GeneratingNonterminals.Value).OrderBy(z => z))
                             );
                     case 3:
                         return await GenerateProblem(reqTask,
-                            x => x.CyclicNonterminals.Length == 0,
-                            y => string.Join(" ", y.CyclicNonterminals.OrderBy(z => z))
+                            x => x.CyclicNonterminals.Value.Length == 0,
+                            y => string.Join(" ", y.CyclicNonterminals.Value.OrderBy(z => z))
                             );
                     case 4:
                         bool isProper = _rand.Next(2) == 1;
@@ -111,6 +111,7 @@ namespace VisFP.Controllers
                 generation++;
             } while (conditionUntil(rg));
 
+            var chain = rg.GenerateRandomChain(7).Chain;
             var user = await _userManager.GetUserAsync(User);
             //записываем граматику в базу
             var cGrammar = new RGrammar
@@ -124,21 +125,23 @@ namespace VisFP.Controllers
                 RightAnswer = getAnswer(rg),
                 TaskNumber = task.TaskNumber,
                 CurrentGrammar = cGrammar,
+                User = user,
                 MaxAttempts = task.MaxAttempts,
                 AnswerType = task.AnswerType
             };
             await _dbContext.TaskProblems.AddAsync(cTask);
             await _dbContext.SaveChangesAsync();
-            _logger.LogInformation($"ProblemId: {cTask.ProblemId}, Generation: {generation}");
 
             //формируем модель для показа
             var vm = new TaskViewModel(rg);
-            vm.TaskText = task.TaskText;
+            vm.TaskText = task.TaskText + chain;
             vm.TaskTitle = task.TaskTitle;
             vm.AnswerType = task.AnswerType;
             vm.Id = cTask.ProblemId;
             vm.MaxAttempts = cTask.MaxAttempts;
             vm.Generation = generation;
+
+            _logger.LogInformation($"ProblemId: {cTask.ProblemId}, Generation: {generation}");
             return View("TaskView", vm);
         }
 
@@ -148,7 +151,7 @@ namespace VisFP.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             var problem = _dbContext.TaskProblems.FirstOrDefault(x => x.ProblemId == avm.TaskId);
-            if (problem != null) //задачи нет
+            if (problem != null || problem.User != user) //задачи нет или задача не этого юзера
             {
                 var totalAttempts = _dbContext.Attempts.Count(x => x.ProblemId == problem.ProblemId);
                 if (totalAttempts < problem.MaxAttempts)

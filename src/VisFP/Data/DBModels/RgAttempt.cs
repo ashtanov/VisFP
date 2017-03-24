@@ -15,10 +15,6 @@ namespace VisFP.Data.DBModels
         public string Answer { get; set; }
         public bool IsCorrect { get; set; }
 
-        public string UserId { get; set; }
-        [ForeignKey("UserId")]
-        public ApplicationUser User {get;set;}
-
         public Guid ProblemId { get; set; }
         [ForeignKey("ProblemId")]
         public RgTaskProblem Problem { get; set; }

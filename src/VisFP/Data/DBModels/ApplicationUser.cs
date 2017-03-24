@@ -12,6 +12,6 @@ namespace VisFP.Data.DBModels
         public string RealName { get; set; }
         public string Meta { get; set; }
 
-        public ICollection<RgAttempt> Attempts { get; set; }
+        public ICollection<RgTaskProblem> Problems { get; set; }
     }
 }

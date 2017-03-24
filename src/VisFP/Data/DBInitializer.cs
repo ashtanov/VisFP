@@ -80,9 +80,9 @@ namespace VisFP.Data
                 {
                     TaskText = "Является ли заданая грамматика приведенной?",
                     TaskTitle = "Задача 4. Приведенные грамматики",
-                    NonTerminalRuleCount = 4,
+                    NonTerminalRuleCount = 7,
                     TerminalRuleCount = 2,
-                    AlphabetNonTerminalsCount = 3,
+                    AlphabetNonTerminalsCount = 4,
                     AlphabetTerminalsCount = 2,
                     MaxAttempts = 1,
                     TaskNumber = 4,
