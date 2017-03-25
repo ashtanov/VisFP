@@ -8,6 +8,8 @@ namespace VisFP.Data.DBModels
     public enum TaskAnswerType
     {
         SymbolsAnswer,
-        YesNoAnswer
+        YesNoAnswer,
+        Text,
+        TextMulty
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,6 +20,16 @@ namespace VisFP.Utils
             else
                 node = dict[nT];
             return node;
+        }
+
+        public static List<string> DeserializeJsonListOfStrings(this string str)
+        {
+            return JsonConvert.DeserializeObject<List<string>>(str);
+        }
+
+        public static string SerializeJsonListOfStrings(this List<string> list)
+        {
+            return JsonConvert.SerializeObject(list);
         }
     }
 }

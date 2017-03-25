@@ -12,5 +12,6 @@ namespace VisFP.Data.DBModels
         public Guid GrammarId { get; set; }
         public string GrammarJson { get; set; }
         public ICollection<RgTaskProblem> Problems { get; set; }
+        public ICollection<RgTask> Tasks { get; set; }
     }
 }

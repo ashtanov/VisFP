@@ -1,4 +1,4 @@
-﻿@model IEnumerable<int>
+﻿@model IEnumerable<Tuple<int,string>>
 @{
     ViewData["Title"] = "Список задач";
 }
@@ -6,6 +6,6 @@
 <ul>
     @foreach(var t in Model)
     {
-        <li><a href="/RegGram/Task/@t">Задача @t</a></li>
+        <li><a href="/RegGram/Task/@t.Item1">@t.Item2</a></li>
     }
 </ul>

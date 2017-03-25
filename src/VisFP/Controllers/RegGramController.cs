@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using VisFP.Data.DBModels;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
-using VisFP.Data.DBModels;
+using VisFP.Utils;
 
 namespace VisFP.Controllers
 {
@@ -19,7 +18,7 @@ namespace VisFP.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _dbContext;
         private readonly ILogger _logger;
-        private readonly Random _rand;
+        private readonly RGProblemGenerator _generator;
 
         public RegGramController(
             UserManager<ApplicationUser> userManager,
@@ -29,120 +28,28 @@ namespace VisFP.Controllers
             _userManager = userManager;
             _dbContext = dbContext;
             _logger = loggerFactory.CreateLogger<RegGramController>();
-            _rand = new Random();
+            _generator = new RGProblemGenerator(_dbContext);
         }
 
         [Authorize]
         public async Task<IActionResult> Index()
         {
-            return View(_dbContext.Tasks.Select(x => x.TaskNumber));
+            return View(_dbContext.Tasks.Select(x => new Tuple<int,string>(x.TaskNumber,x.TaskTitle)));
         }
 
         [Authorize]
         public async Task<IActionResult> Task(int id, Guid taskId)
         {
-            var reqTask = _dbContext.Tasks.FirstOrDefault(x => x.TaskNumber == id);
-            if (reqTask != null)
+            try
             {
-                switch (id)
-                {
-                    case 1:
-                        return await GenerateProblem(reqTask,
-                            x => x.ReachableNonterminals.Value.Length == x.Alph.NonTerminals.Count,
-                            y => string.Join(" ", y.Alph.NonTerminals.Except(y.ReachableNonterminals.Value).OrderBy(z => z))
-                            );
-                    case 2:
-                        return await GenerateProblem(reqTask,
-                            x => x.GeneratingNonterminals.Value.Length == x.Alph.NonTerminals.Count,
-                            y => string.Join(" ", y.Alph.NonTerminals.Except(y.GeneratingNonterminals.Value).OrderBy(z => z))
-                            );
-                    case 3:
-                        return await GenerateProblem(reqTask,
-                            x => x.CyclicNonterminals.Value.Length == 0,
-                            y => string.Join(" ", y.CyclicNonterminals.Value.OrderBy(z => z))
-                            );
-                    case 4:
-                        bool isProper = _rand.Next(2) == 1;
-                        return await GenerateProblem(reqTask,
-                            x => x.IsProper != isProper,
-                            y => isProper ? "yes" : "no"
-                            );
-                    case 5:
-                        bool isEmptyLang = _rand.Next(2) == 1;
-                        return await GenerateProblem(reqTask,
-                            x => x.IsEmptyLanguage != isEmptyLang,
-                            y => isEmptyLang ? "yes" : "no"
-                            );
-                        
-                    default:
-                        return RedirectToAction("Index");
-                }
+                var user = await _userManager.GetUserAsync(User);
+                var viewModel = await _generator.GenerateProblemAsync(id, user);
+                return View("TaskView", viewModel);
             }
-            return Error();//Error!
-
-        }
-
-        /// <summary>
-        /// Генерация проблемы для задачи конкретного типа
-        /// </summary>
-        /// <param name="task">описание задачи</param>
-        /// <param name="conditionUntil">условие генарации грамматики (грамматики генерируются пока не выполнено это условие)</param>
-        /// <param name="getAnswer">метод получения ответа на задачу</param>
-        /// <returns></returns>
-        [NonAction]
-        public async Task<IActionResult> GenerateProblem(RgTask task,
-            Func<RegularGrammar, bool> conditionUntil,
-            Func<RegularGrammar, string> getAnswer)
-        {
-            
-            var alphabet = Alphabet.GenerateRandom(
-                task.AlphabetNonTerminalsCount,
-                task.AlphabetTerminalsCount);
-            RegularGrammar rg;
-            int generation = 0;
-
-            //генерируем грамматику пока она удовлетворяет условию
-            do
+            catch (Exception ex)
             {
-                rg = RGGenerator.Instance.Generate(
-                    ntRuleCount: task.NonTerminalRuleCount,
-                    tRuleCount: task.TerminalRuleCount,
-                    alph: alphabet);
-                generation++;
-            } while (conditionUntil(rg));
-
-            var chain = rg.GenerateRandomChain(7).Chain;
-            var user = await _userManager.GetUserAsync(User);
-            //записываем граматику в базу
-            var cGrammar = new RGrammar
-            {
-                GrammarJson = rg.Serialize()
-            };
-            await _dbContext.RGrammars.AddAsync(cGrammar);
-            //записываем проблему в базу
-            var cTask = new RgTaskProblem
-            {
-                RightAnswer = getAnswer(rg),
-                TaskNumber = task.TaskNumber,
-                CurrentGrammar = cGrammar,
-                User = user,
-                MaxAttempts = task.MaxAttempts,
-                AnswerType = task.AnswerType
-            };
-            await _dbContext.TaskProblems.AddAsync(cTask);
-            await _dbContext.SaveChangesAsync();
-
-            //формируем модель для показа
-            var vm = new TaskViewModel(rg);
-            vm.TaskText = task.TaskText + chain;
-            vm.TaskTitle = task.TaskTitle;
-            vm.AnswerType = task.AnswerType;
-            vm.Id = cTask.ProblemId;
-            vm.MaxAttempts = cTask.MaxAttempts;
-            vm.Generation = generation;
-
-            _logger.LogInformation($"ProblemId: {cTask.ProblemId}, Generation: {generation}");
-            return View("TaskView", vm);
+                return Error();
+            }
         }
 
         [Authorize]
@@ -162,8 +69,13 @@ namespace VisFP.Controllers
                             ? string.Join(" ", avm.Answer.Split(' ').OrderBy(x => x))
                             : "";
                     }
+                    avm.Answer = avm.Answer.Trim();
                     totalAttempts += 1; //добавили текущую попытку
-                    var isCorrect = avm.Answer == problem.RightAnswer;
+                    bool isCorrect;
+                    if (problem.AnswerType == TaskAnswerType.TextMulty)
+                        isCorrect = problem.RightAnswer.DeserializeJsonListOfStrings().Contains(avm.Answer);
+                    else
+                        isCorrect = avm.Answer == problem.RightAnswer;
                     _dbContext.Attempts.Add(
                         new RgAttempt
                         {

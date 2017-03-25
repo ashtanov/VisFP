@@ -27,6 +27,7 @@ namespace VisFP.Data
             builder.Entity<RgTaskProblem>().HasOne(x => x.User).WithMany(y => y.Problems).HasForeignKey(p => p.UserId);
             builder.Entity<RgTaskProblem>().HasOne(x => x.Task).WithMany(y => y.Problems).HasForeignKey(p => p.TaskNumber);
             builder.Entity<RgTaskProblem>().HasOne(x => x.CurrentGrammar).WithMany(y => y.Problems).HasForeignKey(p => p.GrammarId);
+            builder.Entity<RgTask>().HasOne(x => x.FixedGrammar).WithMany(y => y.Tasks).HasForeignKey(p => p.FixedGrammarId);
         }
     }
 }

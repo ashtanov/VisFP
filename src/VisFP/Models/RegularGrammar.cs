@@ -63,7 +63,7 @@ namespace VisFP.Models
         public IReadOnlyList<Rule> Rules { get; private set; }
         public Alphabet Alph { get; private set; }
         public readonly char EndState = '$';
-        public int MaxChainTry { get; set; } = 10;
+        public int MaxChainTry { get; set; } = 100;
         [JsonIgnore]
         public Lazy<char[]> CyclicNonterminals;
         [JsonIgnore]
@@ -160,9 +160,9 @@ namespace VisFP.Models
             bool isFit = false;
             StringBuilder output = new StringBuilder();
             List<int> rulesToProduce = new List<int>();
-            for (int i = 0; i < MaxChainTry && !isFit; ++i) //10 раз пытаемся сгенерить цепочку
+            for (int i = 0; i < MaxChainTry && !isFit; ++i) //несколько раз пытаемся сгенерить цепочку
             {
-                int neededTerminalsCount = minLength;
+                int neededTerminalsCount = minLength - 1;
                 rulesToProduce = new List<int>();
                 output = new StringBuilder();
                 RgNode currentNode = currentGrammar.GrammarGraph.Value;
@@ -207,11 +207,40 @@ namespace VisFP.Models
             return new ChainResult
             {
                 Chain = output.ToString(),
-                ChainRules = string.Join(",", rulesToProduce)
+                ChainRules = string.Join(" ", rulesToProduce)
             };
 
         }
 
+        public List<string> RulesForChainRepresentable(string chain)
+        {
+            var node = GrammarGraph.Value;
+            List<string> res = new List<string>();
+            FindWay(res, node, "", chain);
+            return res;
+        }
+
+        private void FindWay(List<string> storage, RgNode currentNode, string rulesBefore, string chainTail)
+        {
+            if (chainTail.Length > 1)
+            {
+                foreach (var t in currentNode.Edges.Where(x => x.Value.Terminal == chainTail[0]))
+                {
+                    var rulesCurrent = $"{rulesBefore} {(t.Key + 1).ToString()}"; //начинаем с единицы
+                    FindWay(storage, t.Value.NewState, rulesCurrent, chainTail.Substring(1));
+                }
+            }
+            else //ищем терминальное правило с нужным терминалом
+            {
+                var finalRule = currentNode
+                    .Edges
+                    .FirstOrDefault(
+                        x => x.Value.Terminal == chainTail[0]
+                        && x.Value.NewState.NonTerminal == EndState);
+                if (!finalRule.Equals(default(KeyValuePair<int, RgEdge>)))
+                    storage.Add($"{rulesBefore} {(finalRule.Key + 1).ToString()}".Substring(1));//удаляем первый пробел
+            }
+        }
         private char[] FindCyclicNonTerminals()
         {
             List<char> cyclic = new List<char>();

@@ -39,67 +39,75 @@ namespace VisFP.Data
                 var dbcontext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 dbcontext.Tasks.Add(new RgTask
                 {
-                    TaskText = "Отметьте ВСЕ недостижимые символы (нетерминалы)",
                     TaskTitle = "Задача 1. Недостижимые символы",
                     NonTerminalRuleCount = 7,
+                    IsGrammarGenerated = true,
                     TerminalRuleCount = 3,
                     AlphabetNonTerminalsCount = 5,
                     AlphabetTerminalsCount = 3,
                     MaxAttempts = 3,
                     TaskNumber = 1,
-                    AnswerType = TaskAnswerType.SymbolsAnswer
                 });
 
                 dbcontext.Tasks.Add(new RgTask
                 {
-                    TaskText = "Отметьте ВСЕ пустые символы (нетерминалы)",
                     TaskTitle = "Задача 2. Пустые символы",
+                    IsGrammarGenerated = true,
                     NonTerminalRuleCount = 7,
                     TerminalRuleCount = 3,
                     AlphabetNonTerminalsCount = 5,
                     AlphabetTerminalsCount = 3,
                     MaxAttempts = 3,
                     TaskNumber = 2,
-                    AnswerType = TaskAnswerType.SymbolsAnswer
                 });
 
                 dbcontext.Tasks.Add(new RgTask
                 {
-                    TaskText = "Отметьте ВСЕ циклические символы (нетерминалы)",
                     TaskTitle = "Задача 3. Циклические символы",
+                    IsGrammarGenerated = true,
                     NonTerminalRuleCount = 7,
                     TerminalRuleCount = 3,
                     AlphabetNonTerminalsCount = 5,
                     AlphabetTerminalsCount = 3,
                     MaxAttempts = 3,
                     TaskNumber = 3,
-                    AnswerType = TaskAnswerType.SymbolsAnswer
                 });
 
                 dbcontext.Tasks.Add(new RgTask
                 {
-                    TaskText = "Является ли заданая грамматика приведенной?",
                     TaskTitle = "Задача 4. Приведенные грамматики",
+                    IsGrammarGenerated = true,
                     NonTerminalRuleCount = 7,
                     TerminalRuleCount = 2,
                     AlphabetNonTerminalsCount = 4,
                     AlphabetTerminalsCount = 2,
                     MaxAttempts = 1,
                     TaskNumber = 4,
-                    AnswerType = TaskAnswerType.YesNoAnswer
                 });
 
                 dbcontext.Tasks.Add(new RgTask
                 {
-                    TaskText = "Является ли язык, порожденный заданной грамматикой, пустым?",
                     TaskTitle = "Задача 5. Пустые языки",
+                    IsGrammarGenerated = true,
                     NonTerminalRuleCount = 7,
                     TerminalRuleCount = 2,
                     AlphabetNonTerminalsCount = 3,
                     AlphabetTerminalsCount = 2,
                     MaxAttempts = 1,
                     TaskNumber = 5,
-                    AnswerType = TaskAnswerType.YesNoAnswer
+                });
+
+                dbcontext.Tasks.Add(new RgTask
+                {
+                    TaskTitle = "Задача 6. Построение цепочки",
+                    IsGrammarGenerated = true,
+                    NonTerminalRuleCount = 7,
+                    TerminalRuleCount = 2,
+                    AlphabetNonTerminalsCount = 3,
+                    AlphabetTerminalsCount = 2,
+                    MaxAttempts = 3,
+                    TaskNumber = 6,
+                    ChainMinLength = 5
                 });
                 await dbcontext.SaveChangesAsync();
             }

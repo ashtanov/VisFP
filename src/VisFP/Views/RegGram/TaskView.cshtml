@@ -29,7 +29,7 @@
         @Html.DisplayNameFor(model => model.TaskText)
     </dt>
     <dd>
-        @Html.DisplayFor(model => model.TaskText)
+        @Html.Raw(Model.TaskText)
     </dd>
 </dl>
 @{ await Html.RenderPartialAsync("AcceptAnswerView",

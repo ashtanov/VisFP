@@ -15,6 +15,7 @@ namespace VisFP.Data.DBModels
         public string RightAnswer { get; set; }
         public TaskAnswerType AnswerType { get; set; }
         public int MaxAttempts { get; set; }
+        public string Chain { get; set; }
 
         public string UserId { get; set; }
         [ForeignKey(nameof(UserId))]

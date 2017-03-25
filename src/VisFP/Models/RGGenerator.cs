@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -21,7 +20,6 @@ namespace VisFP.Models
 
             term.CopyTo(_terminals, 0);
             notTerm.CopyTo(_notTerminals, 0);
-
 
             Terminals = new List<char>(_terminals);
             NonTerminals = new List<char>(_notTerminals);
