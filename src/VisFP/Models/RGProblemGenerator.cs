@@ -77,17 +77,12 @@ namespace VisFP.Models
 
             if (taskNumber == 6 || taskNumber == 7)
             {
-                _currentChain = _currentGrammar.GenerateRandomChain(reqTask.ChainMinLength);
+                var allChains = _currentGrammar.GetAllChains(reqTask.ChainMinLength);
+                _currentChain = allChains[_rand.Next(allChains.Count)];
                 if (taskNumber == 7 && !_yesNoAnswer)
                 {
-                    var isSuccess = PermutateChainForUnrepresentable();
-                    while (!isSuccess && generation < MaxTry)
-                    {
-                        _currentChain = _currentGrammar.GenerateRandomChain(reqTask.ChainMinLength);
-                        isSuccess = PermutateChainForUnrepresentable();
-                        generation++;
-                    }
-                    if (generation >= MaxTry && !isSuccess) //если не подошли 1000 перегенеренных цепочек - меняем условие
+                    var isSuccess = ChangeChainToUnrepresentable(allChains); //заменяем символы в существующих цепочках пока 
+                    if (!isSuccess)
                         _yesNoAnswer = true;
                 }
             }
@@ -118,46 +113,54 @@ namespace VisFP.Models
             return vm;
         }
 
-        private bool PermutateChainForUnrepresentable()
+        private bool ChangeChainToUnrepresentable(List<ChainResult> allChains)
         {
-            var chainLength = _currentChain.Chain.Length;
-            List<Tuple<int, Queue<char>>> permList = new List<Tuple<int, Queue<char>>>();
-            foreach (var term in _currentChain.Chain.Select((x, i) => new { t = x, ind = i }))
+            var isUnrepresentable = false;
+            foreach (var currentChain in allChains.Select(x => x.Chain).Distinct()) //проходимся по всем допустимым цепочкам
             {
-                permList.Add(
-                    new Tuple<int, Queue<char>>
-                        (
-                            term.ind,
-                            new Queue<char>(
-                                _currentGrammar
-                                .Alph
-                                .Terminals
-                                .Except(new[] { term.t })
-                                .OrderBy(x => _rand.Next()))
-                        )
-                   );
-            }
-            Queue<Tuple<int, Queue<char>>> permQueue = new Queue<Tuple<int, Queue<char>>>(permList.OrderBy(x => _rand.Next()));
-            Tuple<int, Queue<char>> currentItem = permQueue.Dequeue();
-            StringBuilder chainForTest = null;
-            var isFail = false;
-            do
-            {
-                if (currentItem.Item2.Count == 0)
-                    if (permQueue.Count == 0)
-                    {
-                        isFail = true;
-                        break;
-                    }
-                    else
-                        currentItem = permQueue.Dequeue();
-                chainForTest = new StringBuilder(_currentChain.Chain); //берем дефолтную
-                chainForTest[currentItem.Item1] = currentItem.Item2.Dequeue(); //меняем нетерминал
-            } while (_currentGrammar.RulesForChainRepresentable(chainForTest.ToString()).Count > 0); //выводима ли цепочка?
+                var chainLength = currentChain.Length;
+                List<Tuple<int, Queue<char>>> permList = new List<Tuple<int, Queue<char>>>();
+                foreach (var term in currentChain.Select((x, i) => new { t = x, ind = i }))
+                {
+                    permList.Add(
+                        new Tuple<int, Queue<char>>
+                            (
+                                term.ind,
+                                new Queue<char>(
+                                    _currentGrammar
+                                    .Alph
+                                    .Terminals
+                                    .Except(new[] { term.t })
+                                    .OrderBy(x => _rand.Next()))
+                            )
+                       );
+                }
+                Queue<Tuple<int, Queue<char>>> permQueue = new Queue<Tuple<int, Queue<char>>>(permList.OrderBy(x => _rand.Next()));
+                Tuple<int, Queue<char>> currentItem = permQueue.Dequeue();
+                StringBuilder chainForTest = null;
+                var isFail = false;
+                do
+                {
+                    if (currentItem.Item2.Count == 0)
+                        if (permQueue.Count == 0)
+                        {
+                            isFail = true;
+                            break;
+                        }
+                        else
+                            currentItem = permQueue.Dequeue();
+                    chainForTest = new StringBuilder(currentChain); //берем дефолтную
+                    chainForTest[currentItem.Item1] = currentItem.Item2.Dequeue(); //меняем нетерминал
+                } while (allChains.Any(x => x.Chain == chainForTest.ToString())); //пока содержится в списке
 
-            if (!isFail)
-                _currentChain = new ChainResult { Chain = chainForTest.ToString(), ChainRules = null };
-            return !isFail;
+                if (!isFail)
+                {
+                    _currentChain = new ChainResult { Chain = chainForTest.ToString(), ChainRules = null };
+                    isUnrepresentable = true;
+                    break;
+                }
+            }
+            return isUnrepresentable;
         }
 
         private bool ConditionUntilForGrammar(int taskNum)

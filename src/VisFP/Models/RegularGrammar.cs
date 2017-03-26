@@ -139,6 +139,7 @@ namespace VisFP.Models
             }
         }
 
+        [Obsolete]
         /// <summary>
         /// Генерирует цепочку нетерминалов, допустимую грамматикой.
         /// </summary>
@@ -210,6 +211,60 @@ namespace VisFP.Models
                 ChainRules = string.Join(" ", rulesToProduce)
             };
 
+        }
+
+        public List<ChainResult> GetAllChains(int minLength)//получаем все цепочки выводимые длины minLength и если таковых нет, пытаемся получить все длины minLength+1
+        {
+            if (!IsProper)
+            {
+                throw new InvalidOperationException("Цепочки генерируются только по приведенной грамматике");
+            }
+            List<Tuple<ChainResult, RgNode>> currentPathes = //сначала заливаем туда инициализирующее состояние
+                new List<Tuple<ChainResult, RgNode>>(
+                    new[] {
+                        new Tuple<ChainResult,RgNode>(
+                            new ChainResult
+                            {
+                                Chain = "",
+                                ChainRules = ""
+                            },
+                            GrammarGraph.Value)
+                    }
+               );
+
+            List<ChainResult> result = new List<ChainResult>();
+            for (int i = 0; i < minLength || currentPathes.Count == 0; ++i)
+            {
+                List<Tuple<ChainResult, RgNode>> nextPathes = new List<Tuple<ChainResult, RgNode>>();
+                foreach (var path in currentPathes)
+                {
+                    foreach(var edge in path.Item2.Edges)
+                    {
+                        if (edge.Value.NewState.NonTerminal == EndState)
+                        {
+                            if (i >= (minLength - 1))
+                                result.Add(new ChainResult
+                                {
+                                    Chain = path.Item1.Chain + edge.Value.Terminal,
+                                    ChainRules = $"{path.Item1.ChainRules} {edge.Key}"
+                                });
+                        }
+                        else
+                        {
+                            nextPathes.Add(
+                                new Tuple<ChainResult, RgNode>(new ChainResult
+                                {
+                                    Chain = path.Item1.Chain + edge.Value.Terminal,
+                                    ChainRules = $"{path.Item1.ChainRules} {edge.Key}"
+                                },
+                                edge.Value.NewState));
+                        }
+                    }
+                }
+                currentPathes = nextPathes;
+            }
+
+            return result;
         }
 
         public List<string> RulesForChainRepresentable(string chain)
