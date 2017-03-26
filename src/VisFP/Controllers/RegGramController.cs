@@ -46,7 +46,7 @@ namespace VisFP.Controllers
                 var viewModel = await _generator.GenerateProblemAsync(id, user);
                 return View("TaskView", viewModel);
             }
-            catch (Exception ex)
+            catch (Exception ex) //Обработать случай, когда цепочку нельзя сгенерить 100 раз
             {
                 return Error();
             }

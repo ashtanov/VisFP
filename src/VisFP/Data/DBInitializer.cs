@@ -109,6 +109,19 @@ namespace VisFP.Data
                     TaskNumber = 6,
                     ChainMinLength = 5
                 });
+
+                dbcontext.Tasks.Add(new RgTask
+                {
+                    TaskTitle = "Задача 7. Выводима ли цепочка?",
+                    IsGrammarGenerated = true,
+                    NonTerminalRuleCount = 7,
+                    TerminalRuleCount = 2,
+                    AlphabetNonTerminalsCount = 3,
+                    AlphabetTerminalsCount = 2,
+                    MaxAttempts = 1,
+                    TaskNumber = 7,
+                    ChainMinLength = 5
+                });
                 await dbcontext.SaveChangesAsync();
             }
         }
