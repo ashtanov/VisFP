@@ -87,7 +87,7 @@ namespace VisFP.Models
                         isSuccess = PermutateChainForUnrepresentable();
                         generation++;
                     }
-                    if (generation > MaxTry && !isSuccess) //если не подошли 1000 перегенеренных цепочек - меняем условие
+                    if (generation >= MaxTry && !isSuccess) //если не подошли 1000 перегенеренных цепочек - меняем условие
                         _yesNoAnswer = true;
                 }
             }
