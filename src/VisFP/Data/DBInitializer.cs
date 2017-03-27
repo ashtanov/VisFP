@@ -120,7 +120,7 @@ namespace VisFP.Data
                     AlphabetTerminalsCount = 2,
                     MaxAttempts = 1,
                     TaskNumber = 7,
-                    ChainMinLength = 5
+                    ChainMinLength = 6
                 });
                 await dbcontext.SaveChangesAsync();
             }

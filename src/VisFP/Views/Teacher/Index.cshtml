@@ -1,7 +1,29 @@
-﻿@*
+﻿@model IEnumerable<UserGroup>
+@*
     For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
     ViewData["Title"] = "Преподавательская зона";
 }
 <h1>@ViewData["Title"]</h1>
+<a class="btn btn-primary" asp-controller="Teacher" asp-action="CreateGroup">Создать группу</a>
+
+<table class="table table-hover">
+    <tr>
+        <th></th>
+        <th>Название</th>
+        <th>Описание</th>
+        <th>Пользователи</th>
+        <th>Id группы</th>
+    </tr>
+    @foreach (var group in Model)
+    {
+        <tr>
+            <td><a class="btn btn-default" asp-action="Edit" asp-route-id="@group.GroupId">Изменить</a></td>
+            <td>@group.Name</td>
+            <td>@group.Description</td>
+            <td>@(group.Members?.Count ?? 0) </td>
+            <td>@group.GroupId</td>
+        </tr>
+    }
+</table>

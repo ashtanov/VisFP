@@ -1,0 +1,84 @@
+﻿@model VisFP.Data.DBModels.UserGroup
+
+@{
+    ViewData["Title"] = "Редактирование группы " + Model.Name;
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="Edit">
+    <div class="form-horizontal">
+        <hr />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="GroupId" />
+        <input asp-for="Name" type="hidden" />
+        <div class="form-group">
+            <label asp-for="Description" class="col-md-2 control-label"></label>
+            <div class="col-md-5">
+                <input asp-for="Description" class="form-control unlim-text" />
+                <span asp-validation-for="Description" class="text-danger" />
+            </div>
+            <div class="col-md-2">
+                <input type="submit" value="Изменить описание" class="btn btn-default" />
+            </div>
+        </div>
+
+    </div>
+</form>
+
+<div class="row">
+    <div class="col-md-3">
+        <div>
+            <input type="button" value="Добавить список пользователей" class="btn btn-success" />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div>
+            <a class="btn btn-success">Пример списка</a>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div>
+            <input type="button" value="Добавить пользователя" class="btn btn-primary" />
+        </div>
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-heading">Список пользователей</div>
+    <div class="panel-body">
+        @if (Model.Members != null)
+        {
+            <table class="table">
+                <tr>
+                    <th>#</th>
+                    <th>Логин</th>
+                    <th>Имя</th>
+                    <th></th>
+                </tr>
+                @{
+                    int i = 1;
+                }
+                @foreach (var member in Model.Members)
+                {
+                    <tr>
+                        <th>@i++</th>
+                        <th>@member.UserName</th>
+                        <th>@member.RealName</th>
+                        <th></th>
+                    </tr>
+                }
+            </table>
+            }
+            else
+            {
+                <span>Нет пользователей</span>
+            }
+    </div>
+</div>
+<a class="file-input-wrapper btn btn-default  btn-primary"><span>Search for a file to add</span><input type="file" title="Search for a file to add" class="btn-primary" style="left: -143.5px; top: -5px;"></a>
+<div>
+    <a asp-action="Index">Вернуться назад</a>
+</div>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

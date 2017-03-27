@@ -14,7 +14,7 @@ namespace VisFP.Data
         public DbSet<RgTaskProblem> TaskProblems { get; set; }
         public DbSet<RgAttempt> Attempts { get; set; }
         public DbSet<RGrammar> RGrammars { get; set; }
-
+        public DbSet<UserGroup> UserGroups { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
@@ -28,6 +28,7 @@ namespace VisFP.Data
             builder.Entity<RgTaskProblem>().HasOne(x => x.Task).WithMany(y => y.Problems).HasForeignKey(p => p.TaskNumber);
             builder.Entity<RgTaskProblem>().HasOne(x => x.CurrentGrammar).WithMany(y => y.Problems).HasForeignKey(p => p.GrammarId);
             builder.Entity<RgTask>().HasOne(x => x.FixedGrammar).WithMany(y => y.Tasks).HasForeignKey(p => p.FixedGrammarId);
+            builder.Entity<UserGroup>().HasOne(x => x.Creator).WithMany(y => y.OwnedGroups).HasForeignKey(p => p.CreatorId);
         }
     }
 }

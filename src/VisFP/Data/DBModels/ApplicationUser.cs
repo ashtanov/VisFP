@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VisFP.Data.DBModels
 {
@@ -13,5 +14,11 @@ namespace VisFP.Data.DBModels
         public string Meta { get; set; }
 
         public ICollection<RgTaskProblem> Problems { get; set; }
+        public ICollection<UserGroup> OwnedGroups { get; set; } //группы, которые создал пользователь
+
+        
+        public Guid UserGroupId { get; set; }
+        [ForeignKey(nameof(UserGroupId))]
+        public UserGroup UserGroup { get; set; } //группа, к которой привязан пользователь
     }
 }
