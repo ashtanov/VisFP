@@ -1,14 +1,13 @@
 ﻿@model VisFP.Data.DBModels.UserGroup
 
 @{
-    ViewData["Title"] = "CreateGroup";
+    ViewData["Title"] = "Создать группу";
 }
 
-<h2>Создать группу</h2>
+<h2>@ViewData["Title"]</h2>
 
 <form asp-action="CreateGroup">
     <div class="form-horizontal">
-        <h4>UserGroup</h4>
         <hr />
         <div class="form-group">
             <label asp-for="Name" class="col-md-2 control-label"></label>

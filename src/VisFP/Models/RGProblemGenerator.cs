@@ -20,7 +20,6 @@ namespace VisFP.Models
         private ChainResult _currentChain { get; set; }
         private RegularGrammar _currentGrammar { get; set; }
         private Random _rand { get; set; }
-        private int MaxTry { get; set; } = 1000;
 
         public RGProblemGenerator(ApplicationDbContext dbContext)
         {

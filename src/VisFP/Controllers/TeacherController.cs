@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using VisFP.Data.DBModels;
 using VisFP.Data;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using VisFP.Utils;
+using Microsoft.EntityFrameworkCore;
 
 namespace VisFP.Controllers
 {
@@ -29,10 +33,59 @@ namespace VisFP.Controllers
             return View(groups);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> UploadList(IFormFile fileInput, Guid groupId) //может перенести в Account с редиректом на группу?
+        {
+            if (fileInput.Length > 0)//нужна проверка на нулл
+            {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    await fileInput.CopyToAsync(ms);
+                    try
+                    {
+                        ms.Position = 0;
+                        using (var sr = new StreamReader(ms))
+                        {
+                            var content = (await sr.ReadToEndAsync())
+                                .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                            foreach (var user in content)
+                            {
+                                var pass = PasswordGenerator.Instance.GeneratePassword();
+                                var fio = user.Split(' ');
+                                var login =
+                                    Transliteration.Front(fio[0]) +
+                                    string.Join("", fio.Skip(1).Select(x => Transliteration.Front(x[0].ToString())));
+                                var newUser = new ApplicationUser
+                                {
+                                    UserName = login,
+                                    Meta = $"Password:{pass}",
+                                    UserGroupId = groupId,
+                                    RealName = user
+                                };
+                                if (await _userManager.Users.AnyAsync(x => x.UserName == login))
+                                {
+                                    login = login + 1;
+                                    newUser.UserName = login;
+                                }
+                                await _userManager.CreateAsync(newUser, pass);
+                                await _userManager.AddToRoleAsync(newUser, "User");
+                                _dbContext.SaveChanges();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex); //выскакивают ошибки при добавления списка! надо отлавливать
+                    }
+                }
+            }
+            return RedirectToAction("Edit", new { id = groupId }); 
+        }
+
         public async Task<IActionResult> Edit(Guid id)
         {
             var user = await _userManager.GetUserAsync(User);
-            var group = _dbContext.UserGroups.FirstOrDefault(x => x.GroupId == id);
+            var group = await _dbContext.UserGroups.Where(x => x.GroupId == id).Include(x => x.Members).FirstOrDefaultAsync();
             if (group.Creator == user || await _userManager.IsInRoleAsync(user, nameof(DbRole.Admin)))
             {
                 return View(group);
