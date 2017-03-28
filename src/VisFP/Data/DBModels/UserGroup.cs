@@ -9,7 +9,6 @@ namespace VisFP.Data.DBModels
 {
     public class UserGroup
     {
-        [Key]
         public Guid GroupId { get; set; }
         [Display(Name="Название")]
         public string Name { get; set; }
@@ -17,9 +16,9 @@ namespace VisFP.Data.DBModels
         public string Description { get; set; }
 
         public string CreatorId { get; set; }
-        [ForeignKey(nameof(CreatorId))]
         public ApplicationUser Creator { get; set; }
 
         public ICollection<ApplicationUser> Members { get; set; }
+        public ICollection<RgTask> RgTasks { get; set; }
     }
 }

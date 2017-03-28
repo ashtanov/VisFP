@@ -34,7 +34,10 @@ namespace VisFP.Controllers
         [Authorize]
         public async Task<IActionResult> Index()
         {
-            return View(_dbContext.Tasks.Select(x => new Tuple<int,string>(x.TaskNumber,x.TaskTitle)));
+            return View(_dbContext
+                .Tasks
+                .Where(x => x.GroupId == Guid.Empty)
+                .Select(x => new Tuple<int, string>(x.TaskNumber, x.TaskTitle)));
         }
 
         [Authorize]

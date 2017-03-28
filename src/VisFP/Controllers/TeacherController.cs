@@ -29,66 +29,43 @@ namespace VisFP.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            var groups = _dbContext.UserGroups.Where(x => x.Creator == user);
+            var groups = _dbContext
+                .UserGroups
+                .Where(x => x.Creator == user)
+                .Include(x => x.Members);
             return View(groups);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> UploadList(IFormFile fileInput, Guid groupId) //может перенести в Account с редиректом на группу?
-        {
-            if (fileInput.Length > 0)//нужна проверка на нулл
-            {
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    await fileInput.CopyToAsync(ms);
-                    try
-                    {
-                        ms.Position = 0;
-                        using (var sr = new StreamReader(ms))
-                        {
-                            var content = (await sr.ReadToEndAsync())
-                                .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-                            foreach (var user in content)
-                            {
-                                var pass = PasswordGenerator.Instance.GeneratePassword();
-                                var fio = user.Split(' ');
-                                var login =
-                                    Transliteration.Front(fio[0]) +
-                                    string.Join("", fio.Skip(1).Select(x => Transliteration.Front(x[0].ToString())));
-                                var newUser = new ApplicationUser
-                                {
-                                    UserName = login,
-                                    Meta = $"Password:{pass}",
-                                    UserGroupId = groupId,
-                                    RealName = user
-                                };
-                                if (await _userManager.Users.AnyAsync(x => x.UserName == login))
-                                {
-                                    login = login + 1;
-                                    newUser.UserName = login;
-                                }
-                                await _userManager.CreateAsync(newUser, pass);
-                                await _userManager.AddToRoleAsync(newUser, "User");
-                                _dbContext.SaveChanges();
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex); //выскакивают ошибки при добавлени€ списка! надо отлавливать
-                    }
-                }
-            }
-            return RedirectToAction("Edit", new { id = groupId }); 
-        }
-
-        public async Task<IActionResult> Edit(Guid id)
+        [HttpGet]
+        public async Task<IActionResult> EditGroup(Guid id)
         {
             var user = await _userManager.GetUserAsync(User);
-            var group = await _dbContext.UserGroups.Where(x => x.GroupId == id).Include(x => x.Members).FirstOrDefaultAsync();
+            var group = await _dbContext
+                .UserGroups
+                .Where(x => x.GroupId == id)
+                .Include(x => x.Members)
+                .FirstOrDefaultAsync();
             if (group.Creator == user || await _userManager.IsInRoleAsync(user, nameof(DbRole.Admin)))
             {
                 return View(group);
+            }
+            else
+                return StatusCode(403);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditGroup(UserGroup group)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var g = await _dbContext
+                .UserGroups
+                .Include(x => x.Members)
+                .FirstOrDefaultAsync(x => x.GroupId == group.GroupId);
+            if (group.Creator == user || await _userManager.IsInRoleAsync(user, nameof(DbRole.Admin)))
+            {
+                g.Description = group.Description;
+                await _dbContext.SaveChangesAsync();
+                return View(g);
             }
             else
                 return StatusCode(403);
@@ -103,11 +80,76 @@ namespace VisFP.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateGroup(UserGroup group)
         {
+            if (!await _dbContext.UserGroups.AnyAsync(x => x.Name == group.Name))
+            {
+                var worker = new DbWorker(_dbContext);
+                var user = await _userManager.GetUserAsync(User);
+                group.Creator = user;
+                await _dbContext.UserGroups.AddAsync(group);
+                await _dbContext.SaveChangesAsync();
+                await worker.SetRgTasksToNewGroup(group.GroupId);
+                return RedirectToAction(nameof(EditGroup), new { id = group.GroupId });
+            }
+            else
+            {
+                ModelState.AddModelError("NameExisted", "√руппа с таким названием уже существует в системе! ¬ыберите другое название.");
+                return View();
+            }
+
+        }
+
+        public async Task<IActionResult> GroupRgTaskList(Guid groupId)
+        {
             var user = await _userManager.GetUserAsync(User);
-            group.Creator = user;
-            await _dbContext.UserGroups.AddAsync(group);
-            await _dbContext.SaveChangesAsync();
-            return RedirectToAction(nameof(Edit), new { id = group.GroupId });
+            var group = await _dbContext
+                .UserGroups
+                .FirstOrDefaultAsync(x => x.GroupId == groupId);
+            if (group != null)
+            {
+                if (group.Creator == user || await _userManager.IsInRoleAsync(user, nameof(DbRole.Admin)))
+                {
+                    return View(_dbContext.Tasks.Where(x => x.GroupId == groupId));
+                }
+                else
+                    return StatusCode(403);
+            }
+            return StatusCode(404);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditRgTask(Guid taskId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var task = await _dbContext
+                .Tasks
+                .FirstOrDefaultAsync(x => x.TaskId == taskId);
+            if (task != null)
+            {
+                return View(task);
+            }
+            return StatusCode(404);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditRgTask(RgTask task)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var oldTask = await _dbContext
+                .Tasks
+                .FirstOrDefaultAsync(x => x.TaskId == task.TaskId);
+            if (oldTask != null)
+            {
+                oldTask.AlphabetNonTerminalsCount = task.AlphabetNonTerminalsCount;
+                oldTask.AlphabetTerminalsCount = task.AlphabetTerminalsCount;
+                oldTask.ChainMinLength = task.ChainMinLength;
+                oldTask.IsGrammarGenerated = task.IsGrammarGenerated;
+                oldTask.MaxAttempts = task.MaxAttempts;
+                oldTask.NonTerminalRuleCount = task.NonTerminalRuleCount;
+                oldTask.TerminalRuleCount = task.TerminalRuleCount;
+                await _dbContext.SaveChangesAsync();
+                return View(task);
+            }
+            return StatusCode(404);
         }
     }
 }

@@ -45,7 +45,7 @@ namespace VisFP
 
             services.AddIdentity<ApplicationUser, IdentityRole>(
                 o => {
-                    o.Password.RequireDigit = true;
+                    o.Password.RequireDigit = false;
                     o.Password.RequiredLength = 4;
                     o.Password.RequireLowercase = false;
                     o.Password.RequireUppercase = false;

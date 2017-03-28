@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,9 +28,21 @@ namespace VisFP.Models
             _rand = new Random();
         }
 
-        public async Task<TaskViewModel> GenerateProblemAsync(int taskNumber, ApplicationUser user)
+        public async Task<TaskViewModel> GenerateProblemAsync(int taskNumber, ApplicationUser user, UserGroup group = null)
         {
-            var reqTask = _dbContext.Tasks.FirstOrDefault(x => x.TaskNumber == taskNumber);
+            RgTask reqTask;
+            if(group != null)
+                reqTask = _dbContext
+                    .Tasks
+                    .FirstOrDefault(
+                        x => x.TaskNumber == taskNumber && 
+                        x.UserGroup == group);
+            else
+                reqTask = _dbContext
+                    .Tasks
+                    .FirstOrDefault(
+                        x => x.TaskNumber == taskNumber && 
+                        x.GroupId == Guid.Empty);
             var alphabet = Alphabet.GenerateRandom(
                 reqTask.AlphabetNonTerminalsCount,
                 reqTask.AlphabetTerminalsCount);
@@ -91,7 +104,7 @@ namespace VisFP.Models
             var cTask = new RgTaskProblem
             {
                 RightAnswer = answer,
-                TaskNumber = taskNumber,
+                Task = reqTask,
                 CurrentGrammar = cGrammar,
                 Chain = _currentChain?.Chain,
                 User = user,

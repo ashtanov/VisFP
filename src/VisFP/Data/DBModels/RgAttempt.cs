@@ -9,14 +9,12 @@ namespace VisFP.Data.DBModels
 {
     public class RgAttempt
     {
-        [Key]
         public Guid AttemptId { get; set; }
         public DateTime Date { get; set; }
         public string Answer { get; set; }
         public bool IsCorrect { get; set; }
 
         public Guid ProblemId { get; set; }
-        [ForeignKey("ProblemId")]
         public RgTaskProblem Problem { get; set; }
     }
 }

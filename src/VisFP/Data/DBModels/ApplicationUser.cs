@@ -18,7 +18,6 @@ namespace VisFP.Data.DBModels
 
         
         public Guid UserGroupId { get; set; }
-        [ForeignKey(nameof(UserGroupId))]
         public UserGroup UserGroup { get; set; } //группа, к которой привязан пользователь
     }
 }

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VisFP.Data.DBModels;
 
-namespace VisFP.Models.AdminViewModels
+namespace VisFP.Models.AccountViewModels
 {
     public class CreateUserViewModel
     {
@@ -23,5 +23,6 @@ namespace VisFP.Models.AdminViewModels
         public DbRole Role { get; set; }
         [Display(Name = "Дополнительная информация")]
         public string Meta { get; set; }
+        public Guid GroupId { get; set; }
     }
 }

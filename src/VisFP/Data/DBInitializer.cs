@@ -39,7 +39,7 @@ namespace VisFP.Data
                 var dbcontext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 dbcontext.Tasks.Add(new RgTask
                 {
-                    TaskTitle = "Задача 1. Недостижимые символы",
+                    TaskTitle = "Недостижимые символы",
                     NonTerminalRuleCount = 7,
                     IsGrammarGenerated = true,
                     TerminalRuleCount = 3,
@@ -51,7 +51,7 @@ namespace VisFP.Data
 
                 dbcontext.Tasks.Add(new RgTask
                 {
-                    TaskTitle = "Задача 2. Пустые символы",
+                    TaskTitle = "Пустые символы",
                     IsGrammarGenerated = true,
                     NonTerminalRuleCount = 7,
                     TerminalRuleCount = 3,
@@ -63,7 +63,7 @@ namespace VisFP.Data
 
                 dbcontext.Tasks.Add(new RgTask
                 {
-                    TaskTitle = "Задача 3. Циклические символы",
+                    TaskTitle = "Циклические символы",
                     IsGrammarGenerated = true,
                     NonTerminalRuleCount = 7,
                     TerminalRuleCount = 3,
@@ -75,7 +75,7 @@ namespace VisFP.Data
 
                 dbcontext.Tasks.Add(new RgTask
                 {
-                    TaskTitle = "Задача 4. Приведенные грамматики",
+                    TaskTitle = "Приведенные грамматики",
                     IsGrammarGenerated = true,
                     NonTerminalRuleCount = 7,
                     TerminalRuleCount = 2,
@@ -87,7 +87,7 @@ namespace VisFP.Data
 
                 dbcontext.Tasks.Add(new RgTask
                 {
-                    TaskTitle = "Задача 5. Пустые языки",
+                    TaskTitle = "Пустые языки",
                     IsGrammarGenerated = true,
                     NonTerminalRuleCount = 7,
                     TerminalRuleCount = 2,
@@ -99,7 +99,7 @@ namespace VisFP.Data
 
                 dbcontext.Tasks.Add(new RgTask
                 {
-                    TaskTitle = "Задача 6. Построение цепочки",
+                    TaskTitle = "Построение цепочки",
                     IsGrammarGenerated = true,
                     NonTerminalRuleCount = 7,
                     TerminalRuleCount = 2,
@@ -112,7 +112,7 @@ namespace VisFP.Data
 
                 dbcontext.Tasks.Add(new RgTask
                 {
-                    TaskTitle = "Задача 7. Выводима ли цепочка?",
+                    TaskTitle = "Выводима ли цепочка?",
                     IsGrammarGenerated = true,
                     NonTerminalRuleCount = 7,
                     TerminalRuleCount = 2,

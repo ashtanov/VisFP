@@ -23,12 +23,49 @@ namespace VisFP.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.Entity<RgAttempt>().HasOne(x => x.Problem).WithMany(y => y.Attempts).HasForeignKey(p => p.ProblemId);
-            builder.Entity<RgTaskProblem>().HasOne(x => x.User).WithMany(y => y.Problems).HasForeignKey(p => p.UserId);
-            builder.Entity<RgTaskProblem>().HasOne(x => x.Task).WithMany(y => y.Problems).HasForeignKey(p => p.TaskNumber);
-            builder.Entity<RgTaskProblem>().HasOne(x => x.CurrentGrammar).WithMany(y => y.Problems).HasForeignKey(p => p.GrammarId);
-            builder.Entity<RgTask>().HasOne(x => x.FixedGrammar).WithMany(y => y.Tasks).HasForeignKey(p => p.FixedGrammarId);
-            builder.Entity<UserGroup>().HasOne(x => x.Creator).WithMany(y => y.OwnedGroups).HasForeignKey(p => p.CreatorId);
+
+            builder.Entity<ApplicationUser>(
+                entity =>
+                {
+                    entity.HasOne(x => x.UserGroup).WithMany(y => y.Members).HasForeignKey(p => p.UserGroupId);
+                }
+            );
+
+            builder.Entity<RgAttempt>(
+                entity =>
+                {
+                    entity.HasKey(x => x.AttemptId);
+                    entity.HasOne(x => x.Problem).WithMany(y => y.Attempts).HasForeignKey(p => p.ProblemId);
+                }
+            );
+
+            builder.Entity<RgTaskProblem>(
+                entity =>
+                {
+                    entity.HasKey(x => x.ProblemId);
+                    entity.HasOne(x => x.User).WithMany(y => y.Problems).HasForeignKey(p => p.UserId);
+                    entity.HasOne(x => x.Task).WithMany(y => y.Problems).HasForeignKey(p => p.TaskId);
+                    entity.HasOne(x => x.CurrentGrammar).WithMany(y => y.Problems).HasForeignKey(p => p.GrammarId);
+                }
+            );
+
+            builder.Entity<RgTask>(
+                entity =>
+                {
+                    entity.HasKey(x => x.TaskId);
+                    entity.HasOne(x => x.FixedGrammar).WithMany(y => y.Tasks).HasForeignKey(p => p.FixedGrammarId);
+                    entity.HasOne(x => x.UserGroup).WithMany(y => y.RgTasks).HasForeignKey(p => p.GroupId);
+                    entity.HasIndex(x => new { x.TaskNumber, x.GroupId }).IsUnique();
+                }
+            );
+
+            builder.Entity<UserGroup>(
+                entity =>
+                {
+                    entity.HasIndex(x => x.Name).IsUnique();
+                    entity.HasKey(x => x.GroupId);
+                    entity.HasOne(x => x.Creator).WithMany(y => y.OwnedGroups).HasForeignKey(p => p.CreatorId);
+                });
         }
     }
 }

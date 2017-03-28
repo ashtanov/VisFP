@@ -10,6 +10,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using VisFP.Data.DBModels;
 using VisFP.Models.AccountViewModels;
+using Microsoft.AspNetCore.Http;
+using System.IO;
+using VisFP.Utils;
+using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace VisFP.Controllers
 {
@@ -19,6 +24,7 @@ namespace VisFP.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ILogger _logger;
+        private readonly Regex _loginFinder = new Regex(@"(.+)(\d+)$");
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
@@ -67,6 +73,61 @@ namespace VisFP.Controllers
 
             // If we got this far, something failed, redisplay form
             return View(model);
+        }
+
+        [Authorize(Roles = "Admin, Teacher")]
+        [HttpPost]
+        public async Task<IActionResult> UploadList(IFormFile fileInput, Guid groupId) //может перенести в Account с редиректом на группу?
+        {
+            if (fileInput != null && fileInput.Length != 0)
+            {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    await fileInput.CopyToAsync(ms);
+                    try
+                    {
+                        ms.Position = 0;
+                        using (var sr = new StreamReader(ms))
+                        {
+                            var content = (await sr.ReadToEndAsync())
+                                .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                            foreach (var user in content)
+                            {
+                                var pass = PasswordGenerator.Instance.GeneratePassword();
+                                var fio = user.Split(' ');
+                                var login =
+                                    Transliteration.Front(fio[0]) +
+                                    string.Join("", fio.Skip(1).Select(x => Transliteration.Front(x[0].ToString())));
+                                while (await _userManager.Users.AnyAsync(x => x.UserName == login))
+                                {
+                                    var value = _loginFinder.Match(login);
+                                    if (value.Groups.Count == 3)
+                                        login = value.Groups[1].Value + (int.Parse(value.Groups[2].Value) + 1);
+                                    else
+                                        login = login + 1;
+                                }
+                                var newUser = new ApplicationUser
+                                {
+                                    UserName = login,
+                                    Meta = $"Password:{pass}",
+                                    UserGroupId = groupId,
+                                    RealName = user
+                                };
+                                var res = await _userManager.CreateAsync(newUser, pass);
+                                if (!res.Succeeded)
+                                    _logger.LogError(string.Join(Environment.NewLine, res.Errors));
+                                else
+                                    await _userManager.AddToRoleAsync(newUser, "User");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex.ToString());
+                    }
+                }
+            }
+            return RedirectToAction("EditGroup", "Teacher", new { id = groupId });
         }
 
         //
