@@ -52,7 +52,10 @@ namespace VisFP
                     o.Password.RequireNonAlphanumeric = false;
                 }).AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
-
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.SecurityStampValidationInterval = TimeSpan.FromSeconds(1);
+            });
             services.AddMvc();
 
             // Add application services.

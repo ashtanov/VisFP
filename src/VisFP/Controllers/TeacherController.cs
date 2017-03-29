@@ -68,7 +68,19 @@ namespace VisFP.Controllers
                 return View(g);
             }
             else
-                return StatusCode(403);
+                return StatusCode(401);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GroupAccess(bool enable, Guid groupId)
+        {
+            var group = await _dbContext.UserGroups.FirstOrDefaultAsync(x => x.GroupId == groupId);
+            if(group != null)
+            {
+                group.IsOpen = enable;
+                await _dbContext.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(EditGroup), new { id = groupId });
         }
 
         [HttpGet]

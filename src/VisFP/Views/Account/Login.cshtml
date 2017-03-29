@@ -9,12 +9,15 @@
 }
 
 <h2>@ViewData["Title"]</h2>
-<div class="row">
-    <div class="col-md-8">
-        <section>
-            <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal">
-                <hr />
-                <div asp-validation-summary="All" class="text-danger"></div>
+<hr />
+
+
+<section>
+    <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal">
+        <div asp-validation-summary="All" class="text-danger"></div>
+        <div class="row">
+            <div class="col-md-4">
+                <h3>Вход с паролем</h3>
                 <div class="form-group">
                     <label asp-for="Login" class="col-md-2 control-label"></label>
                     <div class="col-md-10">
@@ -29,15 +32,30 @@
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
                 </div>
+            </div>
+            <div class="col-md-1" style="height:100px; text-align:center; padding-top:60px">
+                ИЛИ
+            </div>
+            <div class="col-md-6">
+                <h3>Групповой вход</h3>
                 <div class="form-group">
-                    <div class="col-md-offset-2 col-md-10">
-                        <button type="submit" class="btn btn-default">Войти</button>
+                    <label asp-for="GroupName" class="col-md-2 control-label"></label>
+                    <div class="col-md-10">
+                        <input asp-for="GroupName" class="form-control" />
                     </div>
                 </div>
-            </form>
-        </section>
-    </div>
-</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4"></div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-lg btn-success">Войти</button>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+    </form>
+</section>
+
 
 <table class="table">
     <thead>

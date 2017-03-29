@@ -186,7 +186,6 @@ function sendUserAnswer() {
     });
 }
 
-
 function saveGraph() {
     var dn = objToArray(network.body.data["nodes"]._data);
     var de = objToArray(network.body.data["edges"]._data);

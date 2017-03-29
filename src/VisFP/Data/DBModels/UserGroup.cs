@@ -14,6 +14,8 @@ namespace VisFP.Data.DBModels
         public string Name { get; set; }
         [Display(Name = "Описание")]
         public string Description { get; set; }
+        [Display(Name ="Групповой вход")]
+        public bool IsOpen { get; set; }
 
         public string CreatorId { get; set; }
         public ApplicationUser Creator { get; set; }

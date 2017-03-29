@@ -3,19 +3,15 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using VisFP.Data.DBModels;
 
 namespace VisFP.Models.AccountViewModels
 {
-    public class LoginViewModel
+    public class GroupLoginViewModel
     {
-        [Display(Name = "Логин")]
-        public string Login { get; set; }
-
-        [DataType(DataType.Password)]
-        [Display(Name = "Пароль")]
-        public string Password { get; set; }
-
+        public Guid GroupId { get; set; }
         [Display(Name = "Название группы")]
         public string GroupName { get; set; }
+        public IEnumerable<ApplicationUser> Users { get; set; }
     }
 }

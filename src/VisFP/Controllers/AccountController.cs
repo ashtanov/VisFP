@@ -15,6 +15,7 @@ using System.IO;
 using VisFP.Utils;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
+using VisFP.Data;
 
 namespace VisFP.Controllers
 {
@@ -24,16 +25,19 @@ namespace VisFP.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ILogger _logger;
+        private readonly ApplicationDbContext _dbContext;
         private readonly Regex _loginFinder = new Regex(@"(.+)(\d+)$");
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
+            ApplicationDbContext dbContext,
             ILoggerFactory loggerFactory)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = loggerFactory.CreateLogger<AccountController>();
+            _dbContext = dbContext;
         }
 
         //
@@ -53,11 +57,11 @@ namespace VisFP.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
+
             ViewData["ReturnUrl"] = returnUrl;
-            if (ModelState.IsValid)
+            if (!string.IsNullOrWhiteSpace(model.Login) && !string.IsNullOrWhiteSpace(model.Password))
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
+
                 var result = await _signInManager.PasswordSignInAsync(model.Login, model.Password, true, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
@@ -66,13 +70,46 @@ namespace VisFP.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    ModelState.AddModelError(string.Empty, "Неуспешная попытка логина.");
                     return View(model);
                 }
             }
+            else
+            {
+                var group = await _dbContext.UserGroups
+                    .Include(x => x.Members)
+                    .FirstOrDefaultAsync(x => x.Name == model.GroupName && x.IsOpen);
+                if (group != null)
+                {
+                    return View("GroupLogin",
+                        new GroupLoginViewModel
+                        {
+                            GroupId = group.GroupId,
+                            GroupName = group.Name,
+                            Users = group.Members
+                        });
+                }
+                else
+                {
+                    ModelState.AddModelError("NotExistedOrNotOpen", "Указанная группа закрыла либо не существует");
+                    return View(model);
+                }
+            }
+        }
 
-            // If we got this far, something failed, redisplay form
-            return View(model);
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GroupLogin(Guid groupId, Guid userId)
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId.ToString());
+            if(user != null && user.UserGroupId == groupId)
+            {
+                await _userManager.UpdateSecurityStampAsync(user);
+                await _signInManager.RefreshSignInAsync(user);
+                return RedirectToAction("Index", "Home");
+            }
+            return View(nameof(Login));
         }
 
         [Authorize(Roles = "Admin, Teacher")]
