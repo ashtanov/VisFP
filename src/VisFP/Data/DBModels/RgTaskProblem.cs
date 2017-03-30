@@ -14,7 +14,9 @@ namespace VisFP.Data.DBModels
         public string RightAnswer { get; set; }
         public TaskAnswerType AnswerType { get; set; }
         public int MaxAttempts { get; set; }
-        public string Chain { get; set; }
+        public DateTime CreateDate { get; set; }
+        public string TaskQuestion { get; set; }
+        public int Generation { get; set; }
 
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }
@@ -24,6 +26,9 @@ namespace VisFP.Data.DBModels
 
         public Guid TaskId { get; set; }
         public RgTask Task { get; set; }
+
+        public Guid VariantId { get; set; }
+        public RgControlVariant Variant { get; set; }
 
         public ICollection<RgAttempt> Attempts { get; set; }
     }

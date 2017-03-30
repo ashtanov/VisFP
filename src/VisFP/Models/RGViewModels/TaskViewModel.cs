@@ -19,10 +19,15 @@ namespace VisFP.Models.RGViewModels
 
         public int Generation { get; set; }
 
-        public TaskViewModel(RegularGrammar grammar)
+        public TaskViewModel(RegularGrammar grammar, RgTaskProblem problem)
             : base(grammar)
         {
-
+            TaskText = problem.TaskQuestion;
+            TaskTitle = problem.Task.TaskTitle;
+            AnswerType = problem.AnswerType;
+            Id = problem.ProblemId;
+            MaxAttempts = problem.MaxAttempts;
+            Generation = problem.Generation;
         }
     }
 }

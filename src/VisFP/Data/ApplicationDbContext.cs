@@ -15,6 +15,8 @@ namespace VisFP.Data
         public DbSet<RgAttempt> Attempts { get; set; }
         public DbSet<RGrammar> RGrammars { get; set; }
         public DbSet<UserGroup> UserGroups { get; set; }
+        public DbSet<RgControlVariant> Variants { get; set; }
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
@@ -46,6 +48,7 @@ namespace VisFP.Data
                     entity.HasOne(x => x.User).WithMany(y => y.Problems).HasForeignKey(p => p.UserId);
                     entity.HasOne(x => x.Task).WithMany(y => y.Problems).HasForeignKey(p => p.TaskId);
                     entity.HasOne(x => x.CurrentGrammar).WithMany(y => y.Problems).HasForeignKey(p => p.GrammarId);
+                    entity.HasOne(x => x.Variant).WithMany(y => y.Problems).HasForeignKey(p => p.VariantId);
                 }
             );
 
@@ -65,6 +68,13 @@ namespace VisFP.Data
                     entity.HasIndex(x => x.Name).IsUnique();
                     entity.HasKey(x => x.GroupId);
                     entity.HasOne(x => x.Creator).WithMany(y => y.OwnedGroups).HasForeignKey(p => p.CreatorId);
+                });
+
+            builder.Entity<RgControlVariant>(
+                entity =>
+                {
+                    entity.HasKey(x => x.VariantId);
+                    entity.HasOne(x => x.User).WithMany(y => y.ControlVariants).HasForeignKey(p => p.UserId);
                 });
         }
     }

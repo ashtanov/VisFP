@@ -14,6 +14,7 @@ namespace VisFP.Data.DBModels
         public string Meta { get; set; }
 
         public ICollection<RgTaskProblem> Problems { get; set; }
+        public ICollection<RgControlVariant> ControlVariants { get; set; }
         public ICollection<UserGroup> OwnedGroups { get; set; } //группы, которые создал пользователь
 
         

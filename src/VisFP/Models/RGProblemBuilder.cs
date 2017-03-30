@@ -11,10 +11,15 @@ using VisFP.Utils;
 
 namespace VisFP.Models
 {
+    public class RGProblemResult
+    {
+        public RegularGrammar Grammar { get; set; }
+        public RgTaskProblem Problem { get; set; }
+    }
     /// <summary>
     /// Один инстанс для генерации одной задачи
     /// </summary>
-    public class RGProblemGenerator
+    public class RGProblemBuilder
     {
         private bool _yesNoAnswer { get; set; }
         private ApplicationDbContext _dbContext { get; set; }
@@ -22,54 +27,34 @@ namespace VisFP.Models
         private RegularGrammar _currentGrammar { get; set; }
         private Random _rand { get; set; }
 
-        public RGProblemGenerator(ApplicationDbContext dbContext)
+        public RGProblemBuilder(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
             _rand = new Random();
         }
 
-        public async Task<TaskViewModel> GenerateProblemAsync(int taskNumber, ApplicationUser user, UserGroup group = null)
+        public async Task<RGProblemResult> GenerateProblemAsync(RgTask templateTask, ApplicationUser user) //TODO: отделить от базы
         {
-            RgTask reqTask;
-            if(group != null)
-                reqTask = _dbContext
-                    .Tasks
-                    .FirstOrDefault(
-                        x => x.TaskNumber == taskNumber && 
-                        x.UserGroup == group);
-            else
-                reqTask = _dbContext
-                    .Tasks
-                    .FirstOrDefault(
-                        x => x.TaskNumber == taskNumber && 
-                        x.GroupId == Guid.Empty);
             var alphabet = Alphabet.GenerateRandom(
-                reqTask.AlphabetNonTerminalsCount,
-                reqTask.AlphabetTerminalsCount);
+                templateTask.AlphabetNonTerminalsCount,
+                templateTask.AlphabetTerminalsCount);
             int generation = 0;
+            int taskNumber = templateTask.TaskNumber;
 
-            //Проставляем тип ответа
-            TaskAnswerType answerType;
-            if (taskNumber == 1 || taskNumber == 2 || taskNumber == 3)
-                answerType = TaskAnswerType.SymbolsAnswer;
-            else if (taskNumber == 4 || taskNumber == 5 || taskNumber == 7)
-                answerType = TaskAnswerType.YesNoAnswer;
-            else if (taskNumber == 6)
-                answerType = TaskAnswerType.TextMulty;
-            else
-                answerType = TaskAnswerType.Text;
+            TaskAnswerType answerType = SetAnswerType(taskNumber);
+
             //Для да/нет ответа выбираем случайный
             _yesNoAnswer = (_rand.Next(2) == 1);
 
             RGrammar cGrammar;
-            if (reqTask.IsGrammarGenerated)
+            if (templateTask.IsGrammarGenerated)
             {
-                //генерируем грамматику пока она удовлетворяет условию
+                //генерируем грамматику до тех пор, пока она удовлетворяет условию "неподходимости"
                 do
                 {
                     _currentGrammar = RGGenerator.Instance.Generate(
-                        ntRuleCount: reqTask.NonTerminalRuleCount,
-                        tRuleCount: reqTask.TerminalRuleCount,
+                        ntRuleCount: templateTask.NonTerminalRuleCount,
+                        tRuleCount: templateTask.TerminalRuleCount,
                         alph: alphabet);
                     generation++;
                 } while (ConditionUntilForGrammar(taskNumber));
@@ -82,14 +67,14 @@ namespace VisFP.Models
             }
             else
             {
-                _currentGrammar = RegularGrammar.Parse(reqTask.FixedGrammar.GrammarJson);
-                cGrammar = reqTask.FixedGrammar;
+                _currentGrammar = RegularGrammar.Parse(templateTask.FixedGrammar.GrammarJson);
+                cGrammar = templateTask.FixedGrammar;
             }
 
 
             if (taskNumber == 6 || taskNumber == 7)
             {
-                var allChains = _currentGrammar.GetAllChains(reqTask.ChainMinLength);
+                var allChains = _currentGrammar.GetAllChains(templateTask.ChainMinLength);
                 _currentChain = allChains[_rand.Next(allChains.Count)];
                 if (taskNumber == 7 && !_yesNoAnswer)
                 {
@@ -100,29 +85,40 @@ namespace VisFP.Models
             }
 
             var answer = GetAnswer(taskNumber);
+            var question = GetTaskDescription(taskNumber);
+
             //записываем проблему в базу
             var cTask = new RgTaskProblem
             {
                 RightAnswer = answer,
-                Task = reqTask,
+                Task = templateTask,
                 CurrentGrammar = cGrammar,
-                Chain = _currentChain?.Chain,
                 User = user,
-                MaxAttempts = reqTask.MaxAttempts,
-                AnswerType = answerType
+                MaxAttempts = templateTask.MaxAttempts,
+                AnswerType = answerType,
+                CreateDate = DateTime.Now,
+                TaskQuestion = question
             };
             await _dbContext.TaskProblems.AddAsync(cTask);
             await _dbContext.SaveChangesAsync();
 
-            //генерируем модель для вьюхи
-            var vm = new TaskViewModel(_currentGrammar);
-            vm.TaskText = GetTaskDescription(taskNumber);
-            vm.TaskTitle = reqTask.TaskTitle;
-            vm.AnswerType = answerType;
-            vm.Id = cTask.ProblemId;
-            vm.MaxAttempts = reqTask.MaxAttempts;
-            vm.Generation = generation;
-            return vm;
+            return new RGProblemResult { Grammar = _currentGrammar, Problem = cTask };
+        }
+
+        private static TaskAnswerType SetAnswerType(int taskNumber)
+        {
+
+            //Проставляем тип ответа
+            TaskAnswerType answerType;
+            if (taskNumber == 1 || taskNumber == 2 || taskNumber == 3)
+                answerType = TaskAnswerType.SymbolsAnswer;
+            else if (taskNumber == 4 || taskNumber == 5 || taskNumber == 7)
+                answerType = TaskAnswerType.YesNoAnswer;
+            else if (taskNumber == 6)
+                answerType = TaskAnswerType.TextMulty;
+            else
+                answerType = TaskAnswerType.Text;
+            return answerType;
         }
 
         private bool ChangeChainToUnrepresentable(List<ChainResult> allChains)

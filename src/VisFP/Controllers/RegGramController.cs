@@ -18,7 +18,6 @@ namespace VisFP.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _dbContext;
         private readonly ILogger _logger;
-        private readonly RGProblemGenerator _generator;
 
         public RegGramController(
             UserManager<ApplicationUser> userManager,
@@ -28,7 +27,6 @@ namespace VisFP.Controllers
             _userManager = userManager;
             _dbContext = dbContext;
             _logger = loggerFactory.CreateLogger<RegGramController>();
-            _generator = new RGProblemGenerator(_dbContext);
         }
 
         [Authorize]
@@ -41,15 +39,29 @@ namespace VisFP.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> Task(int id, Guid taskId)
+        public async Task<IActionResult> Task(int id, Guid problemId)
         {
             try
             {
                 var user = await _userManager.GetUserAsync(User);
-                var viewModel = await _generator.GenerateProblemAsync(id, user);
-                return View("TaskView", viewModel);
+                if (problemId.Equals(default(Guid)))
+                {
+                    var builder = new RGProblemBuilder(_dbContext);
+                    RgTask templateTask = _dbContext //выбираем шаблон таска базовый
+                            .Tasks
+                            .FirstOrDefault(
+                                x => x.TaskNumber == id &&
+                                x.GroupId == Guid.Empty);
+                    RGProblemResult problem = await builder.GenerateProblemAsync(templateTask, user);
+                    var viewModel = new TaskViewModel(problem.Grammar, problem.Problem);
+                    return View("TaskView", viewModel);
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
             }
-            catch (Exception ex) //Обработать случай, когда цепочку нельзя сгенерить 100 раз
+            catch (Exception ex)
             {
                 return Error();
             }
