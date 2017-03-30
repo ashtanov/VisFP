@@ -29,5 +29,16 @@ namespace VisFP.Models.RGViewModels
             MaxAttempts = problem.MaxAttempts;
             Generation = problem.Generation;
         }
+
+        public TaskViewModel(RegularGrammar grammar, RgTaskProblem problem, int leftAttempts)
+            : base(grammar)
+        {
+            TaskText = problem.TaskQuestion;
+            TaskTitle = problem.Task.TaskTitle;
+            AnswerType = problem.AnswerType;
+            Id = problem.ProblemId;
+            MaxAttempts = leftAttempts;
+            Generation = problem.Generation;
+        }
     }
 }

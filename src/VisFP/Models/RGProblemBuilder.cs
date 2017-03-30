@@ -33,7 +33,7 @@ namespace VisFP.Models
             _rand = new Random();
         }
 
-        public async Task<RGProblemResult> GenerateProblemAsync(RgTask templateTask, ApplicationUser user) //TODO: отделить от базы
+        public async Task<RGProblemResult> GenerateProblemAsync(RgTask templateTask, ApplicationUser user, RgControlVariant variant = null) //TODO: отделить от базы
         {
             var alphabet = Alphabet.GenerateRandom(
                 templateTask.AlphabetNonTerminalsCount,
@@ -97,7 +97,8 @@ namespace VisFP.Models
                 MaxAttempts = templateTask.MaxAttempts,
                 AnswerType = answerType,
                 CreateDate = DateTime.Now,
-                TaskQuestion = question
+                TaskQuestion = question,
+                Variant = variant
             };
             await _dbContext.TaskProblems.AddAsync(cTask);
             await _dbContext.SaveChangesAsync();
