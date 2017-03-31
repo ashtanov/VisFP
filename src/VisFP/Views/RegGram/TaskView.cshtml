@@ -1,4 +1,4 @@
-﻿@model VisFP.Models.RGViewModels.TaskViewModel
+﻿@model VisFP.Models.RGViewModels.RgProblemViewModel
 
 @{
     ViewData["Title"] = Model.TaskTitle;
@@ -34,6 +34,3 @@
 </dl>
 @{ await Html.RenderPartialAsync("AcceptAnswerView",
         new AnswerViewModel { TaskId = Model.Id, MaxAttemptsCount = Model.MaxAttempts, SymbolsCheckBox = Model.Grammar.Alph.NonTerminals, AnswerType = Model.AnswerType }); }
-
-<a asp-action="Index">Back to List</a>
-<div>@Model.Generation</div>

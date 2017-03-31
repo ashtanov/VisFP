@@ -33,7 +33,10 @@ namespace VisFP.Models
             _rand = new Random();
         }
 
-        public async Task<RGProblemResult> GenerateProblemAsync(RgTask templateTask, ApplicationUser user, RgControlVariant variant = null) //TODO: отделить от базы
+        public async Task<RGProblemResult> GenerateProblemAsync(
+            RgTask templateTask, 
+            ApplicationUser user, 
+            RgControlVariant variant = null) //TODO: отделить от базы (стоит ли?)
         {
             var alphabet = Alphabet.GenerateRandom(
                 templateTask.AlphabetNonTerminalsCount,
@@ -79,7 +82,7 @@ namespace VisFP.Models
                 if (taskNumber == 7 && !_yesNoAnswer)
                 {
                     var isSuccess = ChangeChainToUnrepresentable(allChains); //заменяем символы в существующих цепочках пока 
-                    if (!isSuccess)
+                    if (!isSuccess) //если все возможные цепочки выводимы, меняем условие
                         _yesNoAnswer = true;
                 }
             }

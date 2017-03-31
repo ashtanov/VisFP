@@ -4,7 +4,7 @@ using VisFP.Data.DBModels;
 
 namespace VisFP.Models.RGViewModels
 {
-    public class TaskViewModel : RGViewModel
+    public class RgProblemViewModel : RGViewModel
     {
         public Guid Id { get; set; }
 
@@ -19,7 +19,9 @@ namespace VisFP.Models.RGViewModels
 
         public int Generation { get; set; }
 
-        public TaskViewModel(RegularGrammar grammar, RgTaskProblem problem)
+        public bool IsControlProblem { get; set; }
+
+        public RgProblemViewModel(RegularGrammar grammar, RgTaskProblem problem)
             : base(grammar)
         {
             TaskText = problem.TaskQuestion;
@@ -28,9 +30,13 @@ namespace VisFP.Models.RGViewModels
             Id = problem.ProblemId;
             MaxAttempts = problem.MaxAttempts;
             Generation = problem.Generation;
+            IsControlProblem = false;
         }
 
-        public TaskViewModel(RegularGrammar grammar, RgTaskProblem problem, int leftAttempts)
+        public RgProblemViewModel(
+            RegularGrammar grammar, 
+            RgTaskProblem problem, 
+            int leftAttempts)
             : base(grammar)
         {
             TaskText = problem.TaskQuestion;

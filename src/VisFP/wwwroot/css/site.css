@@ -135,4 +135,27 @@ div.table_description {
     color: black;
 }
 
+.btn.testOk {
+    background-color: #5cb85c;
+    color: white;
+}
+
+.btn.testFail {
+    background-color: #d9534f;
+    color: white;
+}
+
+.btn.testUnfinished {
+    background-color: lightgrey;
+    color: black;
+}
+
+.font-large {
+    font-size:large
+}
+
+.btn.nohover:hover {
+    cursor:default !important;
+}
+
 

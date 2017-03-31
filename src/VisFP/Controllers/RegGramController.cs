@@ -43,34 +43,17 @@ namespace VisFP.Controllers
         public async Task<IActionResult> ExamVariant(Guid? groupId)
         {
             var user = await _userManager.GetUserAsync(User);
-            if (_dbContext.Variants.Any(x => x.User == user && !x.IsFinished))
+            if (_dbContext.Variants.Any(x => x.User == user && !x.IsFinished)) //если нет текущего варианта
             {
                 var variant = await _dbContext
                     .Variants
                     .Where(x => x.User == user)
                     .OrderByDescending(x => x.CreateDate).FirstOrDefaultAsync();
-                var problems = _dbContext
-                    .TaskProblems
-                    .Include(x => x.Task)
-                    .Include(x => x.Attempts)
-                    .Where(x => x.Variant == variant);
+                DbWorker worker = new DbWorker(_dbContext);
                 ExamVariantViewModel model = new ExamVariantViewModel
                 {
                     CreateDate = variant.CreateDate,
-                    Problems = new List<ExamProblem>(
-                        problems.Select(
-                            x => new ExamProblem
-                            {
-                                ProblemId = x.ProblemId,
-                                State =
-                                    x.Attempts.Any(a => a.IsCorrect == true)
-                                            ? ProblemState.SuccessFinished
-                                            : x.Attempts.Count == x.MaxAttempts
-                                                ? ProblemState.FailFinished
-                                                : ProblemState.Unfinished,
-                                TaskNumber = x.Task.TaskNumber,
-                                TaskTitle = x.Task.TaskTitle
-                            })).OrderBy(x => x.TaskNumber)
+                    Problems = worker.GetVariantProblems(variant)
                 };
                 return View(model);
             }
@@ -119,7 +102,7 @@ namespace VisFP.Controllers
             try
             {
                 var user = await _userManager.GetUserAsync(User);
-                if (problemId.Equals(default(Guid)))
+                if (problemId.Equals(default(Guid))) //тренировочная задача
                 {
                     var builder = new RGProblemBuilder(_dbContext);
                     RgTask templateTask = _dbContext //выбираем шаблон таска базовый
@@ -128,7 +111,7 @@ namespace VisFP.Controllers
                                 x => x.TaskNumber == id &&
                                 x.GroupId == Guid.Empty);
                     RGProblemResult problem = await builder.GenerateProblemAsync(templateTask, user);
-                    var viewModel = new TaskViewModel(problem.Grammar, problem.Problem);
+                    var viewModel = new RgProblemViewModel(problem.Grammar, problem.Problem);
                     return View("TaskView", viewModel);
                 }
                 else
@@ -142,15 +125,34 @@ namespace VisFP.Controllers
                         .FirstOrDefaultAsync(x => x.ProblemId == problemId);
                     if (currentProblem != null)
                     {
-                        var viewModel =
-                            new TaskViewModel(
-                                RegularGrammar.Parse(currentProblem.CurrentGrammar.GrammarJson),
-                                currentProblem,
-                                currentProblem.MaxAttempts - currentProblem.Attempts.Count);
-                        return View("TaskView", viewModel);
+                        if (currentProblem.VariantId == Guid.Empty) //задача без варианта
+                        {
+                            var viewModel =
+                                new RgProblemViewModel(
+                                    RegularGrammar.Parse(currentProblem.CurrentGrammar.GrammarJson),
+                                    currentProblem,
+                                    currentProblem.MaxAttempts - currentProblem.Attempts.Count);
+                            return View("TaskView", viewModel);
+                        }
+                        else
+                        {
+                            var currentVariant =
+                               await _dbContext
+                               .Variants
+                               .Include(x => x.Problems)
+                               .FirstOrDefaultAsync(x => x.VariantId == currentProblem.VariantId);
+                            DbWorker worker = new DbWorker(_dbContext);
+                            var viewModel =
+                                new ExamRgProblemViewModel(
+                                    RegularGrammar.Parse(currentProblem.CurrentGrammar.GrammarJson),
+                                    currentProblem,
+                                    currentProblem.MaxAttempts - currentProblem.Attempts.Count,
+                                    worker.GetVariantProblems(currentVariant));
+                            return View("ExamTaskView", viewModel);
+                        }
                     }
                     else
-                        throw new NotImplementedException();
+                        return Error();
                 }
             }
             catch (Exception ex)
