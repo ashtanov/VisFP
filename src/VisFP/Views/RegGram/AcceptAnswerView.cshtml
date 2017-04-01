@@ -1,10 +1,10 @@
 ﻿@model VisFP.Models.RGViewModels.AnswerViewModel
 <dl class="dl-horizontal">
     <dt>
-        Осталось попыток
+        Осталось попыток:
     </dt>
     <dd>
-        <strong><span id="attemptsCount">@Html.DisplayFor(model => model.MaxAttemptsCount)</span></strong>
+        <strong><span id="attemptsCount" >@Html.DisplayFor(model => model.MaxAttemptsCount)</span></strong>
     </dd>
 </dl>
 <input asp-for="TaskId" id="taskId" autocomplete="off" type="hidden" class="form-control" />
@@ -12,10 +12,10 @@
     @switch (Model.AnswerType)
     {
         case TaskAnswerType.SymbolsAnswer:
-            <div class="col-md-4">
+            <div class="col-md-10">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h3 class="panel-title">Отметьте необходимые символы</h3>
+                        <h3 class="panel-title" style="text-align:center">Отметьте необходимые символы</h3>
                     </div>
                     <div class="panel-body" id="answerSymbols">
                         @foreach (var nt in Model.SymbolsCheckBox)
@@ -30,10 +30,10 @@
             </div>
             break;
         case TaskAnswerType.YesNoAnswer:
-            <div class="col-md-3">
+            <div class="col-md-7">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h3 class="panel-title">Выберите ответ</h3>
+                        <h3 class="panel-title" style="text-align:center">Выберите ответ</h3>
                     </div>
                     <div class="panel-body">
                         <div class="input-group col-md-offset-3">
@@ -48,10 +48,10 @@
             </div>
             break;
         default:
-            <div class="col-md-3">
+            <div class="col-md-7">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h3 class="panel-title">Введите ответ</h3>
+                        <h3 class="panel-title" style="text-align:center">Введите ответ</h3>
                     </div>
                     <div class="panel-body">
                         <input id="answer" autocomplete="off" class="form-control" />
@@ -60,16 +60,16 @@
             </div>
             break;
     }
-    <div class="col-sm-4">
+    <div class="form-group">
+        <div class="col-md-offset-1 col-md-10">
+            <input type="button" id="sendAnswer" autocomplete="off" onclick="sendUserAnswer();" value="Проверить ответ" class="btn btn-lg btn-success" />
+        </div>
+    </div>
+    <div class="col-md-7">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <div id="answerCorrectness"></div>
             </div>
-        </div>
-    </div>
-    <div class="form-group">
-        <div class="col-md-offset-2 col-md-10">
-            <input type="button" id="sendAnswer" autocomplete="off" onclick="sendUserAnswer();" value="Проверить ответ" class="btn btn-lg btn-success" />
         </div>
     </div>
 </div>

@@ -1,0 +1,39 @@
+﻿@model VisFP.Models.RGViewModels.RgProblemViewModel
+<hr />
+<h3 style="margin-left:100px">@Model.TaskTitle</h3>
+<hr />
+<dl class="dl-horizontal">
+    <dt>
+        <span>Алфавит</span>
+    </dt>
+    <dd>
+        Терминалы: @Html.Raw(string.Join(", ", Model.Grammar.Alph.Terminals.Select(x => $"<b>{x}</b>")))
+    </dd>
+    <dd>
+        Нетерминалы: @Html.Raw(string.Join(", ", Model.Grammar.Alph.NonTerminals.Select(x => $"<b>{x}</b>")))
+    </dd>
+    <dd>
+        Начальное состояние: <b>@Model.Grammar.Alph.InitState</b>
+    </dd>
+    <dt>
+        @Html.DisplayNameFor(model => model.TaskText)
+    </dt>
+    <dd>
+        @Html.Raw(Model.TaskText)
+    </dd>
+</dl>
+<row>
+    <div class="col-lg-7">
+        @{await Html.RenderPartialAsync("GraphView", Model);}
+    </div>
+    <div class="col-lg-5">
+        @{ await Html.RenderPartialAsync("AcceptAnswerView",
+                                            new AnswerViewModel
+                                            {
+                                                TaskId = Model.Id,
+                                                MaxAttemptsCount = Model.MaxAttempts,
+                                                SymbolsCheckBox = Model.Grammar.Alph.NonTerminals,
+                                                AnswerType = Model.AnswerType
+                                            }); }
+    </div>
+</row>

@@ -36,34 +36,4 @@
         </ul>
     </div>
 </row>
-<div>
-    <h3 style="margin-left:100px">@Model.TaskTitle</h3>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>
-            <span>Алфавит</span>
-        </dt>
-        <dd>
-            Терминалы: @Html.Raw(string.Join(", ", Model.Grammar.Alph.Terminals.Select(x => $"<b>{x}</b>")))
-        </dd>
-        <dd>
-            Нетерминалы: @Html.Raw(string.Join(", ", Model.Grammar.Alph.NonTerminals.Select(x => $"<b>{x}</b>")))
-        </dd>
-        <dd>
-            Начальное состояние: <b>@Model.Grammar.Alph.InitState</b>
-        </dd>
-    </dl>
-</div>
-<div>
-    @{await Html.RenderPartialAsync("GraphView", Model);}
-</div>
-<dl class="dl-horizontal">
-    <dt>
-        @Html.DisplayNameFor(model => model.TaskText)
-    </dt>
-    <dd>
-        @Html.Raw(Model.TaskText)
-    </dd>
-</dl>
-@{ await Html.RenderPartialAsync("AcceptAnswerView",
-                                                                new AnswerViewModel { TaskId = Model.Id, MaxAttemptsCount = Model.MaxAttempts, SymbolsCheckBox = Model.Grammar.Alph.NonTerminals, AnswerType = Model.AnswerType }); }
+@{ await Html.RenderPartialAsync("RgProblemView", Model); }
