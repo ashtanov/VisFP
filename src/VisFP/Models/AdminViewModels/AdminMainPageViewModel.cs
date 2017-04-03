@@ -17,6 +17,7 @@ namespace VisFP.Models.AdminViewModels
         public DbRole Role { get; set; }
         [Display(Name = "Дополнительная информация")]
         public string Meta { get; set; }
+        public string Id { get; set; }
 
         public UserForView(ApplicationUser user, DbRole role)
         {
@@ -24,6 +25,7 @@ namespace VisFP.Models.AdminViewModels
             RealName = user.RealName;
             Role = role;
             Meta = user.Meta;
+            Id = user.Id;
         }
     }
     public class AdminMainPageViewModel

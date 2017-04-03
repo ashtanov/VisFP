@@ -122,6 +122,15 @@ namespace VisFP.Data
                     TaskNumber = 7,
                     ChainMinLength = 6
                 });
+                var ug = new UserGroup
+                {
+                    Description = "Базовая группа",
+                    GroupId = Guid.Empty,
+                    IsOpen = false,
+                    Name = "Базовая группа"
+                };
+                dbcontext.UserGroups.Add(ug);
+                ug.GroupId = Guid.Empty;
                 await dbcontext.SaveChangesAsync();
             }
         }

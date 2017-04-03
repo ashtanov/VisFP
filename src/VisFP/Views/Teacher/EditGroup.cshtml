@@ -123,7 +123,7 @@
                         <td>@member.UserName</td>
                         <td>@member.RealName</td>
                         <td>@member.Meta</td>
-                        <td></td>
+                        <td><a asp-action="UserStat" asp-controller="Statistic" asp-route-id="@member.Id" class="btn btn-default">Статистика</a></td>
                     </tr>
                 }
             </table>

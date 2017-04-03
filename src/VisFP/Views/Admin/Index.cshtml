@@ -65,6 +65,7 @@
                 <td>
                     <button class="btn btn-sm btn-primary">Изменить</button>
                     <button class="btn btn-sm btn-danger">Удалить</button>
+                    <a asp-action="UserStat" asp-controller="Statistic" asp-route-id="@item.Id" class="btn btn-sm btn-info">Статистика</a>
                 </td>
             </tr>
         }

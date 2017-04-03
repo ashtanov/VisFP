@@ -77,5 +77,7 @@ namespace VisFP.Data
                     entity.HasOne(x => x.User).WithMany(y => y.ControlVariants).HasForeignKey(p => p.UserId);
                 });
         }
+
+        public DbSet<ApplicationUser> ApplicationUser { get; set; }
     }
 }

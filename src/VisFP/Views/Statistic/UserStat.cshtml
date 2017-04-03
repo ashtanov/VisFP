@@ -1,0 +1,40 @@
+﻿@model VisFP.Models.StatisticViewModels.UserStatViewModel
+
+@{
+    ViewData["Title"] = "Статистика пользователя "+ Model.Login;
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<div class="form-group">
+    <label asp-for="RealName" class="col-md-2 control-label"></label>
+    <div class="col-md-10">
+        <label class="form-control">@Model.RealName</label>
+    </div>
+</div>
+<div class="form-group">
+    <label asp-for="Group" class="col-md-2 control-label"></label>
+    <div class="col-md-10">
+        <label class="form-control">@Model.Group</label>
+    </div>
+</div>
+<h3>Регулярные граматики</h3>
+<table class="table">
+    <tr>
+        <th>Id варианта</th>
+        <th>Дата получения</th>
+        <th>Неуспешно</th>
+        <th>Успешно</th>
+        <th>Не окончено</th>
+    </tr>
+    @foreach (var variant in Model.RgVariants)
+    {
+        <tr>
+            <td>@variant.Id</td>
+            <td></td>
+            <td>@variant.FailProblems</td>
+            <td>@variant.SuccessProblems</td>
+            <td>@variant.UnfinishedProblems</td>
+        </tr>
+    }
+</table>
