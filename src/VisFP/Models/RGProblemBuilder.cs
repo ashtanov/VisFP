@@ -34,8 +34,8 @@ namespace VisFP.Models
         }
 
         public async Task<RGProblemResult> GenerateProblemAsync(
-            RgTask templateTask, 
-            ApplicationUser user, 
+            RgTask templateTask,
+            ApplicationUser user,
             RgControlVariant variant = null) //TODO: отделить от базы (стоит ли?)
         {
             var alphabet = Alphabet.GenerateRandom(
@@ -75,7 +75,7 @@ namespace VisFP.Models
             }
 
 
-            if (taskNumber == 6 || taskNumber == 7)
+            if (taskNumber == 6 || taskNumber == 7 || taskNumber == 8)
             {
                 var allChains = _currentGrammar.GetAllChains(templateTask.ChainMinLength);
                 _currentChain = allChains[_rand.Next(allChains.Count)];
@@ -84,6 +84,26 @@ namespace VisFP.Models
                     var isSuccess = ChangeChainToUnrepresentable(allChains); //заменяем символы в существующих цепочках пока 
                     if (!isSuccess) //если все возможные цепочки выводимы, меняем условие
                         _yesNoAnswer = true;
+                }
+                else if (taskNumber == 8)
+                {
+                    IGrouping<string, ChainResult> chain;
+                    if (_yesNoAnswer) //если должно быть более 2х выводов
+                    {
+                        chain = allChains.GroupBy(x => x.Chain).Where(x => x.Count() > 1).FirstOrDefault();
+                        if (chain == null) //нет такой цепочки
+                            _yesNoAnswer = false; //оставляем выбраную, меняем ответ
+                        else
+                            _currentChain = chain.FirstOrDefault();
+                    }
+                    else
+                    {
+                        chain = allChains.GroupBy(x => x.Chain).Where(x => x.Count() == 1).FirstOrDefault();
+                        if (chain == null) //все цепочки выводимы более 1 раза
+                            _yesNoAnswer = true; //оставляем выбраную, меняем ответ
+                        else
+                            _currentChain = chain.FirstOrDefault();
+                    }
                 }
             }
 
@@ -116,7 +136,7 @@ namespace VisFP.Models
             TaskAnswerType answerType;
             if (taskNumber == 1 || taskNumber == 2 || taskNumber == 3)
                 answerType = TaskAnswerType.SymbolsAnswer;
-            else if (taskNumber == 4 || taskNumber == 5 || taskNumber == 7)
+            else if (taskNumber == 4 || taskNumber == 5 || taskNumber == 7 || taskNumber == 8)
                 answerType = TaskAnswerType.YesNoAnswer;
             else if (taskNumber == 6)
                 answerType = TaskAnswerType.TextMulty;
@@ -193,6 +213,8 @@ namespace VisFP.Models
                     return _currentGrammar.IsProper == false;
                 case 7:
                     return _currentGrammar.IsProper == false;
+                case 8:
+                    return _currentGrammar.IsProper == false;
                 default:
                     throw new NotImplementedException();
             }
@@ -215,6 +237,8 @@ namespace VisFP.Models
                 case 6:
                     return _currentGrammar.RulesForChainRepresentable(_currentChain.Chain).SerializeJsonListOfStrings();
                 case 7:
+                    return _yesNoAnswer ? "yes" : "no";
+                case 8:
                     return _yesNoAnswer ? "yes" : "no";
                 default:
                     throw new NotImplementedException();
@@ -239,6 +263,8 @@ namespace VisFP.Models
                     return $"Выпишите последовательность правил (через пробел), при помощи которых можно составить данную цепочку: <strong>{_currentChain.Chain}</strong>";
                 case 7:
                     return $"Выводима ли цепочка <strong>{_currentChain.Chain}</strong> в этой грамматике?";
+                case 8:
+                    return $"Выводима ли цепочка <strong>{_currentChain.Chain}</strong> двумя и более способами?";
                 default:
                     throw new NotImplementedException();
             }

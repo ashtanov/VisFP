@@ -122,6 +122,19 @@ namespace VisFP.Data
                     TaskNumber = 7,
                     ChainMinLength = 6
                 });
+
+                dbcontext.Tasks.Add(new RgTask
+                {
+                    TaskTitle = "Выводима ли цепочка двумя и более способами?",
+                    IsGrammarGenerated = true,
+                    NonTerminalRuleCount = 7,
+                    TerminalRuleCount = 2,
+                    AlphabetNonTerminalsCount = 3,
+                    AlphabetTerminalsCount = 2,
+                    MaxAttempts = 1,
+                    TaskNumber = 8,
+                    ChainMinLength = 6
+                });
                 var ug = new UserGroup
                 {
                     Description = "Базовая группа",
