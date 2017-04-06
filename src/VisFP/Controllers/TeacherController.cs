@@ -120,7 +120,7 @@ namespace VisFP.Controllers
             {
                 if (group.Creator == user || await _userManager.IsInRoleAsync(user, nameof(DbRole.Admin)))
                 {
-                    return View(_dbContext.Tasks.Where(x => x.GroupId == groupId));
+                    return View(_dbContext.RgTasks.Where(x => x.GroupId == groupId));
                 }
                 else
                     return StatusCode(403);
@@ -133,7 +133,7 @@ namespace VisFP.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             var task = await _dbContext
-                .Tasks
+                .RgTasks
                 .FirstOrDefaultAsync(x => x.TaskId == taskId);
             if (task != null)
             {
@@ -147,7 +147,7 @@ namespace VisFP.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             var oldTask = await _dbContext
-                .Tasks
+                .RgTasks
                 .FirstOrDefaultAsync(x => x.TaskId == task.TaskId);
             if (oldTask != null)
             {

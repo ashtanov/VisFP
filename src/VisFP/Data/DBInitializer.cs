@@ -37,7 +37,7 @@ namespace VisFP.Data
                 await manager.AddToRoleAsync(teacherUser, Enum.GetName(typeof(DbRole), DbRole.Teacher));
 
                 var dbcontext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                dbcontext.Tasks.Add(new RgTask
+                dbcontext.RgTasks.Add(new RgTask
                 {
                     TaskTitle = "Недостижимые символы",
                     NonTerminalRuleCount = 7,
@@ -49,7 +49,7 @@ namespace VisFP.Data
                     TaskNumber = 1,
                 });
 
-                dbcontext.Tasks.Add(new RgTask
+                dbcontext.RgTasks.Add(new RgTask
                 {
                     TaskTitle = "Пустые символы",
                     IsGrammarGenerated = true,
@@ -61,7 +61,7 @@ namespace VisFP.Data
                     TaskNumber = 2,
                 });
 
-                dbcontext.Tasks.Add(new RgTask
+                dbcontext.RgTasks.Add(new RgTask
                 {
                     TaskTitle = "Циклические символы",
                     IsGrammarGenerated = true,
@@ -73,7 +73,7 @@ namespace VisFP.Data
                     TaskNumber = 3,
                 });
 
-                dbcontext.Tasks.Add(new RgTask
+                dbcontext.RgTasks.Add(new RgTask
                 {
                     TaskTitle = "Приведенные грамматики",
                     IsGrammarGenerated = true,
@@ -85,7 +85,7 @@ namespace VisFP.Data
                     TaskNumber = 4,
                 });
 
-                dbcontext.Tasks.Add(new RgTask
+                dbcontext.RgTasks.Add(new RgTask
                 {
                     TaskTitle = "Пустые языки",
                     IsGrammarGenerated = true,
@@ -97,7 +97,7 @@ namespace VisFP.Data
                     TaskNumber = 5,
                 });
 
-                dbcontext.Tasks.Add(new RgTask
+                dbcontext.RgTasks.Add(new RgTask
                 {
                     TaskTitle = "Построение цепочки",
                     IsGrammarGenerated = true,
@@ -110,7 +110,7 @@ namespace VisFP.Data
                     ChainMinLength = 5
                 });
 
-                dbcontext.Tasks.Add(new RgTask
+                dbcontext.RgTasks.Add(new RgTask
                 {
                     TaskTitle = "Выводима ли цепочка?",
                     IsGrammarGenerated = true,
@@ -123,7 +123,7 @@ namespace VisFP.Data
                     ChainMinLength = 6
                 });
 
-                dbcontext.Tasks.Add(new RgTask
+                dbcontext.RgTasks.Add(new RgTask
                 {
                     TaskTitle = "Выводима ли цепочка двумя и более способами?",
                     IsGrammarGenerated = true,

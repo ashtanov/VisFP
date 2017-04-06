@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VisFP.Utils;
 
-namespace VisFP.Models
+namespace VisFP.BusinessObjects
 {
     public class Rule : IEquatable<Rule>
     {
@@ -62,7 +62,19 @@ namespace VisFP.Models
         }
         public IReadOnlyList<Rule> Rules { get; private set; }
         public Alphabet Alph { get; private set; }
-        public readonly char EndState = '$';
+
+        private char _endState = '$';
+        public char EndState
+        {
+            get
+            {
+                return _endState;
+            }
+            protected set
+            {
+                _endState = value;
+            }
+        }
         public int MaxChainTry { get; set; } = 100;
         [JsonIgnore]
         public Lazy<char[]> CyclicNonterminals;

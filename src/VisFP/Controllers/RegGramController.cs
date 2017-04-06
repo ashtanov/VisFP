@@ -9,25 +9,23 @@ using Microsoft.AspNetCore.Identity;
 using VisFP.Data.DBModels;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
-using VisFP.Utils;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using VisFP.Models.TaskProblemSharedViewModels;
+using VisFP.BusinessObjects;
 
 namespace VisFP.Controllers
 {
-    public class RegGramController : Controller
+    public class RegGramController : TaskProblemController
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApplicationDbContext _dbContext;
         private readonly ILogger _logger;
 
         public RegGramController(
             UserManager<ApplicationUser> userManager,
             ApplicationDbContext dbContext,
             ILoggerFactory loggerFactory)
+            :base(userManager,dbContext)
         {
-            _userManager = userManager;
-            _dbContext = dbContext;
             _logger = loggerFactory.CreateLogger<RegGramController>();
         }
 
@@ -35,7 +33,7 @@ namespace VisFP.Controllers
         public async Task<IActionResult> Index()
         {
             return View(_dbContext
-                .Tasks
+                .RgTasks
                 .Where(x => x.GroupId == Guid.Empty)
                 .Select(x => new Tuple<int, string>(x.TaskNumber, x.TaskTitle)));
         }
@@ -63,7 +61,7 @@ namespace VisFP.Controllers
                     throw new NotImplementedException(); //преподы могут свои группы выбирать
 
                 var templateTasks = _dbContext //выбираем шаблоны тасков переопределенные для группы
-                                .Tasks
+                                .RgTasks
                                 .Where(x => x.GroupId == user.UserGroupId);
                 RgControlVariant variant = new RgControlVariant
                 {
@@ -97,7 +95,7 @@ namespace VisFP.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> Task(int id, Guid problemId)
+        public override async Task<IActionResult> Task(int id, Guid problemId)
         {
             try
             {
@@ -106,7 +104,7 @@ namespace VisFP.Controllers
                 {
                     var builder = new RGProblemBuilder(_dbContext);
                     RgTask templateTask = _dbContext //выбираем шаблон таска базовый
-                            .Tasks
+                            .RgTasks
                             .FirstOrDefault(
                                 x => x.TaskNumber == id &&
                                 x.GroupId == Guid.Empty);
@@ -118,7 +116,7 @@ namespace VisFP.Controllers
                 {
                     var currentProblem =
                         await _dbContext
-                        .TaskProblems
+                        .RgTaskProblems
                         .Include(x => x.CurrentGrammar)
                         .Include(x => x.Task)
                         .Include(x => x.Attempts)
@@ -159,52 +157,6 @@ namespace VisFP.Controllers
             {
                 return Error();
             }
-        }
-
-        [Authorize]
-        [HttpPost]
-        public async Task<JsonResult> Answer(AnswerViewModel avm)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            var problem = _dbContext.TaskProblems.FirstOrDefault(x => x.ProblemId == avm.TaskId);
-            if (problem != null || problem.User != user) //задачи нет или задача не этого юзера
-            {
-                var totalAttempts = _dbContext.Attempts.Count(x => x.ProblemId == problem.ProblemId);
-                if (totalAttempts < problem.MaxAttempts)
-                {
-                    if (problem.AnswerType == TaskAnswerType.SymbolsAnswer)
-                    {
-                        avm.Answer = avm.Answer != null
-                            ? string.Join(" ", avm.Answer.Split(' ').OrderBy(x => x))
-                            : "";
-                    }
-                    avm.Answer = avm.Answer.Trim();
-                    totalAttempts += 1; //добавили текущую попытку
-                    bool isCorrect;
-                    if (problem.AnswerType == TaskAnswerType.TextMulty)
-                        isCorrect = problem.RightAnswer.DeserializeJsonListOfStrings().Contains(avm.Answer);
-                    else
-                        isCorrect = avm.Answer == problem.RightAnswer;
-                    _dbContext.Attempts.Add(
-                        new RgAttempt
-                        {
-                            Answer = avm.Answer,
-                            Date = DateTime.Now,
-                            IsCorrect = isCorrect,
-                            Problem = problem
-                        });
-                    await _dbContext.SaveChangesAsync();
-                    return new JsonResult(
-                        new AnswerResultViewModel
-                        {
-                            AttemptsLeft = problem.MaxAttempts - totalAttempts,
-                            IsCorrect = isCorrect
-                        });
-                }
-                else
-                    return new JsonResult(new { block = true }); //Превышено максимальное количество попыток
-            }
-            return new JsonResult("Задача не найдена или недоступна текущему пользователю") { StatusCode = 404 };
         }
 
         [Authorize]

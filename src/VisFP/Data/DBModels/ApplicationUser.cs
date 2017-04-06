@@ -13,8 +13,8 @@ namespace VisFP.Data.DBModels
         public string RealName { get; set; }
         public string Meta { get; set; }
 
-        public ICollection<RgTaskProblem> Problems { get; set; }
-        public ICollection<RgControlVariant> ControlVariants { get; set; }
+        public ICollection<RgTaskProblem> RgProblems { get; set; }
+        public ICollection<RgControlVariant> RgControlVariants { get; set; }
         public ICollection<UserGroup> OwnedGroups { get; set; } //группы, которые создал пользователь
 
         

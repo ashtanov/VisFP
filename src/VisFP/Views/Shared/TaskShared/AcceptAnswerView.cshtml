@@ -1,4 +1,4 @@
-﻿@model VisFP.Models.RGViewModels.AnswerViewModel
+﻿@model VisFP.Models.TaskProblemSharedViewModels.AnswerViewModel
 <dl class="dl-horizontal">
     <dt>
         Осталось попыток:
@@ -7,7 +7,7 @@
         <strong><span id="attemptsCount" >@Html.DisplayFor(model => model.MaxAttemptsCount)</span></strong>
     </dd>
 </dl>
-<input asp-for="TaskId" id="taskId" autocomplete="off" type="hidden" class="form-control" />
+<input asp-for="TaskProblemId" id="taskProblemId" autocomplete="off" type="hidden" class="form-control" />
 <div class="form-horizontal">
     @switch (Model.AnswerType)
     {

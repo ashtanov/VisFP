@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using VisFP.BusinessObjects;
 using VisFP.Data.DBModels;
 
 namespace VisFP.Models.RGViewModels

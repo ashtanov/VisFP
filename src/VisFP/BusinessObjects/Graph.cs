@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace VisFP.Models
+namespace VisFP.BusinessObjects
 {
     [JsonObject]
     public class Node

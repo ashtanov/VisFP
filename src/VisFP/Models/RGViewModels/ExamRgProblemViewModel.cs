@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using VisFP.BusinessObjects;
 using VisFP.Data.DBModels;
+using VisFP.Models.TaskProblemSharedViewModels;
 
 namespace VisFP.Models.RGViewModels
 {
@@ -13,8 +15,7 @@ namespace VisFP.Models.RGViewModels
             RegularGrammar grammar,
             RgTaskProblem problem,
             int leftAttempts,
-            IEnumerable<ExamProblem> otherProblems
-            )
+            IEnumerable<ExamProblem> otherProblems)
             : base(grammar, problem, leftAttempts)
         {
             OtherProblems = otherProblems;

@@ -10,8 +10,8 @@ namespace VisFP.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public DbSet<RgTask> Tasks { get; set; }
-        public DbSet<RgTaskProblem> TaskProblems { get; set; }
+        public DbSet<RgTask> RgTasks { get; set; }
+        public DbSet<RgTaskProblem> RgTaskProblems { get; set; }
         public DbSet<RgAttempt> Attempts { get; set; }
         public DbSet<RGrammar> RGrammars { get; set; }
         public DbSet<UserGroup> UserGroups { get; set; }
@@ -45,7 +45,7 @@ namespace VisFP.Data
                 entity =>
                 {
                     entity.HasKey(x => x.ProblemId);
-                    entity.HasOne(x => x.User).WithMany(y => y.Problems).HasForeignKey(p => p.UserId);
+                    entity.HasOne(x => x.User).WithMany(y => y.RgProblems).HasForeignKey(p => p.UserId);
                     entity.HasOne(x => x.Task).WithMany(y => y.Problems).HasForeignKey(p => p.TaskId);
                     entity.HasOne(x => x.CurrentGrammar).WithMany(y => y.Problems).HasForeignKey(p => p.GrammarId);
                     entity.HasOne(x => x.Variant).WithMany(y => y.Problems).HasForeignKey(p => p.VariantId);
@@ -74,7 +74,7 @@ namespace VisFP.Data
                 entity =>
                 {
                     entity.HasKey(x => x.VariantId);
-                    entity.HasOne(x => x.User).WithMany(y => y.ControlVariants).HasForeignKey(p => p.UserId);
+                    entity.HasOne(x => x.User).WithMany(y => y.RgControlVariants).HasForeignKey(p => p.UserId);
                 });
         }
 

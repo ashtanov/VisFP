@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using VisFP.Data;
 using Microsoft.EntityFrameworkCore;
 using VisFP.Models.StatisticViewModels;
+using VisFP.Models.TaskProblemSharedViewModels;
 
 namespace VisFP.Controllers
 {
@@ -58,9 +59,9 @@ namespace VisFP.Controllers
                     {
                         Id = variant.VariantId,
                         TasksType = "RG",
-                        FailProblems = problems.Count(x => x.State == Models.RGViewModels.ProblemState.FailFinished),
-                        SuccessProblems = problems.Count(x => x.State == Models.RGViewModels.ProblemState.SuccessFinished),
-                        UnfinishedProblems = problems.Count(x => x.State == Models.RGViewModels.ProblemState.Unfinished)
+                        FailProblems = problems.Count(x => x.State == ProblemState.FailFinished),
+                        SuccessProblems = problems.Count(x => x.State == ProblemState.SuccessFinished),
+                        UnfinishedProblems = problems.Count(x => x.State == ProblemState.Unfinished)
                     });
                 }
                 var model = new UserStatViewModel

@@ -162,20 +162,20 @@ function sendUserAnswer() {
                 .filter(function (i, x) { return x.checked; })
                 .map(function (i, x) { return x.value })
             ).join(" "),
-            TaskId: $('#taskId').val()
+            TaskProblemId: $('#taskProblemId').val()
         };
     }
     else if ($("#yesNoAnswer").length !== 0)
     {
         data = {
             Answer: $('#yesNoAnswer').val(),
-            TaskId: $('#taskId').val()
+            TaskProblemId: $('#taskProblemId').val()
         };
     }
     else {
         data = {
             Answer: $('#answer').val(),
-            TaskId: $('#taskId').val()
+            TaskProblemId: $('#taskProblemId').val()
         };
     }
     $.ajax({

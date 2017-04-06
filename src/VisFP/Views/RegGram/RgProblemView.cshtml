@@ -27,13 +27,13 @@
         @{await Html.RenderPartialAsync("GraphView", Model);}
     </div>
     <div class="col-lg-5">
-        @{ await Html.RenderPartialAsync("AcceptAnswerView",
-                                            new AnswerViewModel
-                                            {
-                                                TaskId = Model.Id,
-                                                MaxAttemptsCount = Model.MaxAttempts,
-                                                SymbolsCheckBox = Model.Grammar.Alph.NonTerminals,
-                                                AnswerType = Model.AnswerType
-                                            }); }
+        @{ await Html.RenderPartialAsync("TaskShared/AcceptAnswerView",
+                                             new AnswerViewModel
+                                             {
+                                                 TaskProblemId = Model.Id,
+                                                 MaxAttemptsCount = Model.MaxAttempts,
+                                                 SymbolsCheckBox = Model.Grammar.Alph.NonTerminals,
+                                                 AnswerType = Model.AnswerType
+                                             }); }
     </div>
 </row>

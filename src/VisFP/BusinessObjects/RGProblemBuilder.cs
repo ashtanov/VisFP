@@ -9,7 +9,7 @@ using VisFP.Data.DBModels;
 using VisFP.Models.RGViewModels;
 using VisFP.Utils;
 
-namespace VisFP.Models
+namespace VisFP.BusinessObjects
 {
     public class RGProblemResult
     {
@@ -38,7 +38,7 @@ namespace VisFP.Models
             ApplicationUser user,
             RgControlVariant variant = null) //TODO: отделить от базы (стоит ли?)
         {
-            var alphabet = Alphabet.GenerateRandom(
+            var alphabet = Alphabet.GenerateRandomRg(
                 templateTask.AlphabetNonTerminalsCount,
                 templateTask.AlphabetTerminalsCount);
             int generation = 0;
@@ -55,7 +55,7 @@ namespace VisFP.Models
                 //генерируем грамматику до тех пор, пока она удовлетворяет условию "неподходимости"
                 do
                 {
-                    _currentGrammar = RGGenerator.Instance.Generate(
+                    _currentGrammar = Generator.Instance.GenerateRG(
                         ntRuleCount: templateTask.NonTerminalRuleCount,
                         tRuleCount: templateTask.TerminalRuleCount,
                         alph: alphabet);
@@ -75,7 +75,7 @@ namespace VisFP.Models
             }
 
 
-            if (taskNumber == 6 || taskNumber == 7 || taskNumber == 8)
+            if (taskNumber == 6 || taskNumber == 7 || taskNumber == 8) //генерим цепочки
             {
                 var allChains = _currentGrammar.GetAllChains(templateTask.ChainMinLength);
                 _currentChain = allChains[_rand.Next(allChains.Count)];
@@ -123,7 +123,7 @@ namespace VisFP.Models
                 TaskQuestion = question,
                 Variant = variant
             };
-            await _dbContext.TaskProblems.AddAsync(cTask);
+            await _dbContext.RgTaskProblems.AddAsync(cTask);
             await _dbContext.SaveChangesAsync();
 
             return new RGProblemResult { Grammar = _currentGrammar, Problem = cTask };

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VisFP.Data.DBModels;
 using VisFP.Models.RGViewModels;
+using VisFP.Models.TaskProblemSharedViewModels;
 
 namespace VisFP.Data
 {
@@ -20,7 +21,7 @@ namespace VisFP.Data
         public async Task SetRgTasksToNewGroup(Guid groupId)
         {
             List<RgTask> newTasks = new List<RgTask>();
-            foreach (var task in _dbContext.Tasks.Where(x => x.GroupId == Guid.Empty))
+            foreach (var task in _dbContext.RgTasks.Where(x => x.GroupId == Guid.Empty))
             {
                 newTasks.Add(new RgTask
                 {
@@ -36,14 +37,14 @@ namespace VisFP.Data
                     NonTerminalRuleCount = task.NonTerminalRuleCount
                 });
             }
-            await _dbContext.Tasks.AddRangeAsync(newTasks);
+            await _dbContext.RgTasks.AddRangeAsync(newTasks);
             await _dbContext.SaveChangesAsync();
         }
 
         public IOrderedEnumerable<ExamProblem> GetVariantProblems(RgControlVariant variant)
         {
             var problems = _dbContext
-                    .TaskProblems
+                    .RgTaskProblems
                     .Include(x => x.Task)
                     .Include(x => x.Attempts)
                     .Where(x => x.Variant == variant);
