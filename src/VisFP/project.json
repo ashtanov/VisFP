@@ -43,7 +43,8 @@
         "version": "1.0.0-preview2-final",
         "type": "build"
     },
-    "Microsoft.EntityFrameworkCore.InMemory": "1.1.1"
+    "Microsoft.EntityFrameworkCore.InMemory": "1.1.1",
+    "Npgsql.EntityFrameworkCore.PostgreSQL": "1.1.0"
   },
 
   "tools": {

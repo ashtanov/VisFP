@@ -124,8 +124,6 @@ namespace VisFP.BusinessObjects
                 Variant = variant
             };
             await _dbContext.RgTaskProblems.AddAsync(cTask);
-            await _dbContext.SaveChangesAsync();
-
             return new RGProblemResult { Grammar = _currentGrammar, Problem = cTask };
         }
 

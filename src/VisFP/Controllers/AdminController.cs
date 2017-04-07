@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using VisFP.Data.DBModels;
 using VisFP.Models.AdminViewModels;
+using VisFP.Data;
 
 namespace VisFP.Controllers
 {
@@ -16,30 +17,42 @@ namespace VisFP.Controllers
     public class AdminController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _dbContext;
         private readonly ILogger _logger;
 
         public AdminController(
             UserManager<ApplicationUser> userManager,
+            ApplicationDbContext dbContext,
             ILoggerFactory loggerFactory)
         {
             _userManager = userManager;
+            _dbContext = dbContext;
             _logger = loggerFactory.CreateLogger<AdminController>();
         }
 
         public async Task<IActionResult> Index()
         {
-            List<UserForView> users = new List<UserForView>();
-            foreach (var u in _userManager.Users)
+            try
             {
-                var roles = await _userManager.GetRolesAsync(u);
-                var userRole = (DbRole)Enum.Parse(typeof(DbRole), roles.First());
-                users.Add(new UserForView(u, userRole));
+                List<UserForView> users = new List<UserForView>();
+                var allUsers = _userManager.Users.ToList();
+                foreach (var u in allUsers)
+                {
+                    var roles = await _userManager.GetRolesAsync(u);
+                    var userRole = (DbRole)Enum.Parse(typeof(DbRole), roles.First());
+                    users.Add(new UserForView(u, userRole));
+                }
+                var model = new AdminMainPageViewModel
+                {
+                    AllUsers = users
+                };
+                return View(model);
             }
-            var model = new AdminMainPageViewModel
+            catch(Exception ex)
             {
-                AllUsers = users
-            };
-            return View(model);
+                _logger.LogError(ex.ToString());
+                throw;
+            }
         }
     }
 }

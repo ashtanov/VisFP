@@ -75,7 +75,7 @@ namespace VisFP.Controllers
         public async Task<IActionResult> GroupAccess(bool enable, Guid groupId)
         {
             var group = await _dbContext.UserGroups.FirstOrDefaultAsync(x => x.GroupId == groupId);
-            if(group != null)
+            if (group != null)
             {
                 group.IsOpen = enable;
                 await _dbContext.SaveChangesAsync();
@@ -159,7 +159,7 @@ namespace VisFP.Controllers
                 oldTask.NonTerminalRuleCount = task.NonTerminalRuleCount;
                 oldTask.TerminalRuleCount = task.TerminalRuleCount;
                 await _dbContext.SaveChangesAsync();
-                return View(task);
+                return RedirectToAction(nameof(GroupRgTaskList), new { groupId = oldTask.GroupId });
             }
             return StatusCode(404);
         }

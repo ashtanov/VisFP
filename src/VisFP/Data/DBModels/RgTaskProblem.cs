@@ -27,7 +27,7 @@ namespace VisFP.Data.DBModels
         public Guid TaskId { get; set; }
         public RgTask Task { get; set; }
 
-        public Guid VariantId { get; set; }
+        public Guid? VariantId { get; set; }
         public RgControlVariant Variant { get; set; }
 
         public ICollection<RgAttempt> Attempts { get; set; }

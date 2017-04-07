@@ -34,63 +34,72 @@ namespace VisFP.Controllers
         {
             return View(_dbContext
                 .RgTasks
-                .Where(x => x.GroupId == Guid.Empty)
+                .Where(x => x.GroupId == DbWorker.BaseGroupId)
                 .Select(x => new Tuple<int, string>(x.TaskNumber, x.TaskTitle)));
         }
 
         public async Task<IActionResult> ExamVariant(Guid? groupId)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (_dbContext.Variants.Any(x => x.User == user && !x.IsFinished)) //если нет текущего варианта
+            try
             {
-                var variant = await _dbContext
-                    .Variants
-                    .Where(x => x.User == user)
-                    .OrderByDescending(x => x.CreateDate).FirstOrDefaultAsync();
-                DbWorker worker = new DbWorker(_dbContext);
-                ExamVariantViewModel model = new ExamVariantViewModel
+                var user = await _userManager.GetUserAsync(User);
+                if (_dbContext.Variants.Any(x => x.User == user && !x.IsFinished)) //если нет текущего варианта
                 {
-                    CreateDate = variant.CreateDate,
-                    Problems = worker.GetVariantProblems(variant)
-                };
-                return View(model);
-            }
-            else
-            {
-                if (groupId.HasValue)
-                    throw new NotImplementedException(); //преподы могут свои группы выбирать
-
-                var templateTasks = _dbContext //выбираем шаблоны тасков переопределенные для группы
-                                .RgTasks
-                                .Where(x => x.GroupId == user.UserGroupId);
-                RgControlVariant variant = new RgControlVariant
-                {
-                    CreateDate = DateTime.Now,
-                    IsFinished = false,
-                    User = user
-                };
-                await _dbContext.Variants.AddAsync(variant);
-
-                List<RgTaskProblem> problems = new List<RgTaskProblem>();
-                foreach (var template in templateTasks) //Генерим задачи
-                {
-                    var problem = await (new RGProblemBuilder(_dbContext)).GenerateProblemAsync(template, user, variant);
-                    problems.Add(problem.Problem);
+                    var variant = await _dbContext
+                        .Variants
+                        .Where(x => x.User == user)
+                        .OrderByDescending(x => x.CreateDate).FirstOrDefaultAsync();
+                    DbWorker worker = new DbWorker(_dbContext);
+                    ExamVariantViewModel model = new ExamVariantViewModel
+                    {
+                        CreateDate = variant.CreateDate,
+                        Problems = worker.GetVariantProblems(variant)
+                    };
+                    return View(model);
                 }
-                ExamVariantViewModel model = new ExamVariantViewModel
+                else
                 {
-                    CreateDate = variant.CreateDate,
-                    Problems = new List<ExamProblem>(
-                        problems.Select(
-                            x => new ExamProblem
-                            {
-                                ProblemId = x.ProblemId,
-                                State = ProblemState.Unfinished,
-                                TaskNumber = x.Task.TaskNumber,
-                                TaskTitle = x.Task.TaskTitle
-                            })).OrderBy(x => x.TaskNumber)
-                };
-                return View(model);
+                    if (groupId.HasValue)
+                        throw new NotImplementedException(); //преподы могут свои группы выбирать
+
+                    var templateTasks = _dbContext //выбираем шаблоны тасков переопределенные для группы
+                                    .RgTasks
+                                    .Where(x => x.GroupId == user.UserGroupId);
+                    RgControlVariant variant = new RgControlVariant
+                    {
+                        CreateDate = DateTime.Now,
+                        IsFinished = false,
+                        User = user
+                    };
+                    await _dbContext.Variants.AddAsync(variant);
+
+                    List<RgTaskProblem> problems = new List<RgTaskProblem>();
+                    foreach (var template in templateTasks) //Генерим задачи
+                    {
+                        var problem = await (new RGProblemBuilder(_dbContext)).GenerateProblemAsync(template, user, variant);
+                        problems.Add(problem.Problem);
+                    }
+                    await _dbContext.SaveChangesAsync();
+                    ExamVariantViewModel model = new ExamVariantViewModel
+                    {
+                        CreateDate = variant.CreateDate,
+                        Problems = new List<ExamProblem>(
+                            problems.Select(
+                                x => new ExamProblem
+                                {
+                                    ProblemId = x.ProblemId,
+                                    State = ProblemState.Unfinished,
+                                    TaskNumber = x.Task.TaskNumber,
+                                    TaskTitle = x.Task.TaskTitle
+                                })).OrderBy(x => x.TaskNumber)
+                    };
+                    return View(model);
+                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                throw;
             }
         }
 
@@ -107,8 +116,9 @@ namespace VisFP.Controllers
                             .RgTasks
                             .FirstOrDefault(
                                 x => x.TaskNumber == id &&
-                                x.GroupId == Guid.Empty);
+                                x.GroupId == DbWorker.BaseGroupId);
                     RGProblemResult problem = await builder.GenerateProblemAsync(templateTask, user);
+                    await _dbContext.SaveChangesAsync();
                     var viewModel = new RgProblemViewModel(problem.Grammar, problem.Problem);
                     return View("TaskView", viewModel);
                 }

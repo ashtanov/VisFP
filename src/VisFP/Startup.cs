@@ -39,12 +39,18 @@ namespace VisFP
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var sqlConnectionString = Configuration.GetConnectionString("DataAccessPostgreSqlProvider");
+
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseInMemoryDatabase());
+                options.UseNpgsql(
+                    sqlConnectionString,
+                    b => b.MigrationsAssembly("AspNet5MultipleProject")
+                ));
 
             services.AddIdentity<ApplicationUser, IdentityRole>(
-                o => {
+                o =>
+                {
                     o.Password.RequireDigit = false;
                     o.Password.RequiredLength = 4;
                     o.Password.RequireLowercase = false;

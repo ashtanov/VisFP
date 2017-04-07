@@ -11,7 +11,24 @@ namespace VisFP.Data
 {
     public class DbWorker
     {
+        private static Guid _baseGroupId;
+        public static Guid BaseGroupId
+        {
+            get
+            {
+                if (_baseGroupId != default(Guid))
+                    return _baseGroupId;
+                else
+                    throw new NotImplementedException();
+            }
+            set
+            {
+                _baseGroupId = value;
+            }
+        }
+
         private ApplicationDbContext _dbContext;
+
         public DbWorker(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
@@ -21,7 +38,7 @@ namespace VisFP.Data
         public async Task SetRgTasksToNewGroup(Guid groupId)
         {
             List<RgTask> newTasks = new List<RgTask>();
-            foreach (var task in _dbContext.RgTasks.Where(x => x.GroupId == Guid.Empty))
+            foreach (var task in _dbContext.RgTasks.Where(x => x.GroupId == BaseGroupId))
             {
                 newTasks.Add(new RgTask
                 {
