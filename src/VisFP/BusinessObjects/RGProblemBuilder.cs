@@ -21,11 +21,11 @@ namespace VisFP.BusinessObjects
     /// </summary>
     public class RGProblemBuilder
     {
-        private bool _yesNoAnswer { get; set; }
+        protected bool _yesNoAnswer { get; set; }
         private ApplicationDbContext _dbContext { get; set; }
-        private ChainResult _currentChain { get; set; }
-        private RegularGrammar _currentGrammar { get; set; }
-        private Random _rand { get; set; }
+        protected ChainResult _currentChain { get; set; }
+        protected RegularGrammar _currentGrammar { get; set; }
+        protected Random _rand { get; set; }
 
         public RGProblemBuilder(ApplicationDbContext dbContext)
         {
@@ -36,11 +36,9 @@ namespace VisFP.BusinessObjects
         public async Task<RGProblemResult> GenerateProblemAsync(
             RgTask templateTask,
             ApplicationUser user,
-            RgControlVariant variant = null) //TODO: отделить от базы (стоит ли?)
+            DbControlVariant variant = null) //TODO: отделить от базы (стоит ли?)
         {
-            var alphabet = Alphabet.GenerateRandomRg(
-                templateTask.AlphabetNonTerminalsCount,
-                templateTask.AlphabetTerminalsCount);
+            Alphabet alphabet = GetAlphabet(templateTask);
             int generation = 0;
             int taskNumber = templateTask.TaskNumber;
 
@@ -55,10 +53,7 @@ namespace VisFP.BusinessObjects
                 //генерируем грамматику до тех пор, пока она удовлетворяет условию "неподходимости"
                 do
                 {
-                    _currentGrammar = Generator.Instance.GenerateRG(
-                        ntRuleCount: templateTask.NonTerminalRuleCount,
-                        tRuleCount: templateTask.TerminalRuleCount,
-                        alph: alphabet);
+                    GenerateGrammar(templateTask, alphabet);
                     generation++;
                 } while (ConditionUntilForGrammar(taskNumber));
 
@@ -74,38 +69,7 @@ namespace VisFP.BusinessObjects
                 cGrammar = templateTask.FixedGrammar;
             }
 
-
-            if (taskNumber == 6 || taskNumber == 7 || taskNumber == 8) //генерим цепочки
-            {
-                var allChains = _currentGrammar.GetAllChains(templateTask.ChainMinLength);
-                _currentChain = allChains[_rand.Next(allChains.Count)];
-                if (taskNumber == 7 && !_yesNoAnswer)
-                {
-                    var isSuccess = ChangeChainToUnrepresentable(allChains); //заменяем символы в существующих цепочках пока 
-                    if (!isSuccess) //если все возможные цепочки выводимы, меняем условие
-                        _yesNoAnswer = true;
-                }
-                else if (taskNumber == 8)
-                {
-                    IGrouping<string, ChainResult> chain;
-                    if (_yesNoAnswer) //если должно быть более 2х выводов
-                    {
-                        chain = allChains.GroupBy(x => x.Chain).Where(x => x.Count() > 1).FirstOrDefault();
-                        if (chain == null) //нет такой цепочки
-                            _yesNoAnswer = false; //оставляем выбраную, меняем ответ
-                        else
-                            _currentChain = chain.FirstOrDefault();
-                    }
-                    else
-                    {
-                        chain = allChains.GroupBy(x => x.Chain).Where(x => x.Count() == 1).FirstOrDefault();
-                        if (chain == null) //все цепочки выводимы более 1 раза
-                            _yesNoAnswer = true; //оставляем выбраную, меняем ответ
-                        else
-                            _currentChain = chain.FirstOrDefault();
-                    }
-                }
-            }
+            SetCurrentChain(taskNumber, templateTask); //работа с цепочками
 
             var answer = GetAnswer(taskNumber);
             var question = GetTaskDescription(taskNumber);
@@ -127,7 +91,77 @@ namespace VisFP.BusinessObjects
             return new RGProblemResult { Grammar = _currentGrammar, Problem = cTask };
         }
 
-        private static TaskAnswerType SetAnswerType(int taskNumber)
+        protected virtual void GenerateGrammar(RgTask templateTask, Alphabet alphabet)
+        {
+            _currentGrammar = Generator.Instance.GenerateRG(
+                ntRuleCount: templateTask.NonTerminalRuleCount,
+                tRuleCount: templateTask.TerminalRuleCount,
+                alph: alphabet);
+        }
+
+        protected virtual Alphabet GetAlphabet(RgTask templateTask)
+        {
+            return Alphabet.GenerateRandomRg(
+                templateTask.AlphabetNonTerminalsCount,
+                templateTask.AlphabetTerminalsCount);
+        }
+
+        protected virtual void SetCurrentChain(int taskNum, RgTask templateTask)
+        {
+            List<ChainResult> allChains;
+            switch (taskNum)
+            {
+                case 1:
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    break;
+                case 4:
+                    break;
+                case 5:
+                    break;
+                case 6:
+                    allChains = _currentGrammar.GetAllChains(templateTask.ChainMinLength);
+                    _currentChain = allChains[_rand.Next(allChains.Count)];
+                    break;
+                case 7:
+                    allChains = _currentGrammar.GetAllChains(templateTask.ChainMinLength);
+                    _currentChain = allChains[_rand.Next(allChains.Count)];
+                    if (!_yesNoAnswer)
+                    {
+                        var isSuccess = ChangeChainToUnrepresentable(allChains); //заменяем символы в существующих цепочках пока 
+                        if (!isSuccess) //если все возможные цепочки выводимы, меняем условие
+                            _yesNoAnswer = true;
+                    }
+                    break;
+                case 8:
+                    allChains = _currentGrammar.GetAllChains(templateTask.ChainMinLength);
+                    _currentChain = allChains[_rand.Next(allChains.Count)];
+                    IGrouping<string, ChainResult> chain;
+                    if (_yesNoAnswer) //если должно быть более 2х выводов
+                    {
+                        chain = allChains.GroupBy(x => x.Chain).Where(x => x.Count() > 1).FirstOrDefault();
+                        if (chain == null) //нет такой цепочки
+                            _yesNoAnswer = false; //оставляем выбраную, меняем ответ
+                        else
+                            _currentChain = chain.FirstOrDefault();
+                    }
+                    else
+                    {
+                        chain = allChains.GroupBy(x => x.Chain).Where(x => x.Count() == 1).FirstOrDefault();
+                        if (chain == null) //все цепочки выводимы более 1 раза
+                            _yesNoAnswer = true; //оставляем выбраную, меняем ответ
+                        else
+                            _currentChain = chain.FirstOrDefault();
+                    }
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        protected virtual TaskAnswerType SetAnswerType(int taskNumber)
         {
 
             //Проставляем тип ответа
@@ -141,6 +175,81 @@ namespace VisFP.BusinessObjects
             else
                 answerType = TaskAnswerType.Text;
             return answerType;
+        }
+
+        protected virtual bool ConditionUntilForGrammar(int taskNum)
+        {
+            switch (taskNum)
+            {
+                case 1:
+                    return _currentGrammar.ReachableNonterminals.Value.Length == _currentGrammar.Alph.NonTerminals.Count;
+                case 2:
+                    return _currentGrammar.GeneratingNonterminals.Value.Length == _currentGrammar.Alph.NonTerminals.Count;
+                case 3:
+                    return _currentGrammar.CyclicNonterminals.Value.Length == 0;
+                case 4:
+                    return _currentGrammar.IsProper != _yesNoAnswer;
+                case 5:
+                    return _currentGrammar.IsEmptyLanguage != _yesNoAnswer;
+                case 6:
+                    return _currentGrammar.IsProper == false;
+                case 7:
+                    return _currentGrammar.IsProper == false;
+                case 8:
+                    return _currentGrammar.IsProper == false;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        protected virtual string GetAnswer(int taskNum)
+        {
+            switch (taskNum)
+            {
+                case 1:
+                    return string.Join(" ", _currentGrammar.Alph.NonTerminals.Except(_currentGrammar.ReachableNonterminals.Value).OrderBy(z => z));
+                case 2:
+                    return string.Join(" ", _currentGrammar.Alph.NonTerminals.Except(_currentGrammar.GeneratingNonterminals.Value).OrderBy(z => z));
+                case 3:
+                    return string.Join(" ", _currentGrammar.CyclicNonterminals.Value.OrderBy(z => z));
+                case 4:
+                    return _yesNoAnswer ? "yes" : "no";
+                case 5:
+                    return _yesNoAnswer ? "yes" : "no";
+                case 6:
+                    return _currentGrammar.RulesForChainRepresentable(_currentChain.Chain).SerializeJsonListOfStrings();
+                case 7:
+                    return _yesNoAnswer ? "yes" : "no";
+                case 8:
+                    return _yesNoAnswer ? "yes" : "no";
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        protected virtual string GetTaskDescription(int taskNum)
+        {
+            switch (taskNum)
+            {
+                case 1:
+                    return "Отметьте ВСЕ недостижимые символы (нетерминалы)";
+                case 2:
+                    return "Отметьте ВСЕ пустые символы (нетерминалы)";
+                case 3:
+                    return "Отметьте ВСЕ циклические символы (нетерминалы)";
+                case 4:
+                    return "Является ли заданая грамматика приведенной?";
+                case 5:
+                    return "Является ли язык, порожденный заданной грамматикой, пустым?";
+                case 6:
+                    return $"Выпишите последовательность правил (через пробел), при помощи которых можно составить данную цепочку: <strong>{_currentChain.Chain}</strong>";
+                case 7:
+                    return $"Выводима ли цепочка <strong>{_currentChain.Chain}</strong> в этой грамматике?";
+                case 8:
+                    return $"Выводима ли цепочка <strong>{_currentChain.Chain}</strong> двумя и более способами?";
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         private bool ChangeChainToUnrepresentable(List<ChainResult> allChains)
@@ -191,81 +300,6 @@ namespace VisFP.BusinessObjects
                 }
             }
             return isUnrepresentable;
-        }
-
-        private bool ConditionUntilForGrammar(int taskNum)
-        {
-            switch (taskNum)
-            {
-                case 1:
-                    return _currentGrammar.ReachableNonterminals.Value.Length == _currentGrammar.Alph.NonTerminals.Count;
-                case 2:
-                    return _currentGrammar.GeneratingNonterminals.Value.Length == _currentGrammar.Alph.NonTerminals.Count;
-                case 3:
-                    return _currentGrammar.CyclicNonterminals.Value.Length == 0;
-                case 4:
-                    return _currentGrammar.IsProper != _yesNoAnswer;
-                case 5:
-                    return _currentGrammar.IsEmptyLanguage != _yesNoAnswer;
-                case 6:
-                    return _currentGrammar.IsProper == false;
-                case 7:
-                    return _currentGrammar.IsProper == false;
-                case 8:
-                    return _currentGrammar.IsProper == false;
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-
-        private string GetAnswer(int taskNum)
-        {
-            switch (taskNum)
-            {
-                case 1:
-                    return string.Join(" ", _currentGrammar.Alph.NonTerminals.Except(_currentGrammar.ReachableNonterminals.Value).OrderBy(z => z));
-                case 2:
-                    return string.Join(" ", _currentGrammar.Alph.NonTerminals.Except(_currentGrammar.GeneratingNonterminals.Value).OrderBy(z => z));
-                case 3:
-                    return string.Join(" ", _currentGrammar.CyclicNonterminals.Value.OrderBy(z => z));
-                case 4:
-                    return _yesNoAnswer ? "yes" : "no";
-                case 5:
-                    return _yesNoAnswer ? "yes" : "no";
-                case 6:
-                    return _currentGrammar.RulesForChainRepresentable(_currentChain.Chain).SerializeJsonListOfStrings();
-                case 7:
-                    return _yesNoAnswer ? "yes" : "no";
-                case 8:
-                    return _yesNoAnswer ? "yes" : "no";
-                default:
-                    throw new NotImplementedException();
-            }
-        }
-
-        private string GetTaskDescription(int taskNum)
-        {
-            switch (taskNum)
-            {
-                case 1:
-                    return "Отметьте ВСЕ недостижимые символы (нетерминалы)";
-                case 2:
-                    return "Отметьте ВСЕ пустые символы (нетерминалы)";
-                case 3:
-                    return "Отметьте ВСЕ циклические символы (нетерминалы)";
-                case 4:
-                    return "Является ли заданая грамматика приведенной?";
-                case 5:
-                    return "Является ли язык, порожденный заданной грамматикой, пустым?";
-                case 6:
-                    return $"Выпишите последовательность правил (через пробел), при помощи которых можно составить данную цепочку: <strong>{_currentChain.Chain}</strong>";
-                case 7:
-                    return $"Выводима ли цепочка <strong>{_currentChain.Chain}</strong> в этой грамматике?";
-                case 8:
-                    return $"Выводима ли цепочка <strong>{_currentChain.Chain}</strong> двумя и более способами?";
-                default:
-                    throw new NotImplementedException();
-            }
         }
     }
 }

@@ -50,7 +50,7 @@ namespace VisFP.Controllers
                 var variants = _dbContext
                     .Variants
                     .Include(x => x.Problems)
-                    .Where(x => x.User == user);
+                    .Where(x => x.User == user).ToList();
                 List<VariantStat> statVariant = new List<VariantStat>(); 
                 foreach(var variant in variants)
                 {

@@ -91,7 +91,7 @@ namespace VisFP.Controllers
                 }
                 else
                 {
-                    ModelState.AddModelError("NotExistedOrNotOpen", "Указанная группа закрыла либо не существует");
+                    ModelState.AddModelError("NotExistedOrNotOpen", "Указанная группа закрыта либо не существует");
                     return View(model);
                 }
             }

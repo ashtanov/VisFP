@@ -120,7 +120,7 @@ namespace VisFP.Controllers
             {
                 if (group.Creator == user || await _userManager.IsInRoleAsync(user, nameof(DbRole.Admin)))
                 {
-                    return View(_dbContext.RgTasks.Where(x => x.GroupId == groupId));
+                    return View(_dbContext.RgTasks.Where(x => x.GroupId == groupId && x.TaskType == Constants.RgType));
                 }
                 else
                     return StatusCode(403);

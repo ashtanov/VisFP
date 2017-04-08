@@ -19,10 +19,13 @@ namespace VisFP.BusinessObjects
         {
             Dictionary<char, int> suppDict = new Dictionary<char, int>();
             int currId = 0;
-            foreach(var v in gram.Alph.NonTerminals)
+            foreach (var v in gram.Alph.NonTerminals)
             {
-
-                string color = (v == gram.Alph.InitState ? "rgba(0,255,0,0.7)" : "rgba(90,90,90,0.7)");
+                string color = (v == gram.Alph.InitState ?
+                                        "rgba(0,255,0,0.7)" :
+                                                v == gram.EndState ?
+                                                "rgba(255,0,0,0.7)" :
+                                                "rgba(90,90,90,0.7)");
                 nodes.Add(new GNode
                 {
                     id = currId,
@@ -32,12 +35,15 @@ namespace VisFP.BusinessObjects
                 suppDict.Add(v, currId);
                 currId++;
             }
-            nodes.Add(new GNode
+            if (!suppDict.ContainsKey(gram.EndState))
             {
-                id = currId,
-                color = "rgba(255,0,0,0.7)",
-                label = "$"
-            });
+                nodes.Add(new GNode
+                {
+                    id = currId,
+                    color = "rgba(255,0,0,0.7)",
+                    label = gram.EndState.ToString()
+                });
+            }
             foreach (var r in gram.Rules)
             {
                 edges.Add(new Edge

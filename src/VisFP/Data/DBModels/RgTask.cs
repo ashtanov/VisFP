@@ -7,13 +7,8 @@ using System.Threading.Tasks;
 
 namespace VisFP.Data.DBModels
 {
-    public class RgTask
+    public class RgTask : DbTask
     {
-        public Guid TaskId { get; set; }
-        [Display(Name = "Название задачи")]
-        public string TaskTitle { get; set; }
-        [Display(Name = "Номер задачи")]
-        public int TaskNumber { get; set; }
         [Display(Name = "Количество терминалов в алфавите")]
         public int AlphabetTerminalsCount { get; set; }
         [Display(Name = "Количество нетерминалов в алфавите")]
@@ -22,12 +17,12 @@ namespace VisFP.Data.DBModels
         public int TerminalRuleCount { get; set; }
         [Display(Name = "Количество нетерминальных правил")]
         public int NonTerminalRuleCount { get; set; }
-        [Display(Name = "Количество попыток")]
-        public int MaxAttempts { get; set; }
         [Display(Name = "Минимальная длина цепочки")]
         public int ChainMinLength { get; set; }
         [Display(Name = "Грамматика генерируется?")]
         public bool IsGrammarGenerated { get; set; }
+
+        public string TaskType { get; set; }
 
         public Guid? FixedGrammarId { get; set; }
         public RGrammar FixedGrammar { get; set; }

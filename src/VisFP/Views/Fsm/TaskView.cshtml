@@ -1,0 +1,7 @@
+﻿@model VisFP.Models.RGViewModels.RgProblemViewModel
+
+@{
+    ViewData["Title"] = Model.TaskTitle;
+}
+
+@{ await Html.RenderPartialAsync("RgProblemView", Model); }

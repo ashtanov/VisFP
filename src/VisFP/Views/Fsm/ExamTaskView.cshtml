@@ -1,0 +1,39 @@
+﻿@model VisFP.Models.RGViewModels.ExamRgProblemViewModel
+
+@{
+    ViewData["Title"] = Model.TaskTitle;
+}
+<div class="list-group">
+    <span class="list-group-item" style="background-color:darkred; color:white; text-align:center">Контрольное задание</span>
+</div>
+<row>
+    <div class="col-md-1" style="font-size:large"><strong>Задачи:</strong></div>
+    <div class="col-md-11">
+        <ul class="list-inline">
+            @foreach (var problem in Model.OtherProblems)
+            {
+                if (Model.Id == problem.ProblemId)
+                {
+                    <li><button class="btn btn-sm btn-primary">@problem.TaskNumber</button></li>
+                }
+                else
+                {
+                    <li>
+                        @{
+                            var currentStatus = problem.State == ProblemState.Unfinished
+                                                ? "testUnfinished"
+                                                : problem.State == ProblemState.SuccessFinished
+                                                    ? "testOk"
+                                                    : "testFail";
+                        }
+                        <a asp-action="Task"
+                           asp-route-id="@problem.TaskNumber"
+                           asp-route-problemId="@problem.ProblemId"
+                           class="btn btn-sm btn-default @currentStatus">@problem.TaskNumber</a>
+                    </li>
+                                }
+                            }
+        </ul>
+    </div>
+</row>
+@{ await Html.RenderPartialAsync("RgProblemView", Model); }

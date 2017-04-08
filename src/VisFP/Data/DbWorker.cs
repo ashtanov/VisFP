@@ -50,6 +50,7 @@ namespace VisFP.Data
                     MaxAttempts = task.MaxAttempts,
                     TaskNumber = task.TaskNumber,
                     TaskTitle = task.TaskTitle,
+                    TaskType = task.TaskType,
                     TerminalRuleCount = task.TerminalRuleCount,
                     NonTerminalRuleCount = task.NonTerminalRuleCount
                 });
@@ -58,13 +59,13 @@ namespace VisFP.Data
             await _dbContext.SaveChangesAsync();
         }
 
-        public IOrderedEnumerable<ExamProblem> GetVariantProblems(RgControlVariant variant)
+        public IOrderedEnumerable<ExamProblem> GetVariantProblems(DbControlVariant variant)
         {
             var problems = _dbContext
                     .RgTaskProblems
                     .Include(x => x.Task)
                     .Include(x => x.Attempts)
-                    .Where(x => x.Variant == variant);
+                    .Where(x => x.Variant == variant).ToList();
             var handledProblems = new List<ExamProblem>(
                     problems.Select(
                         x => new ExamProblem

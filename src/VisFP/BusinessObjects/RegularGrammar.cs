@@ -4,22 +4,23 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using VisFP.Utils;
 
 namespace VisFP.BusinessObjects
 {
-    public class Rule : IEquatable<Rule>
+    public class Rule : IEquatable<Rule> //TODO: удалить возможность ставить null в Rnt, всегда финальная вершина с меткой (исправить в алгоритмах!!!)
     {
         public readonly char Lnt; //левая часть правила - нетреминал
         public readonly char Rt; //правая часть правила - терминал
         public readonly char? Rnt; //правая часть правила - нетерминал
+        public readonly bool IsFinite;
 
-        public Rule(char Lnt, char Rt, char? Rnt)
+        public Rule(char Lnt, char Rt, char? Rnt, bool isFinite = false)
         {
             this.Lnt = Lnt;
             this.Rnt = Rnt;
             this.Rt = Rt;
+            IsFinite = isFinite;
         }
 
         public override string ToString()
@@ -58,8 +59,8 @@ namespace VisFP.BusinessObjects
                 NonTerminal = nonTerminal;
                 Edges = new Dictionary<int, RgEdge>();
             }
-
         }
+
         public IReadOnlyList<Rule> Rules { get; private set; }
         public Alphabet Alph { get; private set; }
 
@@ -89,11 +90,14 @@ namespace VisFP.BusinessObjects
         {
             Rules = rules;
             Alph = alph;
+            if (Alph.FiniteState != default(char))
+                EndState = Alph.FiniteState;
             CyclicNonterminals = new Lazy<char[]>(() => FindCyclicNonTerminals(), true);
             ReachableNonterminals = new Lazy<char[]>(() => FindReachableNonTerminals(), true);
             GeneratingNonterminals = new Lazy<char[]>(() => FindGeneratingNonTerminals(), true);
             GrammarGraph = new Lazy<RgNode>(() => GenerateGrammarGraph(), true);
         }
+
         [JsonIgnore]
         public bool IsProper //приведенная ли?
         {
@@ -225,12 +229,15 @@ namespace VisFP.BusinessObjects
 
         }
 
-        public List<ChainResult> GetAllChains(int minLength)//получаем все цепочки выводимые длины minLength и если таковых нет, пытаемся получить все длины minLength+1
+        /// <summary>
+        /// Получение всех выводимых цепочек длины minLength, и если таковых нет, пытаемся получить все длины minLength+1.
+        /// </summary>
+        /// <param name="minLength"></param>
+        /// <returns></returns>
+        public List<ChainResult> GetAllChains(int minLength)
         {
             if (!IsProper)
-            {
                 throw new InvalidOperationException("Цепочки генерируются только по приведенной грамматике");
-            }
             List<Tuple<ChainResult, RgNode>> currentPathes = //сначала заливаем туда инициализирующее состояние
                 new List<Tuple<ChainResult, RgNode>>(
                     new[] {
@@ -245,7 +252,7 @@ namespace VisFP.BusinessObjects
                );
 
             List<ChainResult> result = new List<ChainResult>();
-            for (int i = 0; i < minLength || currentPathes.Count == 0; ++i)
+            for (int i = 0; i < minLength || (currentPathes.Count == 0 && i < minLength*2); ++i)
             {
                 List<Tuple<ChainResult, RgNode>> nextPathes = new List<Tuple<ChainResult, RgNode>>();
                 foreach (var path in currentPathes)
@@ -275,6 +282,8 @@ namespace VisFP.BusinessObjects
                 }
                 currentPathes = nextPathes;
             }
+            if (result.Count == 0)
+                throw new Exception($"Нет завершенных цепочек длиной от {minLength} до {2*minLength}");
 
             return result;
         }
@@ -287,6 +296,42 @@ namespace VisFP.BusinessObjects
             return res;
         }
 
+        public List<string> GetTransitionTable()
+        {
+            List<string> table = new List<string>();
+            foreach (var rule in Rules.GroupBy(x => x.Lnt))
+            {
+                foreach (var row in rule.GroupBy(x => x.Rt))
+                {
+                    table.Add($"δ({rule.Key},{row.Key}) = {{{string.Join(",", row.Select(x => x.Rnt.HasValue ? x.Rnt : EndState))}}}");
+                }
+            }
+            return table;
+        }
+
+        #region Serialize|Deserialize
+        public string Serialize()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+        /// <summary>
+        /// Парсим граматику из жсона. МОжет кинуть исключение, если в алфавите нетерминалов нет инициализирующего символа
+        /// </summary>
+        /// <param name="jsonObject"></param>
+        /// <returns></returns>
+        public static RegularGrammar Parse(string jsonObject)
+        {
+            JObject parsed = JsonConvert.DeserializeObject<JObject>(jsonObject);
+            var alphabet = new Alphabet(
+                init: parsed[nameof(Alph)]["InitState"].Value<char>(),
+                term: parsed[nameof(Alph)]["Terminals"].ToObject<char[]>(),
+                notTerm: parsed[nameof(Alph)]["NonTerminals"].ToObject<char[]>());
+            var rules = parsed[nameof(Rules)].ToObject<Rule[]>();
+            return new RegularGrammar(alphabet, rules);
+        }
+        #endregion
+
+        #region helpers
         private void FindWay(List<string> storage, RgNode currentNode, string rulesBefore, string chainTail)
         {
             if (chainTail.Length > 1)
@@ -370,27 +415,6 @@ namespace VisFP.BusinessObjects
                     new RgEdge { NewState = toNode, Terminal = rule.rule.Rt });
             }
             return suppDict[Alph.InitState];
-        }
-
-        #region Serialize|Deserialize
-        public string Serialize()
-        {
-            return JsonConvert.SerializeObject(this);
-        }
-        /// <summary>
-        /// Парсим граматику из жсона. МОжет кинуть исключение, если в алфавите нетерминалов нет инициализирующего символа
-        /// </summary>
-        /// <param name="jsonObject"></param>
-        /// <returns></returns>
-        public static RegularGrammar Parse(string jsonObject)
-        {
-            JObject parsed = JsonConvert.DeserializeObject<JObject>(jsonObject);
-            var alphabet = new Alphabet(
-                init: parsed[nameof(Alph)]["InitState"].Value<char>(),
-                term: parsed[nameof(Alph)]["Terminals"].ToObject<char[]>(),
-                notTerm: parsed[nameof(Alph)]["NonTerminals"].ToObject<char[]>());
-            var rules = parsed[nameof(Rules)].ToObject<Rule[]>();
-            return new RegularGrammar(alphabet, rules);
         }
         #endregion
     }

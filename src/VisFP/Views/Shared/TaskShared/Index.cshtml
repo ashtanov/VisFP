@@ -1,0 +1,12 @@
+﻿@model TaskListViewModel
+<h1>@ViewData["Title"]</h1>
+<h2>Примеры задач</h2>
+<ul>
+    @foreach (var t in Model.TasksList)
+    {
+        var href = $"/{Model.TaskControllerName}/Task/{t.Item1}";
+        <li><a href="@href">Задача <span>@t.Item1</span>: @t.Item2</a></li>
+    }
+</ul>
+
+<a asp-action="ExamVariant" class="btn btn-warning btn-lg">Сдать контрольный тест</a>

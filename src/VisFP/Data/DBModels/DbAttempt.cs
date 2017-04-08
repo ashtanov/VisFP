@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace VisFP.Data.DBModels
 {
-    public class RgAttempt
+    public class DbAttempt
     {
         public Guid AttemptId { get; set; }
         public DateTime Date { get; set; }
@@ -15,6 +15,6 @@ namespace VisFP.Data.DBModels
         public bool IsCorrect { get; set; }
 
         public Guid ProblemId { get; set; }
-        public RgTaskProblem Problem { get; set; }
+        public DbTaskProblem Problem { get; set; }
     }
 }

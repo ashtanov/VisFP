@@ -2,13 +2,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using VisFP.Models;
 using VisFP.Models.RGViewModels;
 using VisFP.Data;
 using Microsoft.AspNetCore.Identity;
 using VisFP.Data.DBModels;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Authorization;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using VisFP.Models.TaskProblemSharedViewModels;
@@ -18,36 +16,43 @@ namespace VisFP.Controllers
 {
     public class RegGramController : TaskProblemController
     {
-        private readonly ILogger _logger;
+        protected readonly ILogger _logger;
+        protected string ControllerType = Constants.RgType;
+        protected string AreaName = "Регулярные грамматики";
 
         public RegGramController(
             UserManager<ApplicationUser> userManager,
             ApplicationDbContext dbContext,
             ILoggerFactory loggerFactory)
-            :base(userManager,dbContext)
+            : base(userManager, dbContext)
         {
-            _logger = loggerFactory.CreateLogger<RegGramController>();
+            _logger = loggerFactory.CreateLogger(GetType());
         }
 
-        [Authorize]
-        public async Task<IActionResult> Index()
+        public override async Task<IActionResult> Index()
         {
-            return View(_dbContext
+            ViewData["Title"] = AreaName;
+            var model = new TaskListViewModel
+            {
+                TaskControllerName = this.GetType().Name.Replace("Controller", ""),
+                TasksList = _dbContext
                 .RgTasks
-                .Where(x => x.GroupId == DbWorker.BaseGroupId)
-                .Select(x => new Tuple<int, string>(x.TaskNumber, x.TaskTitle)));
+                .Where(x => x.GroupId == DbWorker.BaseGroupId && x.TaskType == ControllerType)
+                .Select(x => new Tuple<int, string>(x.TaskNumber, x.TaskTitle))
+            };
+            return View("TaskShared/Index", model);
         }
 
-        public async Task<IActionResult> ExamVariant(Guid? groupId)
+        public override async Task<IActionResult> ExamVariant(Guid? groupId)
         {
             try
             {
                 var user = await _userManager.GetUserAsync(User);
-                if (_dbContext.Variants.Any(x => x.User == user && !x.IsFinished)) //если нет текущего варианта
+                if (_dbContext.Variants.Any(x => x.User == user && !x.IsFinished && x.VariantType == ControllerType)) //если нет текущего варианта
                 {
                     var variant = await _dbContext
                         .Variants
-                        .Where(x => x.User == user)
+                        .Where(x => x.User == user && x.VariantType == ControllerType)
                         .OrderByDescending(x => x.CreateDate).FirstOrDefaultAsync();
                     DbWorker worker = new DbWorker(_dbContext);
                     ExamVariantViewModel model = new ExamVariantViewModel
@@ -55,7 +60,7 @@ namespace VisFP.Controllers
                         CreateDate = variant.CreateDate,
                         Problems = worker.GetVariantProblems(variant)
                     };
-                    return View(model);
+                    return View("TaskShared/ExamVariant", model);
                 }
                 else
                 {
@@ -64,11 +69,12 @@ namespace VisFP.Controllers
 
                     var templateTasks = _dbContext //выбираем шаблоны тасков переопределенные для группы
                                     .RgTasks
-                                    .Where(x => x.GroupId == user.UserGroupId);
-                    RgControlVariant variant = new RgControlVariant
+                                    .Where(x => x.GroupId == user.UserGroupId && x.TaskType == ControllerType);
+                    DbControlVariant variant = new DbControlVariant
                     {
                         CreateDate = DateTime.Now,
                         IsFinished = false,
+                        VariantType = ControllerType,
                         User = user
                     };
                     await _dbContext.Variants.AddAsync(variant);
@@ -76,7 +82,7 @@ namespace VisFP.Controllers
                     List<RgTaskProblem> problems = new List<RgTaskProblem>();
                     foreach (var template in templateTasks) //Генерим задачи
                     {
-                        var problem = await (new RGProblemBuilder(_dbContext)).GenerateProblemAsync(template, user, variant);
+                        RGProblemResult problem = await GetProblem(user, template, variant);
                         problems.Add(problem.Problem);
                     }
                     await _dbContext.SaveChangesAsync();
@@ -93,31 +99,34 @@ namespace VisFP.Controllers
                                     TaskTitle = x.Task.TaskTitle
                                 })).OrderBy(x => x.TaskNumber)
                     };
-                    return View(model);
+                    return View("TaskShared/ExamVariant", model);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex.ToString());
                 throw;
             }
         }
 
-        [Authorize]
-        public override async Task<IActionResult> Task(int id, Guid problemId)
+        protected virtual async Task<RGProblemResult> GetProblem(ApplicationUser user, RgTask template, DbControlVariant variant = null)
+        {
+            return await (new RGProblemBuilder(_dbContext)).GenerateProblemAsync(template, user, variant);
+        }
+
+        public override async Task<IActionResult> Task(int id, Guid? problemId)
         {
             try
             {
                 var user = await _userManager.GetUserAsync(User);
-                if (problemId.Equals(default(Guid))) //тренировочная задача
+                if (!problemId.HasValue) //тренировочная задача
                 {
-                    var builder = new RGProblemBuilder(_dbContext);
                     RgTask templateTask = _dbContext //выбираем шаблон таска базовый
                             .RgTasks
                             .FirstOrDefault(
                                 x => x.TaskNumber == id &&
-                                x.GroupId == DbWorker.BaseGroupId);
-                    RGProblemResult problem = await builder.GenerateProblemAsync(templateTask, user);
+                                x.GroupId == DbWorker.BaseGroupId && x.TaskType == ControllerType);
+                    RGProblemResult problem = await GetProblem(user, templateTask);
                     await _dbContext.SaveChangesAsync();
                     var viewModel = new RgProblemViewModel(problem.Grammar, problem.Problem);
                     return View("TaskView", viewModel);
@@ -130,10 +139,10 @@ namespace VisFP.Controllers
                         .Include(x => x.CurrentGrammar)
                         .Include(x => x.Task)
                         .Include(x => x.Attempts)
-                        .FirstOrDefaultAsync(x => x.ProblemId == problemId);
+                        .FirstOrDefaultAsync(x => x.ProblemId == problemId.Value);
                     if (currentProblem != null)
                     {
-                        if (currentProblem.VariantId == Guid.Empty) //задача без варианта
+                        if (currentProblem.VariantId == null) //задача без варианта
                         {
                             var viewModel =
                                 new RgProblemViewModel(
@@ -169,7 +178,6 @@ namespace VisFP.Controllers
             }
         }
 
-        [Authorize]
         [HttpPost]
         public JsonResult SaveGraph(string graph)
         {

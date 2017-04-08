@@ -40,8 +40,10 @@ namespace VisFP.Data
                 if(dbcontext.Users.Count() == 0)
                     await AddRolesAndUsers(manager, roleManager);
 
-                if (dbcontext.RgTasks.Count() == 0)
+                if (dbcontext.RgTasks.Count(x => x.TaskType == Constants.RgType) == 0)
                     AddRgTasks(dbcontext);
+                if (dbcontext.RgTasks.Count(x => x.TaskType == Constants.FsmType) == 0)
+                    AddFsmTasks(dbcontext);
                 await dbcontext.SaveChangesAsync();
             }
         }
@@ -70,6 +72,7 @@ namespace VisFP.Data
             dbcontext.RgTasks.Add(new RgTask
             {
                 TaskTitle = "Недостижимые символы",
+                TaskType = Constants.RgType,
                 NonTerminalRuleCount = 7,
                 IsGrammarGenerated = true,
                 TerminalRuleCount = 3,
@@ -83,6 +86,7 @@ namespace VisFP.Data
             dbcontext.RgTasks.Add(new RgTask
             {
                 TaskTitle = "Пустые символы",
+                TaskType = Constants.RgType,
                 IsGrammarGenerated = true,
                 NonTerminalRuleCount = 7,
                 TerminalRuleCount = 3,
@@ -96,6 +100,7 @@ namespace VisFP.Data
             dbcontext.RgTasks.Add(new RgTask
             {
                 TaskTitle = "Циклические символы",
+                TaskType = Constants.RgType,
                 IsGrammarGenerated = true,
                 NonTerminalRuleCount = 7,
                 TerminalRuleCount = 3,
@@ -109,6 +114,7 @@ namespace VisFP.Data
             dbcontext.RgTasks.Add(new RgTask
             {
                 TaskTitle = "Приведенные грамматики",
+                TaskType = Constants.RgType,
                 IsGrammarGenerated = true,
                 NonTerminalRuleCount = 7,
                 TerminalRuleCount = 2,
@@ -122,6 +128,7 @@ namespace VisFP.Data
             dbcontext.RgTasks.Add(new RgTask
             {
                 TaskTitle = "Пустые языки",
+                TaskType = Constants.RgType,
                 IsGrammarGenerated = true,
                 NonTerminalRuleCount = 7,
                 TerminalRuleCount = 2,
@@ -135,6 +142,7 @@ namespace VisFP.Data
             dbcontext.RgTasks.Add(new RgTask
             {
                 TaskTitle = "Построение цепочки",
+                TaskType = Constants.RgType,
                 IsGrammarGenerated = true,
                 NonTerminalRuleCount = 7,
                 TerminalRuleCount = 2,
@@ -149,6 +157,7 @@ namespace VisFP.Data
             dbcontext.RgTasks.Add(new RgTask
             {
                 TaskTitle = "Выводима ли цепочка?",
+                TaskType = Constants.RgType,
                 IsGrammarGenerated = true,
                 NonTerminalRuleCount = 7,
                 TerminalRuleCount = 2,
@@ -163,6 +172,7 @@ namespace VisFP.Data
             dbcontext.RgTasks.Add(new RgTask
             {
                 TaskTitle = "Выводима ли цепочка двумя и более способами?",
+                TaskType = Constants.RgType,
                 IsGrammarGenerated = true,
                 NonTerminalRuleCount = 7,
                 TerminalRuleCount = 2,
@@ -171,6 +181,23 @@ namespace VisFP.Data
                 MaxAttempts = 1,
                 TaskNumber = 8,
                 ChainMinLength = 6,
+                GroupId = DbWorker.BaseGroupId
+            });
+        }
+
+        private static void AddFsmTasks(ApplicationDbContext dbcontext)
+        {
+            dbcontext.RgTasks.Add(new RgTask
+            {
+                TaskTitle = "Недостижимые символы",
+                TaskType = Constants.FsmType,
+                NonTerminalRuleCount = 7,
+                IsGrammarGenerated = true,
+                TerminalRuleCount = 3,
+                AlphabetNonTerminalsCount = 5,
+                AlphabetTerminalsCount = 3,
+                MaxAttempts = 3,
+                TaskNumber = 1,
                 GroupId = DbWorker.BaseGroupId
             });
         }

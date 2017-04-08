@@ -30,7 +30,7 @@ namespace VisFP.BusinessObjects
                 throw new ArgumentException($"Начальный символ {init} должен содержаться в множестве нетерминалов!");
         }
 
-        public Alphabet(char init, char[] term, char[] notTerm, char finite) 
+        public Alphabet(char init, char[] term, char[] notTerm, char finite)
             : this(init, term, notTerm)
         {
             FiniteState = finite;
@@ -59,6 +59,21 @@ namespace VisFP.BusinessObjects
                 initSymbol,
                 t.OrderBy(x => r.Next()).Take(termCount).ToArray(),
                 new[] { initSymbol }.Union(nt.OrderBy(x => r.Next()).Take(nonTermCount - 1)).ToArray());
+        }
+
+        public static Alphabet GenerateRandomFsm(int nonTermCount, int termCount)
+        {
+            Random r = new Random();
+            char initSymbol = 'S';
+            string nt = "TUVWXYZ";
+            string t = "1234567890abcdef";
+            var notterm = nt.OrderBy(x => r.Next()).Take(nonTermCount - 1);
+            return new Alphabet(
+                initSymbol,
+                t.OrderBy(x => r.Next()).Take(termCount).ToArray(),
+                new[] { initSymbol }.Union(notterm).ToArray(),
+                notterm.OrderBy(x => r.Next()).First()
+                );
         }
     }
 
@@ -116,7 +131,7 @@ namespace VisFP.BusinessObjects
             return new RegularGrammar(alph, result);
         }
 
-        public FiniteStateMachine GenerateFSM(int ntRuleCount, int tRuleCount, Alphabet alph)
+        public RegularGrammar GenerateFSM(int ntRuleCount, int tRuleCount, Alphabet alph)
         {
             var result = new List<Rule>();
             result.Add(
@@ -140,15 +155,13 @@ namespace VisFP.BusinessObjects
                 var curr = new Rule(
                           Lnt: alph.NonTerminals[_rand.Next(alph.NonTerminals.Count)],
                           Rt: alph.Terminals[_rand.Next(alph.Terminals.Count)],
-                          Rnt: null
+                          Rnt: alph.FiniteState
                       );
                 if (!result.Contains(curr))
                     result.Add(curr);
             }
             result = result.OrderBy(x => x.Lnt).ToList();
-            return new FiniteStateMachine(alph, result);
+            return new RegularGrammar(alph, result);
         }
-
-
     }
 }
