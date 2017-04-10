@@ -23,7 +23,7 @@ namespace VisFP.BusinessObjects
             {
                 string color = (v == gram.Alph.InitState ?
                                         "rgba(0,255,0,0.7)" :
-                                                v == gram.EndState ?
+                                                v == gram.Alph.FiniteState ?
                                                 "rgba(255,0,0,0.7)" :
                                                 "rgba(90,90,90,0.7)");
                 nodes.Add(new GNode
@@ -35,13 +35,13 @@ namespace VisFP.BusinessObjects
                 suppDict.Add(v, currId);
                 currId++;
             }
-            if (!suppDict.ContainsKey(gram.EndState))
+            if (!suppDict.ContainsKey(gram.Alph.FiniteState))
             {
                 nodes.Add(new GNode
                 {
                     id = currId,
                     color = "rgba(255,0,0,0.7)",
-                    label = gram.EndState.ToString()
+                    label = gram.Alph.FiniteState.ToString()
                 });
             }
             foreach (var r in gram.Rules)
@@ -49,7 +49,7 @@ namespace VisFP.BusinessObjects
                 edges.Add(new Edge
                 {
                     from = suppDict[r.Lnt],
-                    to = r.Rnt.HasValue ? suppDict[r.Rnt.Value] : currId,
+                    to = r.IsFinite ? currId : suppDict[r.Rnt],
                     label = r.Rt.ToString()
                 });
             }

@@ -26,6 +26,7 @@ namespace VisFP.BusinessObjects
             Terminals = new List<char>(_terminals);
             NonTerminals = new List<char>(_notTerminals);
             InitState = init;
+            FiniteState = '$';
             if (!_notTerminals.Contains(init))
                 throw new ArgumentException($"Начальный символ {init} должен содержаться в множестве нетерминалов!");
         }
@@ -122,7 +123,8 @@ namespace VisFP.BusinessObjects
                 var curr = new Rule(
                           Lnt: alph.NonTerminals[_rand.Next(alph.NonTerminals.Count)],
                           Rt: alph.Terminals[_rand.Next(alph.Terminals.Count)],
-                          Rnt: null
+                          Rnt: alph.FiniteState,
+                          isFinite: true
                       );
                 if (!result.Contains(curr))
                     result.Add(curr);
@@ -155,7 +157,8 @@ namespace VisFP.BusinessObjects
                 var curr = new Rule(
                           Lnt: alph.NonTerminals[_rand.Next(alph.NonTerminals.Count)],
                           Rt: alph.Terminals[_rand.Next(alph.Terminals.Count)],
-                          Rnt: alph.FiniteState
+                          Rnt: alph.FiniteState,
+                          isFinite: true
                       );
                 if (!result.Contains(curr))
                     result.Add(curr);

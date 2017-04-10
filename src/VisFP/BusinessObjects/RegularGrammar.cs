@@ -12,10 +12,10 @@ namespace VisFP.BusinessObjects
     {
         public readonly char Lnt; //левая часть правила - нетреминал
         public readonly char Rt; //правая часть правила - терминал
-        public readonly char? Rnt; //правая часть правила - нетерминал
+        public readonly char Rnt; //правая часть правила - нетерминал
         public readonly bool IsFinite;
 
-        public Rule(char Lnt, char Rt, char? Rnt, bool isFinite = false)
+        public Rule(char Lnt, char Rt, char Rnt, bool isFinite = false)
         {
             this.Lnt = Lnt;
             this.Rnt = Rnt;
@@ -25,7 +25,7 @@ namespace VisFP.BusinessObjects
 
         public override string ToString()
         {
-            if (Rnt.HasValue)
+            if (!IsFinite)
                 return $"{Lnt} -> {Rt}{Rnt}";
             else
                 return $"{Lnt} -> {Rt}";
@@ -63,19 +63,6 @@ namespace VisFP.BusinessObjects
 
         public IReadOnlyList<Rule> Rules { get; private set; }
         public Alphabet Alph { get; private set; }
-
-        private char _endState = '$';
-        public char EndState
-        {
-            get
-            {
-                return _endState;
-            }
-            protected set
-            {
-                _endState = value;
-            }
-        }
         public int MaxChainTry { get; set; } = 100;
         [JsonIgnore]
         public Lazy<char[]> CyclicNonterminals;
@@ -90,8 +77,6 @@ namespace VisFP.BusinessObjects
         {
             Rules = rules;
             Alph = alph;
-            if (Alph.FiniteState != default(char))
-                EndState = Alph.FiniteState;
             CyclicNonterminals = new Lazy<char[]>(() => FindCyclicNonTerminals(), true);
             ReachableNonterminals = new Lazy<char[]>(() => FindReachableNonTerminals(), true);
             GeneratingNonterminals = new Lazy<char[]>(() => FindGeneratingNonTerminals(), true);
@@ -129,7 +114,7 @@ namespace VisFP.BusinessObjects
                 //удаление "бесплодных" символов
                 var emptySymbols = new HashSet<char>(Alph.NonTerminals.Except(GeneratingNonterminals.Value));
                 var newRules = Rules
-                    .Where(x => !emptySymbols.Contains(x.Lnt) || (x.Rnt.HasValue && !emptySymbols.Contains(x.Rnt.Value))).ToList();
+                    .Where(x => !emptySymbols.Contains(x.Lnt) || (!x.IsFinite && !emptySymbols.Contains(x.Rnt))).ToList();
                 RegularGrammar tmp = new RegularGrammar(
                     new Alphabet(
                         Alph.InitState,
@@ -140,7 +125,7 @@ namespace VisFP.BusinessObjects
                 //из получившейся грамматики удаляем недостижимые символы
                 var unreachableSymbols = new HashSet<char>(tmp.Alph.NonTerminals.Except(tmp.ReachableNonterminals.Value));
                 var newRules2 = tmp.Rules
-                    .Where(x => !unreachableSymbols.Contains(x.Lnt) || (x.Rnt.HasValue && !unreachableSymbols.Contains(x.Rnt.Value))).ToList();
+                    .Where(x => !unreachableSymbols.Contains(x.Lnt) || (!x.IsFinite && !unreachableSymbols.Contains(x.Rnt))).ToList();
                 return
                     new RegularGrammar(new Alphabet(
                         tmp.Alph.InitState,
@@ -187,7 +172,7 @@ namespace VisFP.BusinessObjects
                 {
                     if (neededTerminalsCount > 0)
                     {
-                        var nTStates = currentNode.Edges.Where(x => x.Value.NewState.NonTerminal != EndState).ToList();
+                        var nTStates = currentNode.Edges.Where(x => x.Value.NewState.NonTerminal != Alph.FiniteState).ToList();
                         if (nTStates.Count == 0)
                             break;
                         var selectedRule = nTStates[r.Next(0, nTStates.Count)];
@@ -197,7 +182,7 @@ namespace VisFP.BusinessObjects
                     }
                     else
                     {
-                        var endState = currentNode.Edges.FirstOrDefault(x => x.Value.NewState.NonTerminal == EndState);
+                        var endState = currentNode.Edges.FirstOrDefault(x => x.Value.NewState.NonTerminal == Alph.FiniteState);
                         if (endState.Equals(default(KeyValuePair<int, RgEdge>))) //если из текущего состояния нет терминального правила
                         {
                             if (output.Length == 2 * minLength) //если наша цепочка в 2 раза больше минимальной - пробуем сначала
@@ -259,7 +244,7 @@ namespace VisFP.BusinessObjects
                 {
                     foreach(var edge in path.Item2.Edges)
                     {
-                        if (edge.Value.NewState.NonTerminal == EndState)
+                        if (edge.Value.NewState.NonTerminal == Alph.FiniteState)
                         {
                             if (i >= (minLength - 1))
                                 result.Add(new ChainResult
@@ -303,7 +288,7 @@ namespace VisFP.BusinessObjects
             {
                 foreach (var row in rule.GroupBy(x => x.Rt))
                 {
-                    table.Add($"δ({rule.Key},{row.Key}) = {{{string.Join(",", row.Select(x => x.Rnt.HasValue ? x.Rnt : EndState))}}}");
+                    table.Add($"δ({rule.Key},{row.Key}) = {{{string.Join(",", row.Select(x => x.Rnt))}}}");
                 }
             }
             return table;
@@ -348,7 +333,7 @@ namespace VisFP.BusinessObjects
                     .Edges
                     .FirstOrDefault(
                         x => x.Value.Terminal == chainTail[0]
-                        && x.Value.NewState.NonTerminal == EndState);
+                        && x.Value.NewState.NonTerminal == Alph.FiniteState);
                 if (!finalRule.Equals(default(KeyValuePair<int, RgEdge>)))
                     storage.Add($"{rulesBefore} {(finalRule.Key + 1).ToString()}".Substring(1));//удаляем первый пробел
             }
@@ -357,7 +342,7 @@ namespace VisFP.BusinessObjects
         {
             List<char> cyclic = new List<char>();
             foreach (var r in Rules)
-                if (r.Rnt.HasValue && r.Rnt.Value == r.Lnt)
+                if (r.Rnt == r.Lnt)
                     cyclic.Add(r.Lnt);
             return cyclic.Distinct().ToArray();
         }
@@ -372,10 +357,10 @@ namespace VisFP.BusinessObjects
                 var current = q.Dequeue();
                 foreach (var nt in Rules.Where(x => x.Lnt == current))
                 {
-                    if (nt.Rnt.HasValue && !reachable.Contains(nt.Rnt.Value))
+                    if (!nt.IsFinite && !reachable.Contains(nt.Rnt))
                     {
-                        reachable.Add(nt.Rnt.Value);
-                        q.Enqueue(nt.Rnt.Value);
+                        reachable.Add(nt.Rnt);
+                        q.Enqueue(nt.Rnt);
                     }
                 }
             }
@@ -385,14 +370,14 @@ namespace VisFP.BusinessObjects
         {
             HashSet<char> generating =
                 new HashSet<char>(Rules
-                    .Where(x => !x.Rnt.HasValue)
+                    .Where(x => x.IsFinite)
                     .Select(x => x.Lnt)
                     .Distinct());
             var prevSetLength = 0;
             while (prevSetLength != generating.Count)
             {
                 prevSetLength = generating.Count;
-                foreach (var r in Rules.Where(x => x.Rnt.HasValue && generating.Contains(x.Rnt.Value)))
+                foreach (var r in Rules.Where(x => !x.IsFinite && generating.Contains(x.Rnt)))
                     generating.Add(r.Lnt);
             }
             return generating.ToArray();
@@ -401,15 +386,12 @@ namespace VisFP.BusinessObjects
         {
             Dictionary<char, RgNode> suppDict = new Dictionary<char, RgNode>();
             suppDict.Add(Alph.InitState, new RgNode(Alph.InitState)); //начальное состояние
-            suppDict.Add(EndState, new RgNode(EndState)); //конечное состояние
+            suppDict.Add(Alph.FiniteState, new RgNode(Alph.FiniteState)); //конечное состояние
             foreach (var rule in Rules.Select((r, i) => new { rule = r, num = i }))
             {
                 RgNode fromNode = suppDict.AddOrGetRgNode(rule.rule.Lnt);
                 RgNode toNode;
-                if (rule.rule.Rnt.HasValue)
-                    toNode = suppDict.AddOrGetRgNode(rule.rule.Rnt.Value);
-                else
-                    toNode = suppDict[EndState];
+                toNode = suppDict.AddOrGetRgNode(rule.rule.Rnt);
                 fromNode.Edges.Add(
                     rule.num,
                     new RgEdge { NewState = toNode, Terminal = rule.rule.Rt });
