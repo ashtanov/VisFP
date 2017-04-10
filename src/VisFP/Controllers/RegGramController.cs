@@ -111,7 +111,7 @@ namespace VisFP.Controllers
 
         protected virtual async Task<RGProblemResult> GetProblem(ApplicationUser user, RgTask template, DbControlVariant variant = null)
         {
-            return await (new RGProblemBuilder(_dbContext)).GenerateProblemAsync(template, user, variant);
+            return await (new RgProblemBuilder2(_dbContext)).GenerateProblemAsync(template, user, variant);
         }
 
         public override async Task<IActionResult> Task(int id, Guid? problemId)
@@ -149,6 +149,7 @@ namespace VisFP.Controllers
                                     RegularGrammar.Parse(currentProblem.CurrentGrammar.GrammarJson),
                                     currentProblem,
                                     currentProblem.MaxAttempts - currentProblem.Attempts.Count);
+                            var gnt = viewModel.Grammar.GeneratingNonterminals.Value;
                             return View("TaskView", viewModel);
                         }
                         else

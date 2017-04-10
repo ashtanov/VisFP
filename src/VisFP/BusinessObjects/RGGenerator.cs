@@ -68,7 +68,7 @@ namespace VisFP.BusinessObjects
             char initSymbol = 'S';
             string nt = "TUVWXYZ";
             string t = "1234567890abcdef";
-            var notterm = nt.OrderBy(x => r.Next()).Take(nonTermCount - 1);
+            var notterm = nt.OrderBy(x => r.Next()).Take(nonTermCount - 1).ToList();
             return new Alphabet(
                 initSymbol,
                 t.OrderBy(x => r.Next()).Take(termCount).ToArray(),
@@ -99,7 +99,7 @@ namespace VisFP.BusinessObjects
             }
         }
 
-        public RegularGrammar GenerateRG(int ntRuleCount, int tRuleCount, Alphabet alph)
+        public RegularGrammar GenerateRg(int ntRuleCount, int tRuleCount, Alphabet alph)
         {
             var result = new List<Rule>();
             result.Add(
@@ -133,21 +133,24 @@ namespace VisFP.BusinessObjects
             return new RegularGrammar(alph, result);
         }
 
-        public RegularGrammar GenerateFSM(int ntRuleCount, int tRuleCount, Alphabet alph)
+        public RegularGrammar GenerateFsm(int ntRuleCount, int tRuleCount, Alphabet alph)
         {
             var result = new List<Rule>();
+            var initRuleEndPoint = alph.NonTerminals[_rand.Next(alph.NonTerminals.Count)];
             result.Add(
                     new Rule(
                         Lnt: alph.InitState,
                         Rt: alph.Terminals[_rand.Next(alph.Terminals.Count)],
-                        Rnt: alph.NonTerminals[_rand.Next(alph.NonTerminals.Count)]
+                        Rnt: initRuleEndPoint,
+                        isFinite: initRuleEndPoint == alph.FiniteState
                     ));
+            var notfinite = alph.NonTerminals.Except(new[] { alph.FiniteState }).ToList();
             for (int i = 1; i < ntRuleCount; ++i)
             {
                 var curr = new Rule(
                         Lnt: alph.NonTerminals[_rand.Next(alph.NonTerminals.Count)],
                         Rt: alph.Terminals[_rand.Next(alph.Terminals.Count)],
-                        Rnt: alph.NonTerminals[_rand.Next(alph.NonTerminals.Count)]
+                        Rnt: notfinite[_rand.Next(notfinite.Count)]
                     );
                 if (!result.Contains(curr))
                     result.Add(curr);

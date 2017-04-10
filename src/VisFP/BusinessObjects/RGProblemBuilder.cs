@@ -11,11 +11,7 @@ using VisFP.Utils;
 
 namespace VisFP.BusinessObjects
 {
-    public class RGProblemResult
-    {
-        public RegularGrammar Grammar { get; set; }
-        public RgTaskProblem Problem { get; set; }
-    }
+    [Obsolete]
     /// <summary>
     /// Один инстанс для генерации одной задачи
     /// </summary>
@@ -93,7 +89,7 @@ namespace VisFP.BusinessObjects
 
         protected virtual void GenerateGrammar(RgTask templateTask, Alphabet alphabet)
         {
-            _currentGrammar = Generator.Instance.GenerateRG(
+            _currentGrammar = Generator.Instance.GenerateRg(
                 ntRuleCount: templateTask.NonTerminalRuleCount,
                 tRuleCount: templateTask.TerminalRuleCount,
                 alph: alphabet);
@@ -252,7 +248,7 @@ namespace VisFP.BusinessObjects
             }
         }
 
-        private bool ChangeChainToUnrepresentable(List<ChainResult> allChains)
+        protected bool ChangeChainToUnrepresentable(List<ChainResult> allChains)
         {
             var isUnrepresentable = false;
             foreach (var currentChain in allChains.Select(x => x.Chain).Distinct()) //проходимся по всем допустимым цепочкам
@@ -303,3 +299,8 @@ namespace VisFP.BusinessObjects
         }
     }
 }
+
+
+
+
+

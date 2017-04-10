@@ -307,10 +307,18 @@ namespace VisFP.BusinessObjects
         public static RegularGrammar Parse(string jsonObject)
         {
             JObject parsed = JsonConvert.DeserializeObject<JObject>(jsonObject);
-            var alphabet = new Alphabet(
-                init: parsed[nameof(Alph)]["InitState"].Value<char>(),
-                term: parsed[nameof(Alph)]["Terminals"].ToObject<char[]>(),
-                notTerm: parsed[nameof(Alph)]["NonTerminals"].ToObject<char[]>());
+            Alphabet alphabet;
+            if (parsed[nameof(Alph)]["FiniteState"].Value<char>() == '$')
+                alphabet = new Alphabet(
+                    init: parsed[nameof(Alph)]["InitState"].Value<char>(),
+                    term: parsed[nameof(Alph)]["Terminals"].ToObject<char[]>(),
+                    notTerm: parsed[nameof(Alph)]["NonTerminals"].ToObject<char[]>());
+            else
+                alphabet = new Alphabet(
+                    init: parsed[nameof(Alph)]["InitState"].Value<char>(),
+                    term: parsed[nameof(Alph)]["Terminals"].ToObject<char[]>(),
+                    notTerm: parsed[nameof(Alph)]["NonTerminals"].ToObject<char[]>(),
+                    finite: parsed[nameof(Alph)]["FiniteState"].Value<char>());
             var rules = parsed[nameof(Rules)].ToObject<Rule[]>();
             return new RegularGrammar(alphabet, rules);
         }

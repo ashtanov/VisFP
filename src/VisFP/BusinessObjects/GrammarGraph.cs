@@ -43,13 +43,14 @@ namespace VisFP.BusinessObjects
                     color = "rgba(255,0,0,0.7)",
                     label = gram.Alph.FiniteState.ToString()
                 });
+                suppDict.Add(gram.Alph.FiniteState, currId);
             }
             foreach (var r in gram.Rules)
             {
                 edges.Add(new Edge
                 {
                     from = suppDict[r.Lnt],
-                    to = r.IsFinite ? currId : suppDict[r.Rnt],
+                    to = r.IsFinite ? suppDict[gram.Alph.FiniteState] : suppDict[r.Rnt],
                     label = r.Rt.ToString()
                 });
             }

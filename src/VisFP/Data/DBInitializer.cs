@@ -189,14 +189,14 @@ namespace VisFP.Data
         {
             dbcontext.RgTasks.Add(new RgTask
             {
-                TaskTitle = "Недостижимые символы",
+                TaskTitle = "Непустые языки",
                 TaskType = Constants.FsmType,
                 NonTerminalRuleCount = 7,
                 IsGrammarGenerated = true,
                 TerminalRuleCount = 3,
                 AlphabetNonTerminalsCount = 5,
                 AlphabetTerminalsCount = 3,
-                MaxAttempts = 3,
+                MaxAttempts = 1,
                 TaskNumber = 1,
                 GroupId = DbWorker.BaseGroupId
             });

@@ -1,4 +1,4 @@
-@model RGViewModel
+﻿@model RGViewModel
 <div>
     <table>
         <tr>
@@ -17,9 +17,12 @@
                 </div>
             </td>
             <td>
+                <div class="panel-default">
+                    <div class="panel-heading"><strong>Таблица переходов:</strong></div>
+                </div>
                 <ul class="list-group">
                     
-                    @{ int i = 0;}
+                    @{ int i = 1;}
                     @foreach(var t in Model.Grammar.GetTransitionTable())
                     {
                         <li class="list-group-item"><strong>@(i++).&emsp;</strong> @t</li>
