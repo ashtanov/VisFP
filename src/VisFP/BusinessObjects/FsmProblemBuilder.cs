@@ -22,6 +22,8 @@ namespace VisFP.BusinessObjects
             {
                 case 1:
                     return new FsmProblem1();
+                case 2:
+                    return new FsmProblem2();
                 default:
                     throw new NotImplementedException();
             }
@@ -46,6 +48,12 @@ namespace VisFP.BusinessObjects
         }
     }
 
+
+    //3)является ли КА детерминированным?
+    //4)допускает ли КА бесконечный язык?
+    //5)допустима ли цепочка? (цепочка генерируется)
+
+    //1)допускает ли КА хотя бы одну цепочку?
     public class FsmProblem1 : FsmProblemTemplate
     {
         public override TaskAnswerType AnswerType
@@ -73,6 +81,36 @@ namespace VisFP.BusinessObjects
 
         public override void SetCurrentChain(RgTask templateTask)
         {
+        }
+    }
+
+    //2)указать последовательность состояний КА при анализе заданной цепочки
+    public class FsmProblem2 : FsmProblemTemplate
+    {
+        public override bool ConditionUntilForGrammar()
+        {
+            return CurrentGrammar.IsProper == false;
+        }
+
+        public override string GetAnswer()
+        {
+            return CurrentGrammar.RulesForChainRepresentable(CurrentChain.Chain).SerializeJsonListOfStrings();
+        }
+
+        public override TaskAnswerType AnswerType
+        {
+            get { return TaskAnswerType.TextMulty; }
+        }
+
+        public override string GetTaskDescription()
+        {
+            return $"Выпишите последовательность состояний КА (через пробел) при анализе данной цепочки: <strong>{CurrentChain.Chain}</strong>";
+        }
+
+        public override void SetCurrentChain(RgTask templateTask)
+        {
+            var allChains = CurrentGrammar.GetAllChains(templateTask.ChainMinLength);
+            CurrentChain = allChains[new Random().Next(allChains.Count)];
         }
     }
 }

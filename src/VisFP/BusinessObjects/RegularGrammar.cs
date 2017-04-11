@@ -219,7 +219,7 @@ namespace VisFP.BusinessObjects
         /// </summary>
         /// <param name="minLength"></param>
         /// <returns></returns>
-        public List<ChainResult> GetAllChains(int minLength)
+        public List<ChainResult> GetAllChains(int minLength) //Добавить выведение цепочек для КА (не останавливаться на финальном состоянии)
         {
             if (!IsProper)
                 throw new InvalidOperationException("Цепочки генерируются только по приведенной грамматике");
@@ -365,8 +365,10 @@ namespace VisFP.BusinessObjects
                 var current = q.Dequeue();
                 foreach (var nt in Rules.Where(x => x.Lnt == current))
                 {
-                    if (!nt.IsFinite && !reachable.Contains(nt.Rnt))
+                    if (!reachable.Contains(nt.Rnt))
                     {
+                        if (nt.IsFinite && nt.Rnt == '$')
+                            continue;
                         reachable.Add(nt.Rnt);
                         q.Enqueue(nt.Rnt);
                     }

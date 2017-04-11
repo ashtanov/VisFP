@@ -200,6 +200,21 @@ namespace VisFP.Data
                 TaskNumber = 1,
                 GroupId = DbWorker.BaseGroupId
             });
+
+            dbcontext.RgTasks.Add(new RgTask
+            {
+                TaskTitle = "Построение цепочки",
+                TaskType = Constants.FsmType,
+                NonTerminalRuleCount = 5,
+                IsGrammarGenerated = true,
+                TerminalRuleCount = 2,
+                AlphabetNonTerminalsCount = 4,
+                AlphabetTerminalsCount = 2,
+                ChainMinLength = 6,
+                MaxAttempts = 3,
+                TaskNumber = 2,
+                GroupId = DbWorker.BaseGroupId
+            });
         }
     }
 }
