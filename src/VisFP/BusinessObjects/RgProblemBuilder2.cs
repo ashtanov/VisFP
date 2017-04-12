@@ -31,31 +31,43 @@ namespace VisFP.BusinessObjects
             RgProblemTemplate tp = GetProblemTemplate(templateTask.TaskNumber);
             Alphabet alphabet = tp.GetAlphabet(templateTask);
             int generation = 0;
+            int chainTry = 0;
 
-            RGrammar cGrammar;
-            if (templateTask.IsGrammarGenerated)
+            RGrammar cGrammar = null;
+            while (chainTry < 10)
             {
-                //генерируем грамматику до тех пор, пока она удовлетворяет условию "неподходимости"
-                do
+                if (templateTask.IsGrammarGenerated)
                 {
-                    tp.GenerateGrammar(templateTask, alphabet);
-                    generation++;
-                } while (tp.ConditionUntilForGrammar());
+                    //генерируем грамматику до тех пор, пока она удовлетворяет условию "неподходимости"
+                    do
+                    {
+                        tp.GenerateGrammar(templateTask, alphabet);
+                        generation++;
+                    } while (tp.ConditionUntilForGrammar());
 
-                cGrammar = new RGrammar
+                    cGrammar = new RGrammar
+                    {
+                        GrammarJson = tp.CurrentGrammar.Serialize()
+                    };
+                    await _dbContext.RGrammars.AddAsync(cGrammar);
+                }
+                else
                 {
-                    GrammarJson = tp.CurrentGrammar.Serialize()
-                };
-                await _dbContext.RGrammars.AddAsync(cGrammar);
+                    tp.CurrentGrammar = RegularGrammar.Parse(templateTask.FixedGrammar.GrammarJson);
+                    cGrammar = templateTask.FixedGrammar;
+                }
+                try
+                {
+                    tp.SetCurrentChain(templateTask); //работа с цепочками
+                    break;
+                }
+                catch (CantGenerateChainException)
+                {
+                    chainTry++;
+                    if (chainTry == 10 || !templateTask.IsGrammarGenerated)
+                        throw new Exception("Не удалось за 10 попыток сгенерировать грамматику с нужными цепочками");
+                }
             }
-            else
-            {
-                tp.CurrentGrammar = RegularGrammar.Parse(templateTask.FixedGrammar.GrammarJson);
-                cGrammar = templateTask.FixedGrammar;
-            }
-
-            tp.SetCurrentChain(templateTask); //работа с цепочками
-
             //записываем проблему в базу
             var cTask = new RgTaskProblem
             {

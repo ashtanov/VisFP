@@ -94,7 +94,10 @@ namespace VisFP.BusinessObjects
 
         public override string GetAnswer()
         {
-            return CurrentGrammar.RulesForChainRepresentable(CurrentChain.Chain).SerializeJsonListOfStrings();
+            return CurrentGrammar
+                .RulesForChainRepresentable(CurrentChain.Chain)
+                .Select(x => CurrentGrammar.GetStateSequenceForResult(x)).ToList()
+                .SerializeJsonListOfStrings();
         }
 
         public override TaskAnswerType AnswerType

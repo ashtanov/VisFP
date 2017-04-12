@@ -8,6 +8,10 @@ using VisFP.Utils;
 
 namespace VisFP.BusinessObjects
 {
+    public class CantGenerateChainException : Exception
+    {
+        public CantGenerateChainException(string message) : base(message) { }
+    }
     public class Rule : IEquatable<Rule> //TODO: удалить возможность ставить null в Rnt, всегда финальная вершина с меткой (исправить в алгоритмах!!!)
     {
         public readonly char Lnt; //левая часть правила - нетреминал
@@ -252,6 +256,16 @@ namespace VisFP.BusinessObjects
                                     Chain = path.Item1.Chain + edge.Value.Terminal,
                                     ChainRules = $"{path.Item1.ChainRules} {edge.Key}"
                                 });
+                            if (Alph.NonTerminals.Contains(Alph.FiniteState)) //из финальной вершины тоже могут быть дуги (если вершина в нетерминалах)
+                            {
+                                nextPathes.Add(
+                                new Tuple<ChainResult, RgNode>(new ChainResult
+                                {
+                                    Chain = path.Item1.Chain + edge.Value.Terminal,
+                                    ChainRules = $"{path.Item1.ChainRules} {edge.Key}"
+                                },
+                                edge.Value.NewState));
+                            }
                         }
                         else
                         {
@@ -268,11 +282,22 @@ namespace VisFP.BusinessObjects
                 currentPathes = nextPathes;
             }
             if (result.Count == 0)
-                throw new Exception($"Нет завершенных цепочек длиной от {minLength} до {2*minLength}");
+                throw new CantGenerateChainException($"Нет завершенных цепочек длиной от {minLength} до {2*minLength}");
 
             return result;
         }
 
+        public string GetStateSequenceForResult(string chainRules)
+        {
+            var rules = chainRules.Split(' ');
+            List<char> result = new List<char>();
+            result.Add(Alph.InitState);
+            foreach(var rule in rules)
+            {
+                result.Add(Rules[int.Parse(rule) - 1].Rnt);
+            }
+            return string.Join(" ", result);
+        }
         public List<string> RulesForChainRepresentable(string chain)
         {
             var node = GrammarGraph.Value;
