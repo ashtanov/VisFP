@@ -24,9 +24,6 @@
                 @Html.DisplayNameFor(model => model.ChainMinLength)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.IsGrammarGenerated)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.MaxAttempts)
             </th>
             <th>
@@ -34,6 +31,12 @@
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.TerminalRuleCount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.SuccessScore)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FailTryScore)
             </th>
             <th>
                 
@@ -59,9 +62,6 @@
                 @Html.DisplayFor(modelItem => item.ChainMinLength)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.IsGrammarGenerated)
-            </td>
-            <td>
                 @Html.DisplayFor(modelItem => item.MaxAttempts)
             </td>
             <td>
@@ -69,6 +69,12 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.TerminalRuleCount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.SuccessScore)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.FailTryScore)
             </td>
             <td>
                 <a class="btn btn-sm btn-warning" asp-action="EditRgTask" asp-route-taskId="@item.TaskId">Изменить</a>

@@ -16,6 +16,9 @@ namespace VisFP.Data.DBModels
         public int TaskNumber { get; set; }
         [Display(Name = "Количество попыток")]
         public int MaxAttempts { get; set; }
-
+        [Display(Name = "Баллы за верный ответ")]
+        public int SuccessScore { get; set; }
+        [Display(Name = "Списание баллов за неудачную попытку")]
+        public int FailTryScore { get; set; }
     }
 }

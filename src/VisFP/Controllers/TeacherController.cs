@@ -158,6 +158,8 @@ namespace VisFP.Controllers
                 oldTask.MaxAttempts = task.MaxAttempts;
                 oldTask.NonTerminalRuleCount = task.NonTerminalRuleCount;
                 oldTask.TerminalRuleCount = task.TerminalRuleCount;
+                oldTask.FailTryScore = task.FailTryScore;
+                oldTask.SuccessScore = task.SuccessScore;
                 await _dbContext.SaveChangesAsync();
                 return RedirectToAction(nameof(GroupRgTaskList), new { groupId = oldTask.GroupId });
             }
