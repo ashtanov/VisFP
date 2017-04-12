@@ -76,6 +76,8 @@ namespace VisFP.BusinessObjects
         public Lazy<char[]> GeneratingNonterminals;
         [JsonIgnore]
         public Lazy<RgNode> GrammarGraph;
+        [JsonIgnore]
+        public Lazy<bool> _isCyclic;
 
         public RegularGrammar(Alphabet alph, IReadOnlyList<Rule> rules)
         {
@@ -85,6 +87,7 @@ namespace VisFP.BusinessObjects
             ReachableNonterminals = new Lazy<char[]>(() => FindReachableNonTerminals(), true);
             GeneratingNonterminals = new Lazy<char[]>(() => FindGeneratingNonTerminals(), true);
             GrammarGraph = new Lazy<RgNode>(() => GenerateGrammarGraph(), true);
+            _isCyclic = new Lazy<bool>(() => CheckIsCyclic(), true);
         }
 
         [JsonIgnore]
@@ -104,6 +107,15 @@ namespace VisFP.BusinessObjects
             get
             {
                 return !GeneratingNonterminals.Value.Contains(Alph.InitState);
+            }
+        }
+
+        [JsonIgnore]
+        public bool IsInfinityLanguage //порождает ли бесконечный язык?
+        {
+            get
+            {
+                return _isCyclic.Value;
             }
         }
 
@@ -223,7 +235,7 @@ namespace VisFP.BusinessObjects
         /// </summary>
         /// <param name="minLength"></param>
         /// <returns></returns>
-        public List<ChainResult> GetAllChains(int minLength) //Добавить выведение цепочек для КА (не останавливаться на финальном состоянии)
+        public List<ChainResult> GetAllChains(int minLength)
         {
             if (!IsProper)
                 throw new InvalidOperationException("Цепочки генерируются только по приведенной грамматике");
@@ -298,6 +310,7 @@ namespace VisFP.BusinessObjects
             }
             return string.Join(" ", result);
         }
+        
         public List<string> RulesForChainRepresentable(string chain)
         {
             var node = GrammarGraph.Value;
@@ -306,7 +319,7 @@ namespace VisFP.BusinessObjects
             return res;
         }
 
-        public List<string> GetTransitionTable()
+        public List<string> GetTransitionFunc()
         {
             List<string> table = new List<string>();
             foreach (var rule in Rules.GroupBy(x => x.Lnt))
@@ -417,21 +430,52 @@ namespace VisFP.BusinessObjects
             }
             return generating.ToArray();
         }
+        private Dictionary<char, RgNode> _allNodes;
         private RgNode GenerateGrammarGraph()
         {
-            Dictionary<char, RgNode> suppDict = new Dictionary<char, RgNode>();
-            suppDict.Add(Alph.InitState, new RgNode(Alph.InitState)); //начальное состояние
-            suppDict.Add(Alph.FiniteState, new RgNode(Alph.FiniteState)); //конечное состояние
+            _allNodes = new Dictionary<char, RgNode>();
+            _allNodes.Add(Alph.InitState, new RgNode(Alph.InitState)); //начальное состояние
+            _allNodes.Add(Alph.FiniteState, new RgNode(Alph.FiniteState)); //конечное состояние
             foreach (var rule in Rules.Select((r, i) => new { rule = r, num = i }))
             {
-                RgNode fromNode = suppDict.AddOrGetRgNode(rule.rule.Lnt);
+                RgNode fromNode = _allNodes.AddOrGetRgNode(rule.rule.Lnt);
                 RgNode toNode;
-                toNode = suppDict.AddOrGetRgNode(rule.rule.Rnt);
+                toNode = _allNodes.AddOrGetRgNode(rule.rule.Rnt);
                 fromNode.Edges.Add(
                     rule.num,
                     new RgEdge { NewState = toNode, Terminal = rule.rule.Rt });
             }
-            return suppDict[Alph.InitState];
+            return _allNodes[Alph.InitState];
+        }
+
+        //проверка на наличие циклов в графе
+        private bool CheckIsCyclic()
+        {
+            if (CyclicNonterminals.Value.Length > 0)
+                return true;
+            var t = GrammarGraph.Value;
+            Dictionary<char, byte> visitedNodes = new Dictionary<char, byte>();
+            foreach (var S in Alph.NonTerminals)
+                visitedNodes.Add(S, 0); //все белые
+            bool cycleExists = false;
+            foreach(var node in _allNodes.Select(x => x.Value))
+                if (visitedNodes[node.NonTerminal] == 0)
+                    ColorDfs(node, visitedNodes, ref cycleExists);
+            return cycleExists;
+        }
+
+        private void ColorDfs(RgNode node, Dictionary<char, byte> states, ref bool cycleExist)
+        {
+            states[node.NonTerminal] = 1; //красим в серую
+            foreach(var e in node.Edges)
+            {
+                var nt = e.Value.NewState.NonTerminal;
+                if (states[nt] == 0)
+                    ColorDfs(e.Value.NewState, states, ref cycleExist);
+                if (states[nt] == 1)
+                    cycleExist = true;
+            }
+            states[node.NonTerminal] = 2; //красим в черную
         }
         #endregion
     }

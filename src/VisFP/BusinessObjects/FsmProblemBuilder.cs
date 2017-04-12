@@ -24,6 +24,8 @@ namespace VisFP.BusinessObjects
                     return new FsmProblem1();
                 case 2:
                     return new FsmProblem2();
+                case 3:
+                    return new FsmProblem3();
                 default:
                     throw new NotImplementedException();
             }
@@ -49,8 +51,7 @@ namespace VisFP.BusinessObjects
     }
 
 
-    //3)является ли КА детерминированным?
-    //4)допускает ли КА бесконечный язык?
+    //4)является ли КА детерминированным?
     //5)допустима ли цепочка? (цепочка генерируется)
 
     //1)допускает ли КА хотя бы одну цепочку?
@@ -114,6 +115,37 @@ namespace VisFP.BusinessObjects
         {
             var allChains = CurrentGrammar.GetAllChains(templateTask.ChainMinLength);
             CurrentChain = allChains[new Random().Next(allChains.Count)];
+        }
+    }
+
+    //3)допускает ли КА бесконечный язык?
+    public class FsmProblem3 : FsmProblemTemplate
+    {
+        public override TaskAnswerType AnswerType
+        {
+            get
+            {
+                return TaskAnswerType.YesNoAnswer;
+            }
+        }
+
+        public override bool ConditionUntilForGrammar()
+        {
+            return YesNoAnswer ? !CurrentGrammar.IsInfinityLanguage : CurrentGrammar.IsInfinityLanguage;
+        }
+
+        public override string GetAnswer()
+        {
+            return YesNoAnswer ? "yes" : "no";
+        }
+
+        public override string GetTaskDescription()
+        {
+            return "Порождает ли конечный автомат бесконечный язык?";
+        }
+
+        public override void SetCurrentChain(RgTask templateTask)
+        {
         }
     }
 }

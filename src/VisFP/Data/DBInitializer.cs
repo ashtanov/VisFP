@@ -215,6 +215,20 @@ namespace VisFP.Data
                 TaskNumber = 2,
                 GroupId = DbWorker.BaseGroupId
             });
+
+            dbcontext.RgTasks.Add(new RgTask
+            {
+                TaskTitle = "Бесконечные языки",
+                TaskType = Constants.FsmType,
+                NonTerminalRuleCount = 7,
+                IsGrammarGenerated = true,
+                TerminalRuleCount = 3,
+                AlphabetNonTerminalsCount = 5,
+                AlphabetTerminalsCount = 3,
+                MaxAttempts = 1,
+                TaskNumber = 3,
+                GroupId = DbWorker.BaseGroupId
+            });
         }
     }
 }

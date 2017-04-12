@@ -23,7 +23,7 @@
                 <ul class="list-group">
                     
                     @{ int i = 1;}
-                    @foreach(var t in Model.Grammar.GetTransitionTable())
+                    @foreach(var t in Model.Grammar.GetTransitionFunc())
                     {
                         <li class="list-group-item"><strong>@(i++).&emsp;</strong> @t</li>
                     }
