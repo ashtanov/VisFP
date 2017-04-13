@@ -5,9 +5,8 @@
 }
 
 <h1>@ViewData["Title"]</h1>
-<h2>Добавить пользователя</h2>
-
-@{ await Html.RenderPartialAsync("CreateUser", new CreateUserViewModel()); }
+<a asp-action="CreateUser" asp-controller="Account" class="btn btn-success">Добавить пользователя</a>
+@*@{ await Html.RenderPartialAsync("CreateUser", new CreateUserViewModel()); }*@
 <hr />
 <h2>Список пользователей</h2>
 

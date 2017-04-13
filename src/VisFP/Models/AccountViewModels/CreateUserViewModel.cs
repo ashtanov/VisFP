@@ -9,15 +9,16 @@ namespace VisFP.Models.AccountViewModels
 {
     public class CreateUserViewModel
     {
+        [Required]
         [Display(Name = "Логин")]
         public string Login { get; set; }
         [Required]
         [Display(Name = "ФИО")]
         public string RealName { get; set; }
+        [Required]
+        [DataType(DataType.Password)]
         [Display(Name = "Пароль")]
         public string Password { get; set; }
-        [Display(Name = "Email")]
-        public string Email { get; set; }
         [Required]
         [Display(Name = "Роль")]
         public DbRole Role { get; set; }

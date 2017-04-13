@@ -103,7 +103,7 @@ namespace VisFP.Controllers
         public async Task<IActionResult> GroupLogin(Guid groupId, Guid userId)
         {
             var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId.ToString());
-            if(user != null && user.UserGroupId == groupId)
+            if (user != null && user.UserGroupId == groupId)
             {
                 await _userManager.UpdateSecurityStampAsync(user);
                 await _signInManager.RefreshSignInAsync(user);
@@ -114,7 +114,7 @@ namespace VisFP.Controllers
 
         [Authorize(Roles = "Admin, Teacher")]
         [HttpPost]
-        public async Task<IActionResult> UploadList(IFormFile fileInput, Guid groupId) 
+        public async Task<IActionResult> UploadList(IFormFile fileInput, Guid groupId)
         {
             if (fileInput != null && fileInput.Length != 0)
             {
@@ -165,6 +165,43 @@ namespace VisFP.Controllers
                 }
             }
             return RedirectToAction("EditGroup", "Teacher", new { id = groupId });
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public IActionResult CreateUser()
+        {
+            return View(new CreateUserViewModel());
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> CreateUser(CreateUserViewModel newUser)
+        {
+            if (!await _userManager.Users.AnyAsync(x => x.UserName == newUser.Login))
+            {
+                if (newUser.Role != DbRole.User)
+                {
+                    var user = new ApplicationUser
+                    {
+                        UserName = newUser.Login,
+                        Meta = newUser.Meta,
+                        UserGroupId = DbWorker.BaseGroupId,
+                        RealName = newUser.RealName
+                    };
+                    var res = await _userManager.CreateAsync(user, newUser.Password);
+                    if (!res.Succeeded)
+                        _logger.LogError(string.Join(Environment.NewLine, res.Errors));
+                    else
+                        await _userManager.AddToRoleAsync(user, Enum.GetName(typeof(DbRole), newUser.Role));
+                    //создание группы
+                    return RedirectToAction("Index", "Admin");
+                }
+                else
+                    throw new NotImplementedException();
+            }
+            ModelState.AddModelError("", "Логин пользователя занят!");
+            return View();
         }
 
         //

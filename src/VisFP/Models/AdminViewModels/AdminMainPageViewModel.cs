@@ -30,6 +30,7 @@ namespace VisFP.Models.AdminViewModels
     }
     public class AdminMainPageViewModel
     {
-        public IEnumerable<UserForView> AllUsers;
+        public IEnumerable<UserForView> AllUsers { get; set; }
+        public string Error { get; set; }
     }
 }

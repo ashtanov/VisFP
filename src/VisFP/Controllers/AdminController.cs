@@ -44,7 +44,7 @@ namespace VisFP.Controllers
                 }
                 var model = new AdminMainPageViewModel
                 {
-                    AllUsers = users
+                    AllUsers = users,
                 };
                 return View(model);
             }
