@@ -33,14 +33,6 @@
             </div>
         </div>
         <div class="form-group">
-            <div class="col-md-offset-2 col-md-10">
-                <div class="checkbox">
-                    <input asp-for="IsGrammarGenerated" />
-                    <label asp-for="IsGrammarGenerated"></label>
-                </div>
-            </div>
-        </div>
-        <div class="form-group">
             <label asp-for="MaxAttempts" class="col-md-2 control-label"></label>
             <div class="col-md-10">
                 <input asp-for="MaxAttempts" class="form-control" />
@@ -59,6 +51,20 @@
             <div class="col-md-10">
                 <input asp-for="TerminalRuleCount" class="form-control" />
                 <span asp-validation-for="TerminalRuleCount" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="SuccessScore" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="SuccessScore" class="form-control" />
+                <span asp-validation-for="SuccessScore" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="FailTryScore" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="FailTryScore" class="form-control" />
+                <span asp-validation-for="FailTryScore" class="text-danger" />
             </div>
         </div>
         <div class="form-group">

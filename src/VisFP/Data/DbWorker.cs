@@ -52,7 +52,9 @@ namespace VisFP.Data
                     TaskTitle = task.TaskTitle,
                     TaskType = task.TaskType,
                     TerminalRuleCount = task.TerminalRuleCount,
-                    NonTerminalRuleCount = task.NonTerminalRuleCount
+                    NonTerminalRuleCount = task.NonTerminalRuleCount,
+                    FailTryScore = task.FailTryScore,
+                    SuccessScore = task.SuccessScore
                 });
             }
             await _dbContext.RgTasks.AddRangeAsync(newTasks);
