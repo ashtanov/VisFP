@@ -7,8 +7,8 @@ namespace VisFP
 {
     public static class Constants
     {
-        public static readonly string BaseGroupName = "Base_Group";
-        public static readonly string FsmType = "FSM";
-        public static readonly string RgType = "RegGram";
+        public const string BaseGroupName = "Base_Group";
+        public const string FsmType = "FSM";
+        public const string RgType = "RegGram";
     }
 }

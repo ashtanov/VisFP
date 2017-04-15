@@ -1,0 +1,19 @@
+﻿@model VisFP.Models.RGViewModels.RgProblemViewModel
+<hr />
+<h3 style="margin-left:100px">@Model.TaskTitle</h3>
+<hr />
+<div class="col-lg-5">
+    @{ await Html.RenderPartialAsync("TaskInfo", Model); }
+    @{ await Html.RenderPartialAsync("TaskShared/AcceptAnswerView",
+                                                    new AnswerViewModel
+                                                    {
+                                                        TaskProblemId = Model.Id,
+                                                        MaxAttemptsCount = Model.MaxAttempts,
+                                                        SymbolsCheckBox = Model.Grammar.Alph.NonTerminals,
+                                                        AnswerType = Model.AnswerType,
+                                                        IsControl = Model.IsControlProblem
+                                                    }); }
+</div>
+<div class="col-lg-7">
+    @{await Html.RenderPartialAsync("TaskShared/GraphView", Model);}
+</div>

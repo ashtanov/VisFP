@@ -6,9 +6,38 @@
     ViewData["Title"] = "Преподавательская зона";
 }
 <h1>@ViewData["Title"]</h1>
-<a class="btn btn-primary" asp-controller="Teacher" asp-action="CreateGroup">Создать группу</a>
-
+<h3>Параметры задач:</h3>
+<div class="row">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            Редактировать параметры задач
+        </div>
+        <div class="panel-body">
+            <table class="table">
+                <tr>
+                    <th></th>
+                    <th>Регулярные граматики</th>
+                    <th>Конечные автоматы</th>
+                    <th>Сети Петри</th>
+                </tr>
+                <tr>
+                    <th>Тестовый вариант</th>
+                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="false" asp-route-type="@Constants.RgType" class="btn btn-info">Изменить</a></td>
+                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="false" asp-route-type="@Constants.FsmType" class="btn btn-info">Изменить</a></td>
+                    <td><button class="btn btn-info" disabled>Изменить</button></td>
+                </tr>
+                <tr>
+                    <th>Контрольный вариант</th>
+                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="true" asp-route-type="@Constants.RgType"class="btn btn-info">Изменить</a></td>
+                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="true" asp-route-type="@Constants.FsmType" class="btn btn-info">Изменить</a></td>
+                    <td><button class="btn btn-info">Изменить</button></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
 <h3>Ваши группы:</h3>
+<a class="btn btn-primary" asp-controller="Teacher" asp-action="CreateGroup">Создать группу</a>
 <table class="table table-hover">
     <tr>
         <th></th>

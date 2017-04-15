@@ -12,7 +12,7 @@
     @switch (Model.AnswerType)
     {
         case TaskAnswerType.SymbolsAnswer:
-            <div class="col-md-10">
+            <div class="col-md-offset-1 col-md-10">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title" style="text-align:center">Отметьте необходимые символы</h3>
@@ -30,7 +30,7 @@
             </div>
             break;
         case TaskAnswerType.YesNoAnswer:
-            <div class="col-md-7">
+            <div class="col-md-offset-2 col-md-7">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title" style="text-align:center">Выберите ответ</h3>
@@ -48,7 +48,7 @@
             </div>
             break;
         default:
-            <div class="col-md-7">
+            <div class="col-md-offset-2 col-md-7">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h3 class="panel-title" style="text-align:center">Введите ответ</h3>
@@ -61,11 +61,12 @@
             break;
     }
     <div class="form-group">
-        <div class="col-md-offset-1 col-md-10">
-            <input type="button" id="sendAnswer" autocomplete="off" onclick="sendUserAnswer();" value="Проверить ответ" class="btn btn-lg btn-success" />
+        <div class="col-md-offset-3 col-md-10">
+            @{ var buttonText = Model.IsControl ? "Отправить ответ" : "Проверить ответ";}
+            <input type="button" id="sendAnswer" autocomplete="off" onclick="sendUserAnswer();" value="@buttonText" class="btn btn-lg btn-success" />
         </div>
     </div>
-    <div class="col-md-7">
+    <div class="col-md-offset-2 col-md-7">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <div id="answerCorrectness"></div>

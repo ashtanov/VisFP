@@ -46,15 +46,14 @@ namespace VisFP.Controllers
                     if (!await _dbContext.UserGroups.AnyAsync(x => x.Creator == currentUser && x.GroupId == user.UserGroupId))
                         return NotFound();
                 }
-                var worker = new DbWorker(_dbContext);
                 var variants = _dbContext
                     .Variants
                     .Include(x => x.Problems)
                     .Where(x => x.User == user).ToList();
-                List<VariantStat> statVariant = new List<VariantStat>(); 
+                List<VariantStat> statVariant = new List<VariantStat>();
                 foreach(var variant in variants)
                 {
-                    var problems = worker.GetVariantProblems(variant);
+                    var problems = _dbContext.GetVariantProblems(variant);
                     statVariant.Add(new VariantStat
                     {
                         Id = variant.VariantId,
@@ -69,7 +68,7 @@ namespace VisFP.Controllers
                     Login = user.UserName,
                     RealName = user.RealName,
                     Group = user.UserGroup.Name,
-                    RgVariants = statVariant
+                    Variants = statVariant
                 };
                 return View(model);
             }

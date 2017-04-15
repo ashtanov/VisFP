@@ -21,6 +21,5 @@ namespace VisFP.Data.DBModels
         public ApplicationUser Creator { get; set; }
 
         public ICollection<ApplicationUser> Members { get; set; }
-        public ICollection<RgTask> RgTasks { get; set; }
     }
 }

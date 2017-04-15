@@ -1,0 +1,15 @@
+﻿@model RgProblemViewModel
+<div class="panel-default">
+    <div class="panel-heading"><strong>Функция переходов:</strong></div>
+</div>
+<ul class="list-group">
+
+    @{ int i = 1;}
+    @foreach (var t in Model.Grammar.GetTransitionFunc())
+    {
+        <li class="list-group-item"><strong>@(i++).&emsp;</strong> @t</li>
+    }
+</ul>
+
+
+

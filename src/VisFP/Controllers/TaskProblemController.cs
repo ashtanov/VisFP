@@ -30,7 +30,7 @@ namespace VisFP.Controllers
 
         public abstract Task<IActionResult> Task(int id, Guid? problemId);
 
-        public abstract Task<IActionResult> ExamVariant(Guid? groupId);
+        public abstract Task<IActionResult> ExamVariant();
 
         [HttpPost]
         public async Task<JsonResult> Answer(AnswerViewModel avm)

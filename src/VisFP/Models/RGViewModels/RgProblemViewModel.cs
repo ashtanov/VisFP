@@ -26,7 +26,7 @@ namespace VisFP.Models.RGViewModels
             : base(grammar)
         {
             TaskText = problem.TaskQuestion;
-            TaskTitle = problem.Task.TaskTitle;
+            TaskTitle = problem.TaskTitle;
             AnswerType = problem.AnswerType;
             Id = problem.ProblemId;
             MaxAttempts = problem.MaxAttempts;

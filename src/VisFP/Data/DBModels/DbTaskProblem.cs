@@ -17,6 +17,8 @@ namespace VisFP.Data.DBModels
         public DateTime CreateDate { get; set; }
         public string TaskQuestion { get; set; }
         public int Generation { get; set; }
+        public string TaskTitle { get; set; }
+        public int TaskNumber { get; set; }
 
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }

@@ -15,6 +15,7 @@ namespace VisFP.Data
         public DbSet<DbTaskProblem> TaskProblems { get; set; }
         public DbSet<DbControlVariant> Variants { get; set; }
         public DbSet<DbAttempt> Attempts { get; set; }
+        public DbSet<DbTeacherTask> TeacherTasks { get; set; }
 
         public DbSet<RgTask> RgTasks { get; set; }
         public DbSet<RgTaskProblem> RgTaskProblems { get; set; }
@@ -44,6 +45,7 @@ namespace VisFP.Data
                 entity =>
                 {
                     entity.HasKey(x => x.TaskId);
+                    entity.HasOne(x => x.TeacherTask).WithMany(x => x.Tasks).HasForeignKey(x => x.TeacherTaskId);
                 });
             builder.Entity<DbTaskProblem>(
                 entity =>
@@ -65,8 +67,6 @@ namespace VisFP.Data
             builder.Entity<RgTask>(entity =>
                 {
                     entity.HasOne(x => x.FixedGrammar).WithMany(y => y.Tasks).HasForeignKey(p => p.FixedGrammarId);
-                    entity.HasOne(x => x.UserGroup).WithMany(y => y.RgTasks).HasForeignKey(p => p.GroupId);
-                    entity.HasIndex(x => new { x.TaskNumber, x.GroupId, x.TaskType }).IsUnique();
                 });        
 
             builder.Entity<RgTaskProblem>(entity =>
@@ -81,6 +81,11 @@ namespace VisFP.Data
                     entity.HasIndex(x => x.VariantType);
                     entity.HasOne(x => x.User).WithMany(y => y.ControlVariants).HasForeignKey(p => p.UserId);
                 });
+            builder.Entity<DbTeacherTask>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+                entity.HasOne(x => x.Teacher).WithMany(x => x.TeacherTasks).HasForeignKey(x => x.TeacherId);
+            });
         }
     }
 }

@@ -20,5 +20,9 @@ namespace VisFP.Data.DBModels
         public int SuccessScore { get; set; }
         [Display(Name = "Списание баллов за неудачную попытку")]
         public int FailTryScore { get; set; }
+        public bool IsControl { get; set; }
+
+        public Guid? TeacherTaskId { get; set; }
+        public DbTeacherTask TeacherTask { get; set; }
     }
 }

@@ -81,7 +81,9 @@ namespace VisFP.BusinessObjects
                 AnswerType = answerType,
                 CreateDate = DateTime.Now,
                 TaskQuestion = question,
-                Variant = variant
+                Variant = variant,
+                TaskNumber = templateTask.TaskNumber,
+                TaskTitle = templateTask.TaskTitle
             };
             await _dbContext.RgTaskProblems.AddAsync(cTask);
             return new RGProblemResult { Grammar = _currentGrammar, Problem = cTask };

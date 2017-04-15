@@ -191,10 +191,18 @@ namespace VisFP.Controllers
                     };
                     var res = await _userManager.CreateAsync(user, newUser.Password);
                     if (!res.Succeeded)
-                        _logger.LogError(string.Join(Environment.NewLine, res.Errors));
+                    {
+                        var allErrors = string.Join(Environment.NewLine, res.Errors.Select(x => x.Description));
+                        _logger.LogError(allErrors);
+                        ModelState.AddModelError("", allErrors);
+                        return View();
+                    }
                     else
+                    {
                         await _userManager.AddToRoleAsync(user, Enum.GetName(typeof(DbRole), newUser.Role));
-                    //создание группы
+                        await _dbContext.SetRgTasksToNewTeacherAsync(user.Id);
+                        await _dbContext.SaveChangesAsync();
+                    }
                     return RedirectToAction("Index", "Admin");
                 }
                 else

@@ -32,18 +32,20 @@ namespace VisFP.Controllers
         public override async Task<IActionResult> Index()
         {
             ViewData["Title"] = AreaName;
+            var user = await _userManager.GetUserAsync(User);
+            var tasksList = _dbContext.GetTasksForUser(user, false)
+                .Where(x => x is RgTask)
+                .Cast<RgTask>()
+                .Where(x => x.TaskType == ControllerType);
             var model = new TaskListViewModel
             {
                 TaskControllerName = this.GetType().Name.Replace("Controller", ""),
-                TasksList = _dbContext
-                .RgTasks
-                .Where(x => x.GroupId == DbWorker.BaseGroupId && x.TaskType == ControllerType)
-                .Select(x => new Tuple<int, string>(x.TaskNumber, x.TaskTitle))
+                TasksList = tasksList.Select(x => new Tuple<int, string>(x.TaskNumber, x.TaskTitle))
             };
             return View("TaskShared/Index", model);
         }
 
-        public override async Task<IActionResult> ExamVariant(Guid? groupId)
+        public override async Task<IActionResult> ExamVariant()
         {
             try
             {
@@ -54,22 +56,20 @@ namespace VisFP.Controllers
                         .Variants
                         .Where(x => x.User == user && x.VariantType == ControllerType)
                         .OrderByDescending(x => x.CreateDate).FirstOrDefaultAsync();
-                    DbWorker worker = new DbWorker(_dbContext);
                     ExamVariantViewModel model = new ExamVariantViewModel
                     {
                         CreateDate = variant.CreateDate,
-                        Problems = worker.GetVariantProblems(variant)
+                        Problems = _dbContext.GetVariantProblems(variant)
                     };
                     return View("TaskShared/ExamVariant", model);
                 }
                 else
                 {
-                    if (groupId.HasValue)
-                        throw new NotImplementedException(); //преподы могут свои группы выбирать
-
-                    var templateTasks = _dbContext //выбираем шаблоны тасков переопределенные для группы
-                                    .RgTasks
-                                    .Where(x => x.GroupId == user.UserGroupId && x.TaskType == ControllerType);
+                    var templateTasks = _dbContext
+                        .GetTasksForUser(user, true)
+                        .Where(x => x is RgTask)
+                        .Cast<RgTask>()
+                        .Where(x => x.TaskType == ControllerType);
                     DbControlVariant variant = new DbControlVariant
                     {
                         CreateDate = DateTime.Now,
@@ -95,8 +95,8 @@ namespace VisFP.Controllers
                                 {
                                     ProblemId = x.ProblemId,
                                     State = ProblemState.Unfinished,
-                                    TaskNumber = x.Task.TaskNumber,
-                                    TaskTitle = x.Task.TaskTitle
+                                    TaskNumber = x.TaskNumber,
+                                    TaskTitle = x.TaskTitle
                                 })).OrderBy(x => x.TaskNumber)
                     };
                     return View("TaskShared/ExamVariant", model);
@@ -121,15 +121,14 @@ namespace VisFP.Controllers
                 var user = await _userManager.GetUserAsync(User);
                 if (!problemId.HasValue) //тренировочная задача
                 {
-                    RgTask templateTask = _dbContext //выбираем шаблон таска базовый
-                            .RgTasks
-                            .FirstOrDefault(
-                                x => x.TaskNumber == id &&
-                                x.GroupId == DbWorker.BaseGroupId && x.TaskType == ControllerType);
+                    RgTask templateTask = _dbContext.GetTasksForUser(user,false) //выбираем шаблон таска базовый
+                            .Where(x => x is RgTask)
+                            .Cast<RgTask>()
+                            .FirstOrDefault(x => x.TaskNumber == id && x.TaskType == ControllerType);
                     RGProblemResult problem = await GetProblem(user, templateTask);
                     await _dbContext.SaveChangesAsync();
                     var viewModel = new RgProblemViewModel(problem.Grammar, problem.Problem);
-                    return View("TaskView", viewModel);
+                    return View("TaskShared/TaskView", viewModel);
                 }
                 else
                 {
@@ -150,7 +149,7 @@ namespace VisFP.Controllers
                                     currentProblem,
                                     currentProblem.MaxAttempts - currentProblem.Attempts.Count);
                             var gnt = viewModel.Grammar.GeneratingNonterminals.Value;
-                            return View("TaskView", viewModel);
+                            return View("TaskShared/TaskView", viewModel);
                         }
                         else
                         {
@@ -159,14 +158,13 @@ namespace VisFP.Controllers
                                .Variants
                                .Include(x => x.Problems)
                                .FirstOrDefaultAsync(x => x.VariantId == currentProblem.VariantId);
-                            DbWorker worker = new DbWorker(_dbContext);
                             var viewModel =
                                 new ExamRgProblemViewModel(
                                     RegularGrammar.Parse(currentProblem.CurrentGrammar.GrammarJson),
                                     currentProblem,
                                     currentProblem.MaxAttempts - currentProblem.Attempts.Count,
-                                    worker.GetVariantProblems(currentVariant));
-                            return View("ExamTaskView", viewModel);
+                                    _dbContext.GetVariantProblems(currentVariant));
+                            return View("TaskShared/ExamTaskView", viewModel);
                         }
                     }
                     else

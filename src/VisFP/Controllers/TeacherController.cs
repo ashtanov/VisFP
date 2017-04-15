@@ -94,12 +94,10 @@ namespace VisFP.Controllers
         {
             if (!await _dbContext.UserGroups.AnyAsync(x => x.Name == group.Name))
             {
-                var worker = new DbWorker(_dbContext);
                 var user = await _userManager.GetUserAsync(User);
                 group.Creator = user;
                 await _dbContext.UserGroups.AddAsync(group);
                 await _dbContext.SaveChangesAsync();
-                await worker.SetRgTasksToNewGroup(group.GroupId);
                 return RedirectToAction(nameof(EditGroup), new { id = group.GroupId });
             }
             else
@@ -110,22 +108,21 @@ namespace VisFP.Controllers
 
         }
 
-        public async Task<IActionResult> GroupRgTaskList(Guid groupId)
+        public async Task<IActionResult> TeacherRgTaskList(string type, bool isControl)
         {
             var user = await _userManager.GetUserAsync(User);
-            var group = await _dbContext
-                .UserGroups
-                .FirstOrDefaultAsync(x => x.GroupId == groupId);
-            if (group != null)
-            {
-                if (group.Creator == user || await _userManager.IsInRoleAsync(user, nameof(DbRole.Admin)))
-                {
-                    return View(_dbContext.RgTasks.Where(x => x.GroupId == groupId && x.TaskType == Constants.RgType));
-                }
-                else
-                    return StatusCode(403);
-            }
-            return StatusCode(404);
+            var ttlink = await _dbContext
+                .TeacherTasks
+                .SingleAsync(x => x.Teacher == user);
+            var tasks = _dbContext
+                .RgTasks
+                .Where(x => x.IsControl == isControl 
+                && x.TaskType == type
+                && x.TeacherTaskId == ttlink.Id);
+            ViewData["Type"] = (type == Constants.RgType ? "Регулярные грамматики"
+                : type == Constants.FsmType ? "Конечные автоматы" : "Неизвестно");
+
+            return View(tasks.OrderBy(x => x.TaskNumber));
         }
 
         [HttpGet]
@@ -154,14 +151,13 @@ namespace VisFP.Controllers
                 oldTask.AlphabetNonTerminalsCount = task.AlphabetNonTerminalsCount;
                 oldTask.AlphabetTerminalsCount = task.AlphabetTerminalsCount;
                 oldTask.ChainMinLength = task.ChainMinLength;
-                oldTask.IsGrammarGenerated = task.IsGrammarGenerated;
                 oldTask.MaxAttempts = task.MaxAttempts;
                 oldTask.NonTerminalRuleCount = task.NonTerminalRuleCount;
                 oldTask.TerminalRuleCount = task.TerminalRuleCount;
                 oldTask.FailTryScore = task.FailTryScore;
                 oldTask.SuccessScore = task.SuccessScore;
                 await _dbContext.SaveChangesAsync();
-                return RedirectToAction(nameof(GroupRgTaskList), new { groupId = oldTask.GroupId });
+                return RedirectToAction(nameof(TeacherRgTaskList), new { isControl = oldTask.IsControl, type = oldTask.TaskType });
             }
             return StatusCode(404);
         }

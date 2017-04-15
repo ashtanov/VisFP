@@ -80,7 +80,9 @@ namespace VisFP.BusinessObjects
                 CreateDate = DateTime.Now,
                 TaskQuestion = tp.GetTaskDescription(),
                 Variant = variant,
-                Generation = generation
+                Generation = generation,
+                TaskNumber = templateTask.TaskNumber,
+                TaskTitle = templateTask.TaskTitle
             };
             await _dbContext.RgTaskProblems.AddAsync(cTask);
             return new RGProblemResult { Grammar = tp.CurrentGrammar, Problem = cTask };

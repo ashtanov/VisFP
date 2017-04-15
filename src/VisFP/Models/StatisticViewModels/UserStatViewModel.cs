@@ -30,7 +30,7 @@ namespace VisFP.Models.StatisticViewModels
         public string Group { get; set; }
         [Display(Name = "ФИО")]
         public string RealName { get; set; }
-        public IEnumerable<VariantStat> RgVariants { get; set; }
+        public IEnumerable<VariantStat> Variants { get; set; }
 
     }
 }
