@@ -3,6 +3,16 @@
 <h3 style="margin-left:100px">@Model.TaskTitle</h3>
 <hr />
 <div class="col-lg-5">
+    <div class="panel">
+        <dl class="dl-horizontal">
+            <dt style="font-size:large">
+                @Html.DisplayNameFor(model => model.TaskText)
+            </dt>
+            <dd style="font-size:large">
+                @Html.Raw(Model.TaskText)
+            </dd>
+        </dl>
+    </div>
     @{ await Html.RenderPartialAsync("TaskInfo", Model); }
     @{ await Html.RenderPartialAsync("TaskShared/AcceptAnswerView",
                                                     new AnswerViewModel

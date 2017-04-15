@@ -78,22 +78,34 @@ namespace VisFP.Data
             var problems = _dbContext
                     .TaskProblems
                     .Include(x => x.Attempts)
+                    .Include(x => x.Task)
                     .Where(x => x.Variant == variant).ToList();
             var handledProblems = new List<ExamProblem>(
                     problems.Select(
-                        x => new ExamProblem
+                        x =>
                         {
-                            ProblemId = x.ProblemId,
-                            State =
-                                x.Attempts.Any(a => a.IsCorrect == true)
-                                        ? ProblemState.SuccessFinished
-                                        : x.Attempts.Count == x.MaxAttempts
-                                            ? ProblemState.FailFinished
-                                            : ProblemState.Unfinished,
-                            TaskNumber = x.TaskNumber,
-                            TaskTitle = x.TaskTitle
+                            var currState = GetState(x);
+                            int currScore = (currState != ProblemState.SuccessFinished)
+                                ? 0 : (x.Task.SuccessScore - (x.Task.FailTryScore * (x.Attempts.Count - 1)));
+                            return new ExamProblem
+                            {
+                                ProblemId = x.ProblemId,
+                                State = currState,
+                                TaskNumber = x.TaskNumber,
+                                TaskTitle = x.TaskTitle,
+                                Score = currScore
+                            };
                         })).OrderBy(x => x.TaskNumber);
             return handledProblems;
+        }
+
+        private static ProblemState GetState(DbTaskProblem problem)
+        {
+            return problem.Attempts.Any(a => a.IsCorrect == true)
+                                        ? ProblemState.SuccessFinished
+                                        : problem.Attempts.Count == problem.MaxAttempts
+                                            ? ProblemState.FailFinished
+                                            : ProblemState.Unfinished;
         }
     }
 }

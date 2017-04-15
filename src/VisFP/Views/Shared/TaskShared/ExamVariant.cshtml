@@ -3,8 +3,15 @@
 @{
     ViewData["Title"] = "Контрольный вариант";
 }
-
-<h2>@ViewData["Title"]</h2>
+@{ var isAllDone = Model.Problems.All(x => x.State != ProblemState.Unfinished); }
+@if (isAllDone)
+{
+    <h2>@ViewData["Title"]: <strong>Завершен</strong></h2>
+}
+else
+{
+    <h2>@ViewData["Title"]</h2>
+}
 <hr />
 
 <dl class="dl-horizontal">
@@ -15,27 +22,49 @@
         @Html.DisplayFor(model => model.CreateDate)
     </dd>
 </dl>
-<div>
-    <ul>
+<div class="col-md-7">
+    <table class="table table-condensed">
+        <tr>
+            <th>#</th>
+            <th>Задача</th>
+            <th>Статус</th>
+            <th>Баллы</th>
+        </tr>
         @foreach (var problem in Model.Problems)
-            {
-            <li>
-                <a asp-action="Task" asp-route-id="@problem.TaskNumber" asp-route-problemId="@problem.ProblemId">@problem.TaskNumber @problem.TaskTitle</a>
-                @switch (problem.State)
-                {
-                    case ProblemState.FailFinished:
-                        {
-                            <span style="color:red">FAIL</span>
-                            break;
-                        }
-                    case ProblemState.SuccessFinished:
-                        {
-                            <span style="color:green">OK</span>
-                            break;
-                        }
-                    default: break;
-                }
-            </li>
+        {
+            <tr>
+                <td>
+                    @problem.TaskNumber
+                </td>
+                <td>
+                    <a asp-action="Task" asp-route-id="@problem.TaskNumber" asp-route-problemId="@problem.ProblemId">@problem.TaskTitle</a>
+                </td>
+                <td>
+                    @switch (problem.State)
+                    {
+                        case ProblemState.FailFinished:
+                            {
+                                <span style="color:red">FAIL</span>
+                                break;
+                            }
+                        case ProblemState.SuccessFinished:
+                            {
+                                <span style="color:green">OK</span>
+                                break;
+                            }
+                        default: break;
+                    }
+                </td>
+                <td>
+                    @problem.Score
+                </td>
+            </tr>
         }
-    </ul>
+        <tr>
+            <td></td>
+            <td></td>
+            <td>Всего:</td>
+            <td>@Model.Problems.Sum(x => x.Score)</td>
+        </tr>
+    </table>
 </div>

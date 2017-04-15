@@ -151,7 +151,21 @@ function handleAnswer(answerResult) {
         $("#attemptsCount").html(answerResult.attemptsLeft);
         
     }
-} 
+}
+
+function deleteVariant(variant, userid) {
+    var conf = confirm("Удалить выбраный вариант?");
+    if (conf) {
+        $.ajax({
+            type: "POST",
+            url: "/Statistic/DeleteVariant",
+            data: { varId : variant },
+            success: function(){
+                window.location.href = '/Statistic/UserStat/' + userid;
+            }
+        });        
+    }
+}
 
 function sendUserAnswer() {
     var data;

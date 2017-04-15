@@ -26,8 +26,5 @@ namespace VisFP.Data.DBModels
 
         public Guid? FixedGrammarId { get; set; }
         public RGrammar FixedGrammar { get; set; }
-
-        public ICollection<RgTaskProblem> Problems { get; set; }
-
     }
 }

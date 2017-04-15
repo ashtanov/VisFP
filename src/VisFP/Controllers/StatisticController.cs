@@ -54,13 +54,16 @@ namespace VisFP.Controllers
                 foreach(var variant in variants)
                 {
                     var problems = _dbContext.GetVariantProblems(variant);
+                    var totalScore = problems.Sum(x => x.Score);
                     statVariant.Add(new VariantStat
                     {
                         Id = variant.VariantId,
-                        TasksType = "RG",
+                        TasksType = variant.VariantType,
+                        DateStart = variant.CreateDate,
                         FailProblems = problems.Count(x => x.State == ProblemState.FailFinished),
                         SuccessProblems = problems.Count(x => x.State == ProblemState.SuccessFinished),
-                        UnfinishedProblems = problems.Count(x => x.State == ProblemState.Unfinished)
+                        UnfinishedProblems = problems.Count(x => x.State == ProblemState.Unfinished),
+                        TotalScore = totalScore
                     });
                 }
                 var model = new UserStatViewModel
@@ -68,19 +71,35 @@ namespace VisFP.Controllers
                     Login = user.UserName,
                     RealName = user.RealName,
                     Group = user.UserGroup.Name,
-                    Variants = statVariant
+                    Variants = statVariant,
+                    Id = user.Id
                 };
                 return View(model);
             }
             return NotFound();
         }
 
-
-
-
-        private Task<ApplicationUser> GetCurrentUserAsync()
+        [Authorize(Roles = "Admin, Teacher")]
+        [HttpPost]
+        public async Task<IActionResult> DeleteVariant(Guid varId)
         {
-            return _userManager.GetUserAsync(HttpContext.User);
+            try
+            {
+                var variant = _dbContext.Variants.Single(x => x.VariantId == varId);
+                var userId = variant.UserId;
+                _dbContext.Variants.Remove(variant);
+                await _dbContext.SaveChangesAsync();
+                return RedirectToAction(nameof(UserStat), new { id = userId });
+            }
+            catch(Exception ex)
+            {
+                throw;
+            }
+        }
+
+        private async Task<ApplicationUser> GetCurrentUserAsync()
+        {
+            return await _userManager.GetUserAsync(HttpContext.User);
         }
 
         private async Task<DbRole> GetCurrentUserRole()

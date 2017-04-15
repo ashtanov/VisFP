@@ -12,8 +12,5 @@ namespace VisFP.Data.DBModels
     {
         public Guid GrammarId { get; set; }
         public RGrammar CurrentGrammar { get; set; }
-
-        public Guid TaskId { get; set; }
-        public RgTask Task { get; set; }
     }
 }

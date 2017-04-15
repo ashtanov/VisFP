@@ -26,6 +26,9 @@ namespace VisFP.Data.DBModels
         public Guid? VariantId { get; set; }
         public DbControlVariant Variant { get; set; }
 
+        public Guid TaskId { get; set; }
+        public DbTask Task { get; set; }
+
         public ICollection<DbAttempt> Attempts { get; set; }
     }
 }

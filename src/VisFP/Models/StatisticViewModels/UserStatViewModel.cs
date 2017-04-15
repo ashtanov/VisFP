@@ -19,7 +19,9 @@ namespace VisFP.Models.StatisticViewModels
         public Guid Id { get; set; }
         public int SuccessProblems { get; set; }
         public int FailProblems { get; set; }
+        public DateTime DateStart { get; set; }
         public int UnfinishedProblems { get; set; }
+        public int TotalScore { get; set; }
     }
 
     public class UserStatViewModel
@@ -30,6 +32,7 @@ namespace VisFP.Models.StatisticViewModels
         public string Group { get; set; }
         [Display(Name = "ФИО")]
         public string RealName { get; set; }
+        public string Id { get; set; }
         public IEnumerable<VariantStat> Variants { get; set; }
 
     }

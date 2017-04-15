@@ -19,6 +19,7 @@ namespace VisFP.Models.RGViewModels
             : base(grammar, problem, leftAttempts)
         {
             OtherProblems = otherProblems;
+            IsControlProblem = true;
         }
     }
 }

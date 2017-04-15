@@ -52,14 +52,15 @@ namespace VisFP.Data
                 {
                     entity.HasKey(x => x.ProblemId);
                     entity.HasOne(x => x.User).WithMany(y => y.Problems).HasForeignKey(p => p.UserId);
-                    entity.HasOne(x => x.Variant).WithMany(y => y.Problems).HasForeignKey(p => p.VariantId);
+                    entity.HasOne(x => x.Variant).WithMany(y => y.Problems).HasForeignKey(p => p.VariantId).OnDelete(Microsoft.EntityFrameworkCore.Metadata.DeleteBehavior.Cascade);
+                    entity.HasOne(x => x.Task).WithMany(y => y.Problems).HasForeignKey(p => p.TaskId);
                 }
             );
             builder.Entity<DbAttempt>(
                 entity =>
                 {
                     entity.HasKey(x => x.AttemptId);
-                    entity.HasOne(x => x.Problem).WithMany(y => y.Attempts).HasForeignKey(p => p.ProblemId);
+                    entity.HasOne(x => x.Problem).WithMany(y => y.Attempts).HasForeignKey(p => p.ProblemId).OnDelete(Microsoft.EntityFrameworkCore.Metadata.DeleteBehavior.Cascade);
                 }
             );
 
@@ -71,7 +72,6 @@ namespace VisFP.Data
 
             builder.Entity<RgTaskProblem>(entity =>
                 {
-                    entity.HasOne(x => x.Task).WithMany(y => y.Problems).HasForeignKey(p => p.TaskId);
                     entity.HasOne(x => x.CurrentGrammar).WithMany(y => y.Problems).HasForeignKey(p => p.GrammarId);
                 });
 
@@ -79,7 +79,7 @@ namespace VisFP.Data
                 {
                     entity.HasKey(x => x.VariantId);
                     entity.HasIndex(x => x.VariantType);
-                    entity.HasOne(x => x.User).WithMany(y => y.ControlVariants).HasForeignKey(p => p.UserId);
+                    entity.HasOne(x => x.User).WithMany(y => y.ControlVariants).HasForeignKey(p => p.UserId).OnDelete(Microsoft.EntityFrameworkCore.Metadata.DeleteBehavior.Cascade);
                 });
             builder.Entity<DbTeacherTask>(entity =>
             {

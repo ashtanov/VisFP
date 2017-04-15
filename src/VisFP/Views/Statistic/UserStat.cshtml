@@ -18,23 +18,29 @@
         <label class="form-control">@Model.Group</label>
     </div>
 </div>
-<h3>Регулярные граматики</h3>
+<h3>Созданные варианты</h3>
 <table class="table">
     <tr>
+        <th>Раздел</th>
         <th>Id варианта</th>
         <th>Дата получения</th>
         <th>Неуспешно</th>
         <th>Успешно</th>
         <th>Не окончено</th>
+        <th>Баллы</th>
+        <th></th>
     </tr>
     @foreach (var variant in Model.Variants)
     {
         <tr>
+            <td>@variant.TasksType</td>
             <td>@variant.Id</td>
-            <td></td>
+            <td>@variant.DateStart</td>
             <td>@variant.FailProblems</td>
             <td>@variant.SuccessProblems</td>
             <td>@variant.UnfinishedProblems</td>
+            <td>@variant.TotalScore</td>
+            <td><button onclick="deleteVariant('@variant.Id','@Model.Id');">Удалить</button></td>
         </tr>
     }
 </table>

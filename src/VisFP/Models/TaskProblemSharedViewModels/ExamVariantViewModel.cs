@@ -20,6 +20,7 @@ namespace VisFP.Models.TaskProblemSharedViewModels
         public Guid ProblemId { get; set; }
         public string TaskTitle { get; set; }
         public int TaskNumber { get; set; }
+        public int Score { get; set;}
     }
 
     public class ExamVariantViewModel

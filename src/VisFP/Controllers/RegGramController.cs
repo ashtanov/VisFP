@@ -39,7 +39,7 @@ namespace VisFP.Controllers
                 .Where(x => x.TaskType == ControllerType);
             var model = new TaskListViewModel
             {
-                TaskControllerName = this.GetType().Name.Replace("Controller", ""),
+                TaskControllerName = GetType().Name.Replace("Controller", ""),
                 TasksList = tasksList.Select(x => new Tuple<int, string>(x.TaskNumber, x.TaskTitle))
             };
             return View("TaskShared/Index", model);
