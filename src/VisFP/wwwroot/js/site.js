@@ -1,38 +1,15 @@
 ﻿// Write your Javascript code.
-var container;
-var network;
-var options = {
+var globalOptions = {
     nodes: { borderWidth: 2 },
-    manipulation: {
-        addNode: function (data, callback) {
-            // filling in the popup DOM elements
-            document.getElementById('node-operation').innerHTML = "Add Node";
-            editNode(data, callback);
-        },
-        editNode: function (data, callback) {
-            // filling in the popup DOM elements
-            document.getElementById('node-operation').innerHTML = "Edit Node";
-            editNode(data, callback);
-        },
-        addEdge: function (data, callback) {
-            if (data.from === data.to) {
-                var r = confirm("Do you want to connect the node to itself?");
-                if (r !== true) {
-                    callback(null);
-                    return;
-                }
-            }
-            document.getElementById('edge-operation').innerHTML = "Add Edge";
-            editEdgeWithoutDrag(data, callback);
-        },
-        editEdge: {
-            editWithoutDrag: function (data, callback) {
-                document.getElementById('edge-operation').innerHTML = "Edit Edge";
-                editEdgeWithoutDrag(data, callback);
-            }
-        }
-    }
+    clickToUse: true,
 };
+var svgLine = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">' +
+    '<rect x="0" y="0" width="40%" height="100%" fill-opacity="0"></rect>' +
+'<rect x="40" y="0" width="20%" height="100%" fill="#000"></rect>' +
+'<rect x="60" y="0" width="40%" height="100%" fill-opacity="0"></rect>' +
+'</svg>';
+var svgLineImage = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgLine);
+
 onload = function () {
 
     $('#radioBtn a').on('click', function () {
@@ -111,14 +88,16 @@ onload = function () {
     });
 }
 
-function buildGraph(graph) {
-    container = document.getElementById('mynetwork');
-
+function buildGraph(graph, options) {
+    var container = document.getElementById('mynetwork');
+    graph.nodes.forEach(function (x, y, z) { if (x.image != undefined) x.image = eval(x.image); })
+    if (options == undefined)
+        options = globalOptions
     var data = {
         nodes: new vis.DataSet(graph.nodes),
         edges: new vis.DataSet(graph.edges)
     };
-    network = new vis.Network(container, data, options);
+    var network = new vis.Network(container, data, options);
 }
 
 function objToArray(obj) {
@@ -226,13 +205,4 @@ function generateGroupReport(groupId) {
                 .map(function (i, x) { return x.value })
             ).join(" ");
     window.location.href = "/Statistic/DownloadReport?groupId=" + groupId + "&types=" + types;
-    //$.ajax({
-    //    type: "GET",
-    //    url: "/Statistic/DownloadReport?groupId=",
-    //    data:
-    //        {
-    //            groupId: groupId,
-    //            types: types
-    //        }
-    //});
 }
