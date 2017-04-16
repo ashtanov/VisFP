@@ -21,9 +21,11 @@
                                                         MaxAttemptsCount = Model.MaxAttempts,
                                                         SymbolsCheckBox = Model.Grammar.Alph.NonTerminals,
                                                         AnswerType = Model.AnswerType,
-                                                        IsControl = Model.IsControlProblem
+                                                        IsControl = Model.IsControlProblem,
+                                                        GotRightAnswer = Model.GotRightAnswer
                                                     }); }
 </div>
 <div class="col-lg-7">
     @{await Html.RenderPartialAsync("TaskShared/GraphView", Model);}
 </div>
+

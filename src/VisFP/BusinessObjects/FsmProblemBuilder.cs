@@ -26,6 +26,10 @@ namespace VisFP.BusinessObjects
                     return new FsmProblem2();
                 case 3:
                     return new FsmProblem3();
+                case 4:
+                    return new FsmProblem4();
+                case 5:
+                    return new FsmProblem5();
                 default:
                     throw new NotImplementedException();
             }
@@ -50,10 +54,6 @@ namespace VisFP.BusinessObjects
         }
     }
 
-
-    //4)является ли КА детерминированным?
-    //5)допустима ли цепочка? (цепочка генерируется)
-
     //1)допускает ли КА хотя бы одну цепочку?
     public class FsmProblem1 : FsmProblemTemplate
     {
@@ -77,7 +77,7 @@ namespace VisFP.BusinessObjects
 
         public override string GetTaskDescription()
         {
-            return "Порождает ли конечный автомат непустой язык?";
+            return "Допускает ли КА хотя бы одну цепочку?";
         }
 
         public override void SetCurrentChain(RgTask templateTask)
@@ -146,6 +146,76 @@ namespace VisFP.BusinessObjects
 
         public override void SetCurrentChain(RgTask templateTask)
         {
+        }
+    }
+
+    //4)является ли КА детерминированным?
+    public class FsmProblem4 : FsmProblemTemplate
+    {
+        public override TaskAnswerType AnswerType
+        {
+            get
+            {
+                return TaskAnswerType.YesNoAnswer;
+            }
+        }
+
+        public override bool ConditionUntilForGrammar()
+        {
+            return YesNoAnswer ? !CurrentGrammar.IsDeterministic : CurrentGrammar.IsDeterministic;
+        }
+
+        public override string GetAnswer()
+        {
+            return YesNoAnswer ? "yes" : "no";
+        }
+
+        public override string GetTaskDescription()
+        {
+            return "Является ли данный автомат детерминированным?";
+        }
+
+        public override void SetCurrentChain(RgTask templateTask)
+        {
+        }
+    }
+
+    //5)допустима ли цепочка? (цепочка генерируется)
+    public class FsmProblem5 : FsmProblemTemplate
+    {
+        public override TaskAnswerType AnswerType
+        {
+            get
+            {
+                return TaskAnswerType.YesNoAnswer;
+            }
+        }
+
+        public override bool ConditionUntilForGrammar()
+        {
+            return !CurrentGrammar.IsProper;
+        }
+
+        public override string GetAnswer()
+        {
+            return YesNoAnswer ? "yes" : "no";
+        }
+
+        public override string GetTaskDescription()
+        {
+            return $"Допустима ли цепочка <strong>{CurrentChain.Chain}</strong> для данного КА?";
+        }
+
+        public override void SetCurrentChain(RgTask templateTask)
+        {
+            var allChains = CurrentGrammar.GetAllChains(templateTask.ChainMinLength);
+            CurrentChain = allChains[new Random().Next(allChains.Count)];
+            if (!YesNoAnswer)
+            {
+                var isSuccess = ChangeChainToUnrepresentable(allChains); //заменяем символы в существующих цепочках пока 
+                if (!isSuccess) //если все возможные цепочки выводимы, меняем условие
+                    YesNoAnswer = true;
+            }
         }
     }
 }

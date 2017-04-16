@@ -51,7 +51,7 @@ namespace VisFP.Controllers
                     .Include(x => x.Problems)
                     .Where(x => x.User == user).ToList();
                 List<VariantStat> statVariant = new List<VariantStat>();
-                foreach(var variant in variants)
+                foreach (var variant in variants)
                 {
                     var problems = _dbContext.GetVariantProblems(variant);
                     var totalScore = problems.Sum(x => x.Score);
@@ -80,6 +80,107 @@ namespace VisFP.Controllers
         }
 
         [Authorize(Roles = "Admin, Teacher")]
+        public async Task<IActionResult> GroupStat(Guid id)
+        {
+            var currentUser = await GetCurrentUserAsync();
+            var group = await _dbContext
+                .UserGroups
+                .Include(x => x.Members)
+                .SingleOrDefaultAsync(x => x.GroupId == id);
+            if (group != null)
+            {
+                if (await _userManager.IsInRoleAsync(currentUser, "Teacher"))
+                {
+                    if (!await _dbContext.UserGroups.AnyAsync(x => x.Creator == currentUser && x.GroupId == id))
+                        return NotFound();
+                }
+                return View(GetGroupStat(group));
+            }
+            return NotFound();
+        }
+
+        private GroupStatViewModel GetGroupStat(UserGroup group)
+        {
+            List<UserStatViewModel> groupUsers = new List<UserStatViewModel>();
+            foreach (var user in group.Members)
+            {
+                var variants = _dbContext
+                    .Variants
+                    .Include(x => x.Problems)
+                    .Where(x => x.User == user).ToList();
+                List<VariantStat> statVariant = new List<VariantStat>();
+                foreach (var variant in variants)
+                {
+                    var problems = _dbContext.GetVariantProblems(variant);
+                    var totalScore = problems.Sum(x => x.Score);
+                    statVariant.Add(new VariantStat
+                    {
+                        Id = variant.VariantId,
+                        TasksType = variant.VariantType,
+                        DateStart = variant.CreateDate,
+                        FailProblems = problems.Count(x => x.State == ProblemState.FailFinished),
+                        SuccessProblems = problems.Count(x => x.State == ProblemState.SuccessFinished),
+                        UnfinishedProblems = problems.Count(x => x.State == ProblemState.Unfinished),
+                        TotalScore = totalScore
+                    });
+                }
+                groupUsers.Add(new UserStatViewModel
+                {
+                    Login = user.UserName,
+                    RealName = user.RealName,
+                    Group = user.UserGroup.Name,
+                    Variants = statVariant,
+                    Id = user.Id
+                });
+            }
+
+            return new GroupStatViewModel
+            {
+                Users = groupUsers,
+                Id = group.GroupId,
+                Name = group.Name,
+                TasksType = groupUsers.SelectMany(x => x.Variants.Select(y => y.TasksType)).Distinct()
+            };
+        }
+
+        public async Task<FileResult> DownloadReport(Guid groupId, string types)
+        {
+            var currentUser = await GetCurrentUserAsync();
+            var group = await _dbContext
+                .UserGroups
+                .Include(x => x.Members)
+                .SingleOrDefaultAsync(x => x.GroupId == groupId);
+            if (group != null)
+            {
+                if (await _userManager.IsInRoleAsync(currentUser, "Teacher"))
+                {
+                    if (!await _dbContext.UserGroups.AnyAsync(x => x.Creator == currentUser && x.GroupId == groupId))
+                        throw new Exception();
+                }
+                var neededTypes = types.Split(' ');
+                var groupStat = GetGroupStat(group);
+                var fileName = $"{group.Name}_{string.Join("_",neededTypes)}.csv";
+                System.IO.MemoryStream ms = new System.IO.MemoryStream();
+                System.IO.StreamWriter sw = new System.IO.StreamWriter(ms, System.Text.Encoding.UTF8);
+                sw.WriteLine($"ÔÈÎ;{string.Join(";", neededTypes)}");
+                foreach (var user in groupStat.Users)
+                {
+                    sw.Write($"{user.RealName}");
+                    foreach (var type in neededTypes)
+                    {
+                        var curr = user.Variants.FirstOrDefault(x => x.TasksType == type);
+                        sw.Write($";{curr?.TotalScore.ToString() ?? ""}");
+                    }
+                    sw.WriteLine();
+                }
+                sw.Flush();
+                ms.Position = 0;
+                return File(ms, "text/csv", fileName);
+            }
+            throw new Exception();
+        }
+
+        [Authorize(Roles = "Admin, Teacher")]
         [HttpPost]
         public async Task<IActionResult> DeleteVariant(Guid varId)
         {
@@ -91,7 +192,7 @@ namespace VisFP.Controllers
                 await _dbContext.SaveChangesAsync();
                 return RedirectToAction(nameof(UserStat), new { id = userId });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw;
             }

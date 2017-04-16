@@ -4,7 +4,7 @@
         Осталось попыток:
     </dt>
     <dd>
-        <strong><span id="attemptsCount" >@Html.DisplayFor(model => model.MaxAttemptsCount)</span></strong>
+        <strong><span id="attemptsCount">@Html.DisplayFor(model => model.MaxAttemptsCount)</span></strong>
     </dd>
 </dl>
 <input asp-for="TaskProblemId" id="taskProblemId" autocomplete="off" type="hidden" class="form-control" />
@@ -61,10 +61,33 @@
             break;
     }
     <div class="form-group">
-        <div class="col-md-offset-3 col-md-10">
-            @{ var buttonText = Model.IsControl ? "Отправить ответ" : "Проверить ответ";}
-            <input type="button" id="sendAnswer" autocomplete="off" onclick="sendUserAnswer();" value="@buttonText" class="btn btn-lg btn-success" />
-        </div>
+        @if (Model.GotRightAnswer)
+        {
+            <div class="col-md-offset-1 col-md-10">
+                <div class="panel panel-success">
+                    <div class="panel-heading" style="text-align:center">
+                        <h4>Вы уже дали верный ответ</h4>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (Model.MaxAttemptsCount == 0)
+        {
+            <div class="col-md-offset-1 col-md-10">
+                <div class="panel panel-danger">
+                    <div class="panel-heading" style="text-align:center">
+                        <h4>Попытки закончились</h4>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            var buttonText = Model.IsControl ? "Отправить ответ" : "Проверить ответ";
+            <div class="col-md-offset-3 col-md-10">
+                <input type="button" id="sendAnswer" autocomplete="off" onclick="sendUserAnswer();" value="@buttonText" class="btn btn-lg btn-success" />
+            </div>
+        }
     </div>
     <div class="col-md-offset-2 col-md-7">
         <div class="panel panel-default">
@@ -74,10 +97,6 @@
         </div>
     </div>
 </div>
-@if (Model.MaxAttemptsCount == 0)
-{
-    <script>disableAnswerButton();</script>
-}
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

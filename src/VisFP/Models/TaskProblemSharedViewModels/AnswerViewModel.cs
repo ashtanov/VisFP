@@ -12,6 +12,7 @@ namespace VisFP.Models.TaskProblemSharedViewModels
         public Guid TaskProblemId { get; set; }
         public int MaxAttemptsCount { get; set; }
         public bool IsControl { get; set; }
+        public bool GotRightAnswer { get; set; }
         public IEnumerable<char> SymbolsCheckBox { get; set; }
         public TaskAnswerType AnswerType { get; set; }
     }

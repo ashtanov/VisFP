@@ -15,8 +15,9 @@ namespace VisFP.Models.RGViewModels
             RegularGrammar grammar,
             RgTaskProblem problem,
             int leftAttempts,
+            bool gotRightAnswer,
             IEnumerable<ExamProblem> otherProblems)
-            : base(grammar, problem, leftAttempts)
+            : base(grammar, problem, leftAttempts, gotRightAnswer)
         {
             OtherProblems = otherProblems;
             IsControlProblem = true;

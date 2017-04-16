@@ -1,0 +1,48 @@
+﻿@model VisFP.Models.StatisticViewModels.GroupStatViewModel
+
+@{ 
+    ViewData["Title"] = "Результаты группы";
+}
+<h2>@ViewData["Title"]</h2>
+<div class="form-group">
+    <label asp-for="@Model.Name" class="col-md-2 control-label"></label>
+    <div class="col-md-10">
+        <label class="form-control">@Model.Name</label>
+    </div>
+</div>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Users.First().RealName)
+            </th>
+            @foreach (var type in Model.TasksType)
+            {
+                <th>
+                    <span class="button-checkbox">
+                        <button type="button" class="btn btn-success active" data-color="success">Баллы @type</button>
+                        <input class="hidden answerCheckboxes" autocomplete="off" type="checkbox" checked value="@type">
+                    </span>
+                </th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Users)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RealName)
+                </td>
+                @foreach (var type in Model.TasksType)
+                {
+                    var curr = item.Variants.FirstOrDefault(x => x.TasksType == type);
+                    <td>
+                        @(curr?.TotalScore.ToString() ?? "---")
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+<button class="btn btn-primary" onclick="generateGroupReport('@Model.Id');">Скачать</button>

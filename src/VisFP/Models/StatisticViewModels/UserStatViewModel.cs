@@ -34,6 +34,5 @@ namespace VisFP.Models.StatisticViewModels
         public string RealName { get; set; }
         public string Id { get; set; }
         public IEnumerable<VariantStat> Variants { get; set; }
-
     }
 }

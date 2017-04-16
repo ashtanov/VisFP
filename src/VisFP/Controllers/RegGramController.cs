@@ -147,7 +147,8 @@ namespace VisFP.Controllers
                                 new RgProblemViewModel(
                                     RegularGrammar.Parse(currentProblem.CurrentGrammar.GrammarJson),
                                     currentProblem,
-                                    currentProblem.MaxAttempts - currentProblem.Attempts.Count);
+                                    currentProblem.MaxAttempts - currentProblem.Attempts.Count,
+                                    currentProblem.Attempts.Any(x => x.IsCorrect));
                             var gnt = viewModel.Grammar.GeneratingNonterminals.Value;
                             return View("TaskShared/TaskView", viewModel);
                         }
@@ -156,13 +157,13 @@ namespace VisFP.Controllers
                             var currentVariant =
                                await _dbContext
                                .Variants
-                               .Include(x => x.Problems)
                                .FirstOrDefaultAsync(x => x.VariantId == currentProblem.VariantId);
                             var viewModel =
                                 new ExamRgProblemViewModel(
                                     RegularGrammar.Parse(currentProblem.CurrentGrammar.GrammarJson),
                                     currentProblem,
                                     currentProblem.MaxAttempts - currentProblem.Attempts.Count,
+                                    currentProblem.Attempts.Any(x => x.IsCorrect),
                                     _dbContext.GetVariantProblems(currentVariant));
                             return View("TaskShared/ExamTaskView", viewModel);
                         }

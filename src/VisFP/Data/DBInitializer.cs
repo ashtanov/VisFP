@@ -258,6 +258,39 @@ namespace VisFP.Data
                     TaskNumber = 3,
                     IsControl = isControl
                 });
+
+                dbcontext.RgTasks.Add(new RgTask
+                {
+                    TaskTitle = "Детерминированность автомата",
+                    TaskType = Constants.FsmType,
+                    NonTerminalRuleCount = 7,
+                    IsGrammarGenerated = true,
+                    TerminalRuleCount = 3,
+                    AlphabetNonTerminalsCount = 5,
+                    AlphabetTerminalsCount = 3,
+                    SuccessScore = 5,
+                    FailTryScore = 0,
+                    MaxAttempts = 1,
+                    TaskNumber = 4,
+                    IsControl = isControl
+                });
+
+                dbcontext.RgTasks.Add(new RgTask
+                {
+                    TaskTitle = "Допустимость цепочки",
+                    TaskType = Constants.FsmType,
+                    NonTerminalRuleCount = 6,
+                    IsGrammarGenerated = true,
+                    TerminalRuleCount = 3,
+                    AlphabetNonTerminalsCount = 4,
+                    AlphabetTerminalsCount = 2,
+                    SuccessScore = 5,
+                    ChainMinLength = 6,
+                    FailTryScore = 0,
+                    MaxAttempts = 1,
+                    TaskNumber = 5,
+                    IsControl = isControl
+                });
             }
 
         }

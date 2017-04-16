@@ -21,6 +21,7 @@ namespace VisFP.Models.RGViewModels
         public int Generation { get; set; }
 
         public bool IsControlProblem { get; set; }
+        public bool GotRightAnswer { get; set; }
 
         public RgProblemViewModel(RegularGrammar grammar, RgTaskProblem problem)
             : base(grammar)
@@ -37,7 +38,8 @@ namespace VisFP.Models.RGViewModels
         public RgProblemViewModel(
             RegularGrammar grammar, 
             RgTaskProblem problem, 
-            int leftAttempts)
+            int leftAttempts,
+            bool gotRightAnswer)
             : base(grammar)
         {
             TaskText = problem.TaskQuestion;
@@ -46,6 +48,7 @@ namespace VisFP.Models.RGViewModels
             Id = problem.ProblemId;
             MaxAttempts = leftAttempts;
             Generation = problem.Generation;
+            GotRightAnswer = gotRightAnswer;
         }
     }
 }

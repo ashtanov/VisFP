@@ -77,7 +77,9 @@ namespace VisFP.BusinessObjects
         [JsonIgnore]
         public Lazy<RgNode> GrammarGraph;
         [JsonIgnore]
-        public Lazy<bool> _isCyclic;
+        private Lazy<bool> _isCyclic;
+        [JsonIgnore]
+        private Lazy<bool> _isDeterministic;
 
         public RegularGrammar(Alphabet alph, IReadOnlyList<Rule> rules)
         {
@@ -88,6 +90,7 @@ namespace VisFP.BusinessObjects
             GeneratingNonterminals = new Lazy<char[]>(() => FindGeneratingNonTerminals(), true);
             GrammarGraph = new Lazy<RgNode>(() => GenerateGrammarGraph(), true);
             _isCyclic = new Lazy<bool>(() => CheckIsCyclic(), true);
+            _isDeterministic = new Lazy<bool>(() => CheckIsDeterministic(), true);
         }
 
         [JsonIgnore]
@@ -101,8 +104,11 @@ namespace VisFP.BusinessObjects
             }
         }
 
+        /// <summary>
+        /// порождает ли пустой язык?
+        /// </summary>
         [JsonIgnore]
-        public bool IsEmptyLanguage //порождает ли пустой язык?
+        public bool IsEmptyLanguage 
         {
             get
             {
@@ -110,8 +116,23 @@ namespace VisFP.BusinessObjects
             }
         }
 
+        /// <summary>
+        /// Детерминированный?
+        /// </summary>
         [JsonIgnore]
-        public bool IsInfinityLanguage //порождает ли бесконечный язык?
+        public bool IsDeterministic
+        {
+            get
+            {
+                return _isDeterministic.Value;
+            }
+        }
+
+        /// <summary>
+        /// порождает ли бесконечный язык?
+        /// </summary>
+        [JsonIgnore]
+        public bool IsInfinityLanguage 
         {
             get
             {
@@ -452,13 +473,23 @@ namespace VisFP.BusinessObjects
         private bool CheckIsCyclic()
         {
             if (CyclicNonterminals.Value.Length > 0)
-                return true;
+            {
+                if (CyclicNonterminals //если наш циклический символ достижим из начала и может дойти до конца
+                    .Value
+                    .Any(x => ReachableNonterminals.Value.Contains(x)
+                        && GeneratingNonterminals.Value.Contains(x)))
+                    return true;
+                
+            }
             var t = GrammarGraph.Value;
             Dictionary<char, byte> visitedNodes = new Dictionary<char, byte>();
             foreach (var S in Alph.NonTerminals)
                 visitedNodes.Add(S, 0); //все белые
             bool cycleExists = false;
-            foreach(var node in _allNodes.Select(x => x.Value))
+            foreach (var node in _allNodes
+                .Select(x => x.Value)
+                .Where(x => ReachableNonterminals.Value.Contains(x.NonTerminal)
+                    && GeneratingNonterminals.Value.Contains(x.NonTerminal)))
                 if (visitedNodes[node.NonTerminal] == 0)
                     ColorDfs(node, visitedNodes, ref cycleExists);
             return cycleExists;
@@ -467,7 +498,7 @@ namespace VisFP.BusinessObjects
         private void ColorDfs(RgNode node, Dictionary<char, byte> states, ref bool cycleExist)
         {
             states[node.NonTerminal] = 1; //красим в серую
-            foreach(var e in node.Edges)
+            foreach (var e in node.Edges)
             {
                 var nt = e.Value.NewState.NonTerminal;
                 if (states[nt] == 0)
@@ -476,6 +507,19 @@ namespace VisFP.BusinessObjects
                     cycleExist = true;
             }
             states[node.NonTerminal] = 2; //красим в черную
+        }
+
+        private bool CheckIsDeterministic()
+        {
+            foreach (var rule in Rules.GroupBy(x => x.Lnt))
+            {
+                foreach (var row in rule.GroupBy(x => x.Rt))
+                {
+                    if (row.Select(x => x.Rnt).Count() > 1)
+                        return false;
+                }
+            }
+            return true;
         }
         #endregion
     }

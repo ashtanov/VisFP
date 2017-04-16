@@ -1,7 +1,7 @@
 ﻿@model VisFP.Data.DBModels.UserGroup
 
 @{
-    ViewData["Title"] = "Редактирование группы " + Model.Name;
+    ViewData["Title"] = "Просмотр группы " + Model.Name;
 }
 
 <h2>@ViewData["Title"]</h2>
@@ -36,11 +36,11 @@
                 Групповой доступ <strong>
                     @if (Model.IsOpen)
                     {
-                        <span style="color:green">ВКЛЮЧЕН</span>
+                <span style="color:green">ВКЛЮЧЕН</span>
                     }
                     else
                     {
-                        <span style="color:red">ВЫКЛЮЧЕН</span>
+                <span style="color:red">ВЫКЛЮЧЕН</span>
                     }
                 </strong>
             </div>
@@ -49,17 +49,17 @@
                     <input type="hidden" name="groupId" value="@Model.GroupId" />
                     @if (Model.IsOpen)
                     {
-                        <input type="hidden" name="enable" value="false" />
-                        <button type="submit" class="btn btn-danger">
-                            Выключить групповой доступ
-                        </button>
+                    <input type="hidden" name="enable" value="false" />
+                    <button type="submit" class="btn btn-danger">
+                        Выключить групповой доступ
+                    </button>
                     }
                     else
                     {
-                        <input type="hidden" name="enable" value="true" />
-                        <button type="submit" class="btn btn-success">
-                            Включить групповой доступ
-                        </button>
+                    <input type="hidden" name="enable" value="true" />
+                    <button type="submit" class="btn btn-success">
+                        Включить групповой доступ
+                    </button>
                     }
                 </form>
             </div>
@@ -88,7 +88,10 @@
     </div>
 </div>
 <div class="panel panel-default">
-    <div class="panel-heading">Список пользователей</div>
+    <div class="panel-heading">
+        Список пользователей
+        <a class="btn  btn-success" asp-action="GroupStat" asp-controller="Statistic" asp-route-id="@Model.GroupId">Результаты студентов</a>
+    </div>
     <div class="panel-body">
         @if (Model.Members != null && Model.Members.Count > 0)
             {

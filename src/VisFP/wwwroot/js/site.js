@@ -167,6 +167,8 @@ function deleteVariant(variant, userid) {
     }
 }
 
+
+
 function sendUserAnswer() {
     var data;
     if ($("#answerSymbols").length !== 0) {
@@ -217,3 +219,20 @@ function saveGraph() {
     });
 }
 
+function generateGroupReport(groupId) {
+    var types = objToArray(
+                $(".answerCheckboxes")
+                .filter(function (i, x) { return x.checked; })
+                .map(function (i, x) { return x.value })
+            ).join(" ");
+    window.location.href = "/Statistic/DownloadReport?groupId=" + groupId + "&types=" + types;
+    //$.ajax({
+    //    type: "GET",
+    //    url: "/Statistic/DownloadReport?groupId=",
+    //    data:
+    //        {
+    //            groupId: groupId,
+    //            types: types
+    //        }
+    //});
+}
