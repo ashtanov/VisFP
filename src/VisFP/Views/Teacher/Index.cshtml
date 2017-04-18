@@ -19,14 +19,14 @@
                 </tr>
                 <tr>
                     <th>Тестовый вариант</th>
-                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="false" asp-route-type="@Constants.RgType" class="btn btn-info">Изменить</a></td>
-                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="false" asp-route-type="@Constants.FsmType" class="btn btn-info">Изменить</a></td>
+                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="false" asp-route-typeName="@Constants.RgType" class="btn btn-info">Изменить</a></td>
+                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="false" asp-route-typeName="@Constants.FsmType" class="btn btn-info">Изменить</a></td>
                     <td><button class="btn btn-info" disabled>Изменить</button></td>
                 </tr>
                 <tr>
                     <th>Контрольный вариант</th>
-                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="true" asp-route-type="@Constants.RgType" class="btn btn-info">Изменить</a></td>
-                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="true" asp-route-type="@Constants.FsmType" class="btn btn-info">Изменить</a></td>
+                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="true" asp-route-typeName="@Constants.RgType" class="btn btn-info">Изменить</a></td>
+                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="true" asp-route-typeName="@Constants.FsmType" class="btn btn-info">Изменить</a></td>
                     <td><button class="btn btn-info">Изменить</button></td>
                 </tr>
             </table>

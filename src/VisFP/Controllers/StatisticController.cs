@@ -49,6 +49,7 @@ namespace VisFP.Controllers
                 var variants = _dbContext
                     .Variants
                     .Include(x => x.Problems)
+                    .Include(x => x.TaskType)
                     .Where(x => x.User == user).ToList();
                 List<VariantStat> statVariant = new List<VariantStat>();
                 foreach (var variant in variants)
@@ -58,7 +59,7 @@ namespace VisFP.Controllers
                     statVariant.Add(new VariantStat
                     {
                         Id = variant.VariantId,
-                        TasksType = variant.VariantType,
+                        TasksType = variant.TaskType.TaskTypeName,
                         DateStart = variant.CreateDate,
                         FailProblems = problems.Count(x => x.State == ProblemState.FailFinished),
                         SuccessProblems = problems.Count(x => x.State == ProblemState.SuccessFinished),
@@ -106,6 +107,7 @@ namespace VisFP.Controllers
             {
                 var variants = _dbContext
                     .Variants
+                    .Include(x => x.TaskType)
                     .Include(x => x.Problems)
                     .Where(x => x.User == user).ToList();
                 List<VariantStat> statVariant = new List<VariantStat>();
@@ -116,7 +118,7 @@ namespace VisFP.Controllers
                     statVariant.Add(new VariantStat
                     {
                         Id = variant.VariantId,
-                        TasksType = variant.VariantType,
+                        TasksType = variant.TaskType.TaskTypeNameToView,
                         DateStart = variant.CreateDate,
                         FailProblems = problems.Count(x => x.State == ProblemState.FailFinished),
                         SuccessProblems = problems.Count(x => x.State == ProblemState.SuccessFinished),
@@ -157,7 +159,7 @@ namespace VisFP.Controllers
                     if (!await _dbContext.UserGroups.AnyAsync(x => x.Creator == currentUser && x.GroupId == groupId))
                         throw new Exception();
                 }
-                var neededTypes = types.Split(' ');
+                var neededTypes = types.Split(new[] { "___" }, StringSplitOptions.RemoveEmptyEntries);
                 var groupStat = GetGroupStat(group);
                 var fileName = $"{group.Name}_{string.Join("_",neededTypes)}.csv";
                 System.IO.MemoryStream ms = new System.IO.MemoryStream();

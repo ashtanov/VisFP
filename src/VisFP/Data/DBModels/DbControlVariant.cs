@@ -12,7 +12,9 @@ namespace VisFP.Data.DBModels
         public Guid VariantId { get; set; }
         public DateTime CreateDate { get; set; }
         public bool IsFinished { get; set; }
-        public string VariantType { get; set; }
+
+        public Guid TaskTypeId { get; set; }
+        public DbTaskType TaskType { get; set; }
 
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }

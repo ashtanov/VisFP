@@ -16,15 +16,32 @@ namespace VisFP.Controllers
 {
     public class FsmController : RegGramController
     {
+        private string _areaName;
+        private DbTaskType _taskType;
+
+        protected override string AreaName
+        {
+            get
+            {
+                return _areaName ?? (_areaName = "Конечные автоматы");
+            }
+        }
+
+        protected override DbTaskType ControllerTaskType
+        {
+            get
+            {
+                return _taskType ?? (_taskType = DbWorker.TaskTypes[Constants.FsmType]);
+            }
+        }
         public FsmController(
             UserManager<ApplicationUser> userManager,
             ApplicationDbContext dbContext,
             ILoggerFactory loggerFactory)
             : base(userManager, dbContext, loggerFactory)
         {
-            ControllerType = Constants.FsmType;
-            AreaName = "Конечные автоматы";
         }
+
 
         protected override async Task<RGProblemResult> GetProblem(ApplicationUser user, RgTask template, DbControlVariant variant = null)
         {

@@ -10,5 +10,6 @@ namespace VisFP
         public const string BaseGroupName = "Base_Group";
         public const string FsmType = "FSM";
         public const string RgType = "RegGram";
+        public const string PetryNet = "PetryNet";
     }
 }

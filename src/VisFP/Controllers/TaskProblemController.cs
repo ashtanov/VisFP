@@ -17,6 +17,9 @@ namespace VisFP.Controllers
     {
         protected readonly UserManager<ApplicationUser> _userManager;
         protected readonly ApplicationDbContext _dbContext;
+        protected abstract string AreaName { get; }
+        protected abstract DbTaskType ControllerTaskType { get; }
+
 
         public TaskProblemController(
             UserManager<ApplicationUser> userManager,

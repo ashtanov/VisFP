@@ -17,8 +17,25 @@ namespace VisFP.Controllers
     public class RegGramController : TaskProblemController
     {
         protected readonly ILogger _logger;
-        protected string ControllerType = Constants.RgType;
-        protected string AreaName = "Регулярные грамматики";
+
+        private string _areaName;
+        private DbTaskType _taskType;
+
+        protected override string AreaName
+        {
+            get
+            {
+                return _areaName?? (_areaName = "Регулярные грамматики");
+            }
+        }
+
+        protected override DbTaskType ControllerTaskType
+        {
+            get
+            {
+                return _taskType ?? (_taskType = DbWorker.TaskTypes[Constants.RgType]);
+            }
+        }
 
         public RegGramController(
             UserManager<ApplicationUser> userManager,
@@ -36,7 +53,7 @@ namespace VisFP.Controllers
             var tasksList = _dbContext.GetTasksForUser(user, false)
                 .Where(x => x is RgTask)
                 .Cast<RgTask>()
-                .Where(x => x.TaskType == ControllerType);
+                .Where(x => x.TaskTypeId == ControllerTaskType.TaskTypeId);
             var model = new TaskListViewModel
             {
                 TaskControllerName = GetType().Name.Replace("Controller", ""),
@@ -50,11 +67,11 @@ namespace VisFP.Controllers
             try
             {
                 var user = await _userManager.GetUserAsync(User);
-                if (_dbContext.Variants.Any(x => x.User == user && !x.IsFinished && x.VariantType == ControllerType)) //если нет текущего варианта
+                if (_dbContext.Variants.Any(x => x.User == user && !x.IsFinished && x.TaskTypeId == ControllerTaskType.TaskTypeId)) //если нет текущего варианта
                 {
                     var variant = await _dbContext
                         .Variants
-                        .Where(x => x.User == user && x.VariantType == ControllerType)
+                        .Where(x => x.User == user && x.TaskTypeId == ControllerTaskType.TaskTypeId)
                         .OrderByDescending(x => x.CreateDate).FirstOrDefaultAsync();
                     ExamVariantViewModel model = new ExamVariantViewModel
                     {
@@ -69,12 +86,12 @@ namespace VisFP.Controllers
                         .GetTasksForUser(user, true)
                         .Where(x => x is RgTask)
                         .Cast<RgTask>()
-                        .Where(x => x.TaskType == ControllerType);
+                        .Where(x => x.TaskTypeId == ControllerTaskType.TaskTypeId);
                     DbControlVariant variant = new DbControlVariant
                     {
                         CreateDate = DateTime.Now,
                         IsFinished = false,
-                        VariantType = ControllerType,
+                        TaskTypeId = ControllerTaskType.TaskTypeId,
                         User = user
                     };
                     await _dbContext.Variants.AddAsync(variant);
@@ -124,7 +141,7 @@ namespace VisFP.Controllers
                     RgTask templateTask = _dbContext.GetTasksForUser(user,false) //выбираем шаблон таска базовый
                             .Where(x => x is RgTask)
                             .Cast<RgTask>()
-                            .FirstOrDefault(x => x.TaskNumber == id && x.TaskType == ControllerType);
+                            .FirstOrDefault(x => x.TaskNumber == id && x.TaskTypeId == ControllerTaskType.TaskTypeId);
                     RGProblemResult problem = await GetProblem(user, templateTask);
                     await _dbContext.SaveChangesAsync();
                     var viewModel = new RgProblemViewModel(problem.Grammar, problem.Problem);

@@ -22,8 +22,6 @@ namespace VisFP.Data.DBModels
         [Display(Name = "Грамматика генерируется?")]
         public bool IsGrammarGenerated { get; set; }
 
-        public string TaskType { get; set; }
-
         public Guid? FixedGrammarId { get; set; }
         public RGrammar FixedGrammar { get; set; }
     }

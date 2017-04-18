@@ -22,6 +22,9 @@ namespace VisFP.Data.DBModels
         public int FailTryScore { get; set; }
         public bool IsControl { get; set; }
 
+        public Guid TaskTypeId { get; set; }
+        public DbTaskType TaskType { get; set; }
+
         public Guid? TeacherTaskId { get; set; }
         public DbTeacherTask TeacherTask { get; set; }
 

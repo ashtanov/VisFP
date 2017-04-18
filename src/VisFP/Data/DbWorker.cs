@@ -26,6 +26,22 @@ namespace VisFP.Data
             }
         }
 
+        private static Dictionary<string, DbTaskType> _taskTypes;
+        public static Dictionary<string, DbTaskType> TaskTypes
+        {
+            get
+            {
+                if (_taskTypes != null)
+                    return _taskTypes;
+                else
+                    throw new NotImplementedException();
+            }
+            set
+            {
+                _taskTypes = value;
+            }
+        }
+
         public static async Task SetRgTasksToNewTeacherAsync(this ApplicationDbContext _dbContext, string teacherId)
         {
             List<RgTask> newTasks = new List<RgTask>();

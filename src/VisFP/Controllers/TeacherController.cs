@@ -108,21 +108,28 @@ namespace VisFP.Controllers
 
         }
 
-        public async Task<IActionResult> TeacherRgTaskList(string type, bool isControl)
+        public async Task<IActionResult> TeacherRgTaskList(string typeName, bool isControl)
         {
-            var user = await _userManager.GetUserAsync(User);
-            var ttlink = await _dbContext
-                .TeacherTasks
-                .SingleAsync(x => x.Teacher == user);
-            var tasks = _dbContext
-                .RgTasks
-                .Where(x => x.IsControl == isControl 
-                && x.TaskType == type
-                && x.TeacherTaskId == ttlink.Id);
-            ViewData["Type"] = (type == Constants.RgType ? "Регулярные грамматики"
-                : type == Constants.FsmType ? "Конечные автоматы" : "Неизвестно");
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                var ttlink = await _dbContext
+                    .TeacherTasks
+                    .SingleAsync(x => x.Teacher == user);
+                var tasks = _dbContext
+                    .RgTasks
+                    .Where(x => x.IsControl == isControl
+                    && x.TaskTypeId == DbWorker.TaskTypes[typeName].TaskTypeId
+                    && x.TeacherTaskId == ttlink.Id);
+                ViewData["Type"] = DbWorker.TaskTypes[typeName]?.TaskTypeNameToView;
 
-            return View(tasks.OrderBy(x => x.TaskNumber));
+                return View(tasks.OrderBy(x => x.TaskNumber));
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return StatusCode(404);
+            }
         }
 
         [HttpGet]
@@ -145,6 +152,7 @@ namespace VisFP.Controllers
             var user = await _userManager.GetUserAsync(User);
             var oldTask = await _dbContext
                 .RgTasks
+                .Include(x => x.TaskType)
                 .FirstOrDefaultAsync(x => x.TaskId == task.TaskId);
             if (oldTask != null)
             {
@@ -157,7 +165,7 @@ namespace VisFP.Controllers
                 oldTask.FailTryScore = task.FailTryScore;
                 oldTask.SuccessScore = task.SuccessScore;
                 await _dbContext.SaveChangesAsync();
-                return RedirectToAction(nameof(TeacherRgTaskList), new { isControl = oldTask.IsControl, type = oldTask.TaskType });
+                return RedirectToAction(nameof(TeacherRgTaskList), new { isControl = oldTask.IsControl, typeName = oldTask.TaskType.TaskTypeName });
             }
             return StatusCode(404);
         }

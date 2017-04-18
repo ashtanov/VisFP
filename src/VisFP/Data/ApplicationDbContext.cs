@@ -16,7 +16,7 @@ namespace VisFP.Data
         public DbSet<DbControlVariant> Variants { get; set; }
         public DbSet<DbAttempt> Attempts { get; set; }
         public DbSet<DbTeacherTask> TeacherTasks { get; set; }
-
+        public DbSet<DbTaskType> TaskTypes { get; set; }
         public DbSet<RgTask> RgTasks { get; set; }
         public DbSet<RgTaskProblem> RgTaskProblems { get; set; }
         public DbSet<RGrammar> RGrammars { get; set; }
@@ -46,6 +46,7 @@ namespace VisFP.Data
                 {
                     entity.HasKey(x => x.TaskId);
                     entity.HasOne(x => x.TeacherTask).WithMany(x => x.Tasks).HasForeignKey(x => x.TeacherTaskId);
+                    entity.HasOne(x => x.TaskType).WithMany(x => x.Tasks).HasForeignKey(x => x.TaskTypeId);
                 });
             builder.Entity<DbTaskProblem>(
                 entity =>
@@ -78,13 +79,19 @@ namespace VisFP.Data
             builder.Entity<DbControlVariant>(entity =>
                 {
                     entity.HasKey(x => x.VariantId);
-                    entity.HasIndex(x => x.VariantType);
+                    entity.HasOne(x => x.TaskType).WithMany(x => x.Variants).HasForeignKey(x => x.TaskTypeId);
                     entity.HasOne(x => x.User).WithMany(y => y.ControlVariants).HasForeignKey(p => p.UserId).OnDelete(Microsoft.EntityFrameworkCore.Metadata.DeleteBehavior.Cascade);
                 });
             builder.Entity<DbTeacherTask>(entity =>
             {
                 entity.HasKey(x => x.Id);
                 entity.HasOne(x => x.Teacher).WithMany(x => x.TeacherTasks).HasForeignKey(x => x.TeacherId);
+            });
+
+            builder.Entity<DbTaskType>(entity =>
+            {
+                entity.HasKey(x => x.TaskTypeId);
+                entity.HasIndex(x => x.TaskTypeName).IsUnique();
             });
         }
     }

@@ -203,6 +203,6 @@ function generateGroupReport(groupId) {
                 $(".answerCheckboxes")
                 .filter(function (i, x) { return x.checked; })
                 .map(function (i, x) { return x.value })
-            ).join(" ");
+            ).join("___");
     window.location.href = "/Statistic/DownloadReport?groupId=" + groupId + "&types=" + types;
 }
