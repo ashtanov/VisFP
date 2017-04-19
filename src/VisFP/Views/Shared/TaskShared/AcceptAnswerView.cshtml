@@ -1,10 +1,10 @@
-﻿@model VisFP.Models.TaskProblemSharedViewModels.AnswerViewModel
+﻿@model AnswerViewModel
 <dl class="dl-horizontal">
     <dt>
         Осталось попыток:
     </dt>
     <dd>
-        <strong><span id="attemptsCount">@Html.DisplayFor(model => model.MaxAttemptsCount)</span></strong>
+        <strong><span id="attemptsCount">@Html.DisplayFor(model => model.LeftAttemptsCount)</span></strong>
     </dd>
 </dl>
 <input asp-for="TaskProblemId" id="taskProblemId" autocomplete="off" type="hidden" class="form-control" />
@@ -71,7 +71,7 @@
                 </div>
             </div>
         }
-        else if (Model.MaxAttemptsCount == 0)
+        else if (Model.LeftAttemptsCount == 0)
         {
             <div class="col-md-offset-1 col-md-10">
                 <div class="panel panel-danger">

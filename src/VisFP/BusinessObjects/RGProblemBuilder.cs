@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using VisFP.Data;
 using VisFP.Data.DBModels;
-using VisFP.Models.RGViewModels;
 using VisFP.Utils;
 
 namespace VisFP.BusinessObjects

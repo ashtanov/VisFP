@@ -2,14 +2,13 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using VisFP.Models.RGViewModels;
 using VisFP.Data;
 using Microsoft.AspNetCore.Identity;
 using VisFP.Data.DBModels;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using VisFP.Models.TaskProblemSharedViewModels;
+using VisFP.Models.TaskProblemViewModels;
 using VisFP.BusinessObjects;
 
 namespace VisFP.Controllers
@@ -17,7 +16,6 @@ namespace VisFP.Controllers
     public class RegGramController : TaskProblemController
     {
         protected readonly ILogger _logger;
-
         private string _areaName;
         private DbTaskType _taskType;
 
@@ -25,7 +23,7 @@ namespace VisFP.Controllers
         {
             get
             {
-                return _areaName?? (_areaName = "Регулярные грамматики");
+                return _areaName ?? (_areaName = "Регулярные грамматики");
             }
         }
 
@@ -34,6 +32,14 @@ namespace VisFP.Controllers
             get
             {
                 return _taskType ?? (_taskType = DbWorker.TaskTypes[Constants.RgType]);
+            }
+        }
+
+        protected override ILogger Logger
+        {
+            get
+            {
+                return _logger;
             }
         }
 
@@ -46,89 +52,80 @@ namespace VisFP.Controllers
             _logger = loggerFactory.CreateLogger(GetType());
         }
 
-        public override async Task<IActionResult> Index()
+        protected override async Task<ExamVariantViewModel> AddTasksToVariant(ApplicationUser user, DbControlVariant variant)
         {
-            ViewData["Title"] = AreaName;
-            var user = await _userManager.GetUserAsync(User);
-            var tasksList = _dbContext.GetTasksForUser(user, false)
-                .Where(x => x is RgTask)
-                .Cast<RgTask>()
-                .Where(x => x.TaskTypeId == ControllerTaskType.TaskTypeId);
-            var model = new TaskListViewModel
+            var templateTasks = _dbContext
+                                    .GetTasksForUser(user, true, ControllerTaskType.TaskTypeId)
+                                    .Cast<RgTask>();
+
+            List<RgTaskProblem> problems = new List<RgTaskProblem>();
+            foreach (var template in templateTasks) //Генерим задачи
             {
-                TaskControllerName = GetType().Name.Replace("Controller", ""),
-                TasksList = tasksList.Select(x => new Tuple<int, string>(x.TaskNumber, x.TaskTitle))
+                RGProblemResult problem = await GetProblem(user, template, variant);
+                problems.Add(problem.Problem);
+            }
+            await _dbContext.SaveChangesAsync();
+            ExamVariantViewModel model = new ExamVariantViewModel
+            {
+                CreateDate = variant.CreateDate,
+                Problems = new List<ExamProblem>(
+                    problems.Select(
+                        x => new ExamProblem
+                        {
+                            ProblemId = x.ProblemId,
+                            State = ProblemState.Unfinished,
+                            TaskNumber = x.TaskNumber,
+                            TaskTitle = x.TaskTitle
+                        })).OrderBy(x => x.TaskNumber)
             };
-            return View("TaskShared/Index", model);
-        }
-
-        public override async Task<IActionResult> ExamVariant()
-        {
-            try
-            {
-                var user = await _userManager.GetUserAsync(User);
-                if (_dbContext.Variants.Any(x => x.User == user && !x.IsFinished && x.TaskTypeId == ControllerTaskType.TaskTypeId)) //если нет текущего варианта
-                {
-                    var variant = await _dbContext
-                        .Variants
-                        .Where(x => x.User == user && x.TaskTypeId == ControllerTaskType.TaskTypeId)
-                        .OrderByDescending(x => x.CreateDate).FirstOrDefaultAsync();
-                    ExamVariantViewModel model = new ExamVariantViewModel
-                    {
-                        CreateDate = variant.CreateDate,
-                        Problems = _dbContext.GetVariantProblems(variant)
-                    };
-                    return View("TaskShared/ExamVariant", model);
-                }
-                else
-                {
-                    var templateTasks = _dbContext
-                        .GetTasksForUser(user, true)
-                        .Where(x => x is RgTask)
-                        .Cast<RgTask>()
-                        .Where(x => x.TaskTypeId == ControllerTaskType.TaskTypeId);
-                    DbControlVariant variant = new DbControlVariant
-                    {
-                        CreateDate = DateTime.Now,
-                        IsFinished = false,
-                        TaskTypeId = ControllerTaskType.TaskTypeId,
-                        User = user
-                    };
-                    await _dbContext.Variants.AddAsync(variant);
-
-                    List<RgTaskProblem> problems = new List<RgTaskProblem>();
-                    foreach (var template in templateTasks) //Генерим задачи
-                    {
-                        RGProblemResult problem = await GetProblem(user, template, variant);
-                        problems.Add(problem.Problem);
-                    }
-                    await _dbContext.SaveChangesAsync();
-                    ExamVariantViewModel model = new ExamVariantViewModel
-                    {
-                        CreateDate = variant.CreateDate,
-                        Problems = new List<ExamProblem>(
-                            problems.Select(
-                                x => new ExamProblem
-                                {
-                                    ProblemId = x.ProblemId,
-                                    State = ProblemState.Unfinished,
-                                    TaskNumber = x.TaskNumber,
-                                    TaskTitle = x.TaskTitle
-                                })).OrderBy(x => x.TaskNumber)
-                    };
-                    return View("TaskShared/ExamVariant", model);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.ToString());
-                throw;
-            }
+            return model;
         }
 
         protected virtual async Task<RGProblemResult> GetProblem(ApplicationUser user, RgTask template, DbControlVariant variant = null)
         {
             return await (new RgProblemBuilder2(_dbContext)).GenerateProblemAsync(template, user, variant);
+        }
+
+        protected virtual TaskInfoViewModel GetTaskInfo(DbTaskProblem problem, RegularGrammar grammar, bool isControl)
+        {
+            var topInfo = new TaskInfoTopModule
+            {
+                Header = "Алфавит",
+                Fields =
+                    new Dictionary<string, string>
+                    {
+                        { "Терминалы", string.Join(", ", grammar.Alph.Terminals) },
+                        { "Нетерминалы", string.Join(", ", grammar.Alph.NonTerminals) },
+                        { "Начальное состояние", grammar.Alph.InitState.ToString() }
+                    }
+            };
+            var listInfo = new TaskInfoListModule
+            {
+                Header = "Правила",
+                Items = grammar.Rules.Select(x => x.ToString()),
+                IsOrdered = true
+            };
+            
+            var attempts = problem.MaxAttempts - (problem.Attempts?.Count ?? 0);
+            var gotRightAnswer = problem.Attempts?.Any(x => x.IsCorrect) ?? false;
+            var graphModule = new GraphModule
+            {
+                Graph = (new GrammarGraph(grammar))
+            };
+            return new TaskInfoViewModel
+            {
+                TopInfo = topInfo,
+                ListInfo = listInfo,
+                SymbolsForAnswer = grammar.Alph.NonTerminals,
+                TaskQuestion = problem.TaskQuestion,
+                TaskTitle = problem.TaskTitle,
+                AnswerType = problem.AnswerType,
+                ProblemId = problem.ProblemId,
+                IsControlProblem = isControl,
+                LeftAttempts = attempts,
+                GotRightAnswer = gotRightAnswer,
+                Graph = graphModule
+            };
         }
 
         public override async Task<IActionResult> Task(int id, Guid? problemId)
@@ -138,13 +135,12 @@ namespace VisFP.Controllers
                 var user = await _userManager.GetUserAsync(User);
                 if (!problemId.HasValue) //тренировочная задача
                 {
-                    RgTask templateTask = _dbContext.GetTasksForUser(user,false) //выбираем шаблон таска базовый
-                            .Where(x => x is RgTask)
+                    RgTask templateTask = _dbContext.GetTasksForUser(user, false, ControllerTaskType.TaskTypeId) //выбираем шаблон таска базовый
                             .Cast<RgTask>()
-                            .FirstOrDefault(x => x.TaskNumber == id && x.TaskTypeId == ControllerTaskType.TaskTypeId);
+                            .FirstOrDefault(x => x.TaskNumber == id);
                     RGProblemResult problem = await GetProblem(user, templateTask);
                     await _dbContext.SaveChangesAsync();
-                    var viewModel = new RgProblemViewModel(problem.Grammar, problem.Problem);
+                    var viewModel = GetTaskInfo(problem.Problem, problem.Grammar, false);
                     return View("TaskShared/TaskView", viewModel);
                 }
                 else
@@ -158,30 +154,21 @@ namespace VisFP.Controllers
                         .FirstOrDefaultAsync(x => x.ProblemId == problemId.Value);
                     if (currentProblem != null)
                     {
+                        var grammar = RegularGrammar.Parse(currentProblem.CurrentGrammar.GrammarJson);
+
                         if (currentProblem.VariantId == null) //задача без варианта
                         {
-                            var viewModel =
-                                new RgProblemViewModel(
-                                    RegularGrammar.Parse(currentProblem.CurrentGrammar.GrammarJson),
-                                    currentProblem,
-                                    currentProblem.MaxAttempts - currentProblem.Attempts.Count,
-                                    currentProblem.Attempts.Any(x => x.IsCorrect));
-                            var gnt = viewModel.Grammar.GeneratingNonterminals.Value;
+                            var viewModel = GetTaskInfo(currentProblem, grammar, false);
                             return View("TaskShared/TaskView", viewModel);
                         }
                         else
                         {
+                            var taskInfo = GetTaskInfo(currentProblem, grammar, true);
                             var currentVariant =
                                await _dbContext
                                .Variants
                                .FirstOrDefaultAsync(x => x.VariantId == currentProblem.VariantId);
-                            var viewModel =
-                                new ExamRgProblemViewModel(
-                                    RegularGrammar.Parse(currentProblem.CurrentGrammar.GrammarJson),
-                                    currentProblem,
-                                    currentProblem.MaxAttempts - currentProblem.Attempts.Count,
-                                    currentProblem.Attempts.Any(x => x.IsCorrect),
-                                    _dbContext.GetVariantProblems(currentVariant));
+                            var viewModel = new ExamTaskInfoViewModel(taskInfo, _dbContext.GetVariantProblems(currentVariant));
                             return View("TaskShared/ExamTaskView", viewModel);
                         }
                     }

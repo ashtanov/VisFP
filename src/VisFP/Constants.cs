@@ -8,8 +8,8 @@ namespace VisFP
     public static class Constants
     {
         public const string BaseGroupName = "Base_Group";
-        public const string FsmType = "FSM";
+        public const string FsmType = "Fsm";
         public const string RgType = "RegGram";
-        public const string PetryNet = "PetryNet";
+        public const string PetryNetType = "PetryNet";
     }
 }

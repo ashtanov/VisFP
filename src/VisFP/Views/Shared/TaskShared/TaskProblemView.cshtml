@@ -1,0 +1,27 @@
+﻿@model TaskInfoViewModel
+<hr />
+<h3 style="margin-left:100px">@Model.TaskTitle</h3>
+<hr />
+<div class="col-lg-5">
+    <div class="panel">
+        <dl class="dl-horizontal">
+            <dt style="font-size:large">
+                @Html.DisplayNameFor(model => model.TaskQuestion)
+            </dt>
+            <dd style="font-size:large">
+                @Html.Raw(Model.TaskQuestion)
+            </dd>
+        </dl>
+    </div>
+    @{ await Html.RenderPartialAsync("TaskShared/TaskInfo", Model.TopInfo); }
+    @{ await Html.RenderPartialAsync("TaskShared/AcceptAnswerView", Model.GetAnswerModel()); }
+</div>
+<div class="col-lg-2">
+    @{ await Html.RenderPartialAsync("TaskShared/TaskInfoList", Model.ListInfo); }
+</div>
+<div class="col-lg-5">
+    @if (Model.Graph != null)
+    {
+        await Html.RenderPartialAsync("TaskShared/GraphView", Model.Graph);
+    }
+</div>

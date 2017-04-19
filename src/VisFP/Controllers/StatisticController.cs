@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using VisFP.Data;
 using Microsoft.EntityFrameworkCore;
 using VisFP.Models.StatisticViewModels;
-using VisFP.Models.TaskProblemSharedViewModels;
+using VisFP.Models.TaskProblemViewModels;
 
 namespace VisFP.Controllers
 {

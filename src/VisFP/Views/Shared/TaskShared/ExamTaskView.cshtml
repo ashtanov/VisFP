@@ -1,4 +1,4 @@
-﻿@model VisFP.Models.RGViewModels.ExamRgProblemViewModel
+﻿@model ExamTaskInfoViewModel
 
 @{
     ViewData["Title"] = Model.TaskTitle;
@@ -12,7 +12,7 @@
         <ul class="list-inline">
             @foreach (var problem in Model.OtherProblems)
             {
-                if (Model.Id == problem.ProblemId)
+                if (Model.ProblemId == problem.ProblemId)
                 {
                     <li><button class="btn btn-sm btn-primary">@problem.TaskNumber</button></li>
                 }
@@ -36,4 +36,4 @@
         </ul>
     </div>
 </row>
-@{ await Html.RenderPartialAsync("TaskShared/RgProblemView", Model); }
+@{ await Html.RenderPartialAsync("TaskShared/TaskProblemView", Model); }

@@ -4,22 +4,29 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using VisFP.Data;
 using VisFP.Data.DBModels;
+using VisFP.Models.TaskProblemViewModels;
 
 namespace VisFP.Controllers
 {
     public class PetryNetController : TaskProblemController
     {
-        public PetryNetController(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext) : base(userManager, dbContext)
+        private ILogger _logger;
+        public PetryNetController(
+            UserManager<ApplicationUser> userManager, 
+            ApplicationDbContext dbContext, 
+            ILoggerFactory loggerFactory) : base(userManager, dbContext)
         {
+            _logger = loggerFactory.CreateLogger<PetryNetController>();
         }
 
         protected override string AreaName
         {
             get
             {
-                throw new NotImplementedException();
+                return "Сети Петри";
             }
         }
 
@@ -27,21 +34,24 @@ namespace VisFP.Controllers
         {
             get
             {
-                throw new NotImplementedException();
+                return DbWorker.TaskTypes[Constants.PetryNetType];
             }
         }
 
-        public override Task<IActionResult> ExamVariant()
+        protected override ILogger Logger
         {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IActionResult> Index()
-        {
-            throw new NotImplementedException();
+            get
+            {
+                return _logger;
+            }
         }
 
         public override Task<IActionResult> Task(int id, Guid? problemId)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Task<ExamVariantViewModel> AddTasksToVariant(ApplicationUser user, DbControlVariant variant)
         {
             throw new NotImplementedException();
         }

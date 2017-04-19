@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace VisFP.BusinessObjects
 {
+    public interface IGraph
+    {
+    }
+
     [JsonObject]
     public class Node
     {
@@ -24,7 +28,7 @@ namespace VisFP.BusinessObjects
     }
 
     [JsonObject]
-    public class Graph<TNode,TEdge> 
+    public class Graph<TNode,TEdge> : IGraph
         where TNode: Node, new() 
         where TEdge: Edge, new()
     {

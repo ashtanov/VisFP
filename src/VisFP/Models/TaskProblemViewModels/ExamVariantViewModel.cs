@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VisFP.Data.DBModels;
 
-namespace VisFP.Models.TaskProblemSharedViewModels
+namespace VisFP.Models.TaskProblemViewModels
 {
     public enum ProblemState
     {

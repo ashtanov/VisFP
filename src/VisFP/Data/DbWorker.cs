@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using VisFP.Data.DBModels;
-using VisFP.Models.TaskProblemSharedViewModels;
+using VisFP.Models.TaskProblemViewModels;
 
 namespace VisFP.Data
 {
@@ -50,7 +50,10 @@ namespace VisFP.Data
                 TeacherId = teacherId
             };
             _dbContext.TeacherTasks.Add(ttlink);
-            foreach (var task in _dbContext.RgTasks.Where(x => x.TeacherTaskId == null))
+            foreach (var task in _dbContext
+                .RgTasks
+                .Include(x => x.TaskType)
+                .Where(x => x.TeacherTaskId == null))
             {
                 newTasks.Add(new RgTask
                 {
@@ -73,7 +76,7 @@ namespace VisFP.Data
             await _dbContext.RgTasks.AddRangeAsync(newTasks);
         }
 
-        public static IEnumerable<DbTask> GetTasksForUser(this ApplicationDbContext _dbContext, ApplicationUser user, bool isControl)
+        public static IEnumerable<DbTask> GetTasksForUser(this ApplicationDbContext _dbContext, ApplicationUser user, bool isControl, Guid taskTypeId)
         {
             string teacherId;
             if (user.UserGroupId == BaseGroupId) //значит админ или препод - отдаем свои задачи
@@ -86,7 +89,7 @@ namespace VisFP.Data
                 .Include(x => x.Tasks)
                 .Single(x => x.TeacherId == teacherId)
                 .Tasks
-                .Where(x => x.IsControl == isControl);
+                .Where(x => x.IsControl == isControl && x.TaskTypeId == taskTypeId);
         }
 
         public static IOrderedEnumerable<ExamProblem> GetVariantProblems(this ApplicationDbContext _dbContext, DbControlVariant variant)

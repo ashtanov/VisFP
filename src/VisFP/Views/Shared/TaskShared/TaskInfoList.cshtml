@@ -1,0 +1,19 @@
+﻿@model TaskInfoListModule
+<div class="panel-default">
+    <div class="panel-heading"><strong>@Model.Header</strong></div>
+    <div class="panel-body">
+        <ul class="list-group">
+            @{ int i = 1;}
+            @foreach (var t in Model.Items)
+            {
+                <li class="list-group-item">
+                    @if (Model.IsOrdered)
+                    {
+                        <strong>@(i++).&emsp;</strong>
+                    } 
+                    @t
+                </li>
+            }
+        </ul>
+    </div>
+</div>

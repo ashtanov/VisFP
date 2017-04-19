@@ -13,9 +13,12 @@
 }
 <h2>Выберите раздел задач:</h2>
 <div class="list-group col-lg-5">
-    <a href="/RegGram" class="list-group-item">1. Регулярные граматики <span class="badge">8</span></a>
-    <a href="/Fsm" class="list-group-item">2. Конечные автоматы <span class="badge">3</span></a>
-    <a href="#" class="list-group-item">3. Сети петри <span class="badge">0</span></a>
+    @{ int i = 1; }
+    @foreach (var tt in Model.TaskTypes)
+    {
+        <a href="/@tt.TaskTypeControllerName" class="list-group-item">@i. @tt.TaskTypeName <span class="badge">@tt.TasksCount</span></a>
+        i++;
+    }
 </div>
 
 <td>

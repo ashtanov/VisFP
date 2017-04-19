@@ -7,15 +7,19 @@ using Microsoft.AspNetCore.Identity;
 using VisFP.Data.DBModels;
 using VisFP.Models.HomeViewModels;
 using VisFP.BusinessObjects;
+using VisFP.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace VisFP.Controllers
 {
     public class HomeController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        public HomeController(UserManager<ApplicationUser> userManager)
+        private readonly ApplicationDbContext _dbContext;
+        public HomeController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _userManager = userManager;
+            _dbContext = context;
         }
 
         public async Task<IActionResult> Index()
@@ -24,7 +28,7 @@ namespace VisFP.Controllers
             PetryNetGraph png = new PetryNetGraph(new PetryNet(
                 P: new[] { "p1", "p2", "p3", "p4", "p5" },
                 T: new[] { "t1", "t2", "t3", "t4" },
-                F: new[] 
+                F: new[]
                 {
                     new PetryFlowLink { from = "p1", to = "t1" },
                     new PetryFlowLink { from = "p2", to = "t2" },
@@ -47,12 +51,25 @@ namespace VisFP.Controllers
             }
             else
             {
+                List<TaskTypeViewModel> ttmodels = new List<TaskTypeViewModel>();
+
+                foreach (var t in _dbContext.TaskTypes.ToList()) { 
+
+                    ttmodels.Add(new TaskTypeViewModel
+                     {
+                         TaskTypeControllerName = t.TaskTypeName,
+                         TaskTypeName = t.TaskTypeNameToView,
+                         TasksCount = _dbContext.GetTasksForUser(user, true, t.TaskTypeId).Count()
+                     });
+                }
+
                 return View(
                     new MainPageViewModel
                     {
                         IsAdmin = await _userManager.IsInRoleAsync(user, Enum.GetName(typeof(DbRole), DbRole.Admin)),
-                        IsTeacher = await _userManager.IsInRoleAsync(user, Enum.GetName(typeof(DbRole),DbRole.Teacher)),
-                        png = png
+                        IsTeacher = await _userManager.IsInRoleAsync(user, Enum.GetName(typeof(DbRole), DbRole.Teacher)),
+                        png = png,
+                        TaskTypes = ttmodels
                     });
             }
         }

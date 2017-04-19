@@ -58,7 +58,7 @@ namespace VisFP.Data
                     {
                         new DbTaskType { TaskTypeName = Constants.RgType, TaskTypeNameToView = "Регулярные грамматики" },
                         new DbTaskType { TaskTypeName = Constants.FsmType, TaskTypeNameToView = "Конечные автоматы" },
-                        new DbTaskType { TaskTypeName = Constants.PetryNet, TaskTypeNameToView = "Сети петри" }
+                        new DbTaskType { TaskTypeName = Constants.PetryNetType, TaskTypeNameToView = "Сети петри" }
                     });
                 await dbcontext2.SaveChangesAsync();
             }
