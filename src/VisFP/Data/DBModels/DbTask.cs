@@ -28,6 +28,8 @@ namespace VisFP.Data.DBModels
         public Guid? TeacherTaskId { get; set; }
         public DbTeacherTask TeacherTask { get; set; }
 
+        public Guid ExternalTaskId { get; set; }
+
         public ICollection<DbTaskProblem> Problems { get; set; }
     }
 }

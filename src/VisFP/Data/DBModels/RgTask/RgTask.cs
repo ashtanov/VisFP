@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace VisFP.Data.DBModels
 {
-    public class RgTask : DbTask
+    public class RgTask
     {
+        public Guid Id { get; set; }
+
         [Display(Name = "Количество терминалов в алфавите")]
         public int AlphabetTerminalsCount { get; set; }
         [Display(Name = "Количество нетерминалов в алфавите")]

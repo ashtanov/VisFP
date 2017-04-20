@@ -8,8 +8,9 @@ using VisFP.Data.DBModels;
 
 namespace VisFP.Data.DBModels
 {
-    public class RgTaskProblem : DbTaskProblem
+    public class RgTaskProblem
     {
+        public Guid Id { get; set; }
         public Guid GrammarId { get; set; }
         public RGrammar CurrentGrammar { get; set; }
     }

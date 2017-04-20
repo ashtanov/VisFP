@@ -49,7 +49,7 @@ namespace VisFP.Controllers
 
         protected override TaskInfoViewModel GetTaskInfo(DbTaskProblem problem, RegularGrammar grammar, bool isControl)
         {
-            var topInfo = new TaskInfoTopModule
+            var topInfo = new TaskInfoTopComponent
             {
                 Header = "Описание",
                 Fields =
@@ -61,7 +61,7 @@ namespace VisFP.Controllers
                         { "Конечное состояние", grammar.Alph.FiniteState.ToString() }
                     }
             };
-            var listInfo = new TaskInfoListModule
+            var listInfo = new TaskInfoListComponent
             {
                 Header = "Функция переходов",
                 Items = grammar.GetTransitionFunc(),
@@ -69,7 +69,7 @@ namespace VisFP.Controllers
             };
             var attempts = problem.MaxAttempts - (problem.Attempts?.Count ?? 0);
             var gotRightAnswer = problem.Attempts?.Any(x => x.IsCorrect) ?? false;
-            var graphModule = new GraphModule
+            var graphModule = new GraphComponent
             {
                 Graph = (new GrammarGraph(grammar))
             };

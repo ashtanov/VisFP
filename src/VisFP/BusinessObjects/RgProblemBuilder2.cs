@@ -12,80 +12,78 @@ namespace VisFP.BusinessObjects
     public class RGProblemResult
     {
         public RegularGrammar Grammar { get; set; }
-        public RgTaskProblem Problem { get; set; }
+        public int Generation { get; set; }
+        public string ProblemQuestion { get; set; }
+        public string ProblemAnswer { get; set; }
+        public TaskAnswerType AnswerType { get; set; }
     }
 
     public class RgProblemBuilder2
     {
-        private ApplicationDbContext _dbContext { get; set; }
-        public RgProblemBuilder2(ApplicationDbContext dbContext)
+        public RgProblemBuilder2()
         {
-            _dbContext = dbContext;
         }
 
-        public async Task<RGProblemResult> GenerateProblemAsync(
-            RgTask templateTask,
-            ApplicationUser user,
-            DbControlVariant variant = null)
+        public RGProblemResult GenerateProblem(RgTask rgTask, int taskNumber)
         {
-            RgProblemTemplate tp = GetProblemTemplate(templateTask.TaskNumber);
-            Alphabet alphabet = tp.GetAlphabet(templateTask);
+            RgProblemTemplate tp = GetProblemTemplate(taskNumber);
+            Alphabet alphabet = tp.GetAlphabet(rgTask);
             int generation = 0;
             int chainTry = 0;
 
             RGrammar cGrammar = null;
             while (chainTry < 10)
             {
-                if (templateTask.IsGrammarGenerated)
+                if (rgTask.IsGrammarGenerated)
                 {
                     //генерируем грамматику до тех пор, пока она удовлетворяет условию "неподходимости"
                     do
                     {
-                        tp.GenerateGrammar(templateTask, alphabet);
+                        tp.GenerateGrammar(rgTask, alphabet);
                         generation++;
                     } while (tp.ConditionUntilForGrammar());
-
-                    cGrammar = new RGrammar
-                    {
-                        GrammarJson = tp.CurrentGrammar.Serialize()
-                    };
-                    await _dbContext.RGrammars.AddAsync(cGrammar);
                 }
                 else
                 {
-                    tp.CurrentGrammar = RegularGrammar.Parse(templateTask.FixedGrammar.GrammarJson);
-                    cGrammar = templateTask.FixedGrammar;
+                    tp.CurrentGrammar = RegularGrammar.Parse(rgTask.FixedGrammar.GrammarJson);
+                    cGrammar = rgTask.FixedGrammar;
                 }
                 try
                 {
-                    tp.SetCurrentChain(templateTask); //работа с цепочками
+                    tp.SetCurrentChain(rgTask); //работа с цепочками
                     break;
                 }
                 catch (CantGenerateChainException)
                 {
                     chainTry++;
-                    if (chainTry == 10 || !templateTask.IsGrammarGenerated)
+                    if (chainTry == 10 || !rgTask.IsGrammarGenerated)
                         throw new Exception("Не удалось за 10 попыток сгенерировать грамматику с нужными цепочками");
                 }
             }
-            //записываем проблему в базу
-            var cTask = new RgTaskProblem
-            {
-                RightAnswer = tp.GetAnswer(),
-                Task = templateTask,
-                CurrentGrammar = cGrammar,
-                User = user,
-                MaxAttempts = templateTask.MaxAttempts,
-                AnswerType = tp.AnswerType,
-                CreateDate = DateTime.Now,
-                TaskQuestion = tp.GetTaskDescription(),
-                Variant = variant,
+            //формируем объект для записи в базу основную
+            //var dbTaskProblem = new DbTaskProblem
+            //{
+            //    RightAnswer = tp.GetAnswer(),
+            //    Task = templateTask,
+            //    User = user,
+            //    MaxAttempts = templateTask.MaxAttempts,
+            //    AnswerType = tp.AnswerType,
+            //    CreateDate = DateTime.Now,
+            //    TaskQuestion = tp.GetTaskDescription(),
+            //    Variant = variant,
+            //    Generation = generation,
+            //    TaskNumber = templateTask.TaskNumber,
+            //    TaskTitle = templateTask.TaskTitle,
+            //    ExternalProblemId = cTask.Id
+            //};
+
+            return new RGProblemResult {
+                Grammar = tp.CurrentGrammar,
                 Generation = generation,
-                TaskNumber = templateTask.TaskNumber,
-                TaskTitle = templateTask.TaskTitle
+                AnswerType = tp.AnswerType,
+                ProblemAnswer = tp.GetAnswer(),
+                ProblemQuestion = tp.GetTaskDescription()
             };
-            await _dbContext.RgTaskProblems.AddAsync(cTask);
-            return new RGProblemResult { Grammar = tp.CurrentGrammar, Problem = cTask };
         }
         protected virtual RgProblemTemplate GetProblemTemplate(int taskNumber)
         {

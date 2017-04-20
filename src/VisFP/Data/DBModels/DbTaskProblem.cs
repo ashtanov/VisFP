@@ -29,6 +29,8 @@ namespace VisFP.Data.DBModels
         public Guid TaskId { get; set; }
         public DbTask Task { get; set; }
 
+        public Guid ExternalProblemId { get; set; } //id связанной проблемы в модуле
+
         public ICollection<DbAttempt> Attempts { get; set; }
     }
 }

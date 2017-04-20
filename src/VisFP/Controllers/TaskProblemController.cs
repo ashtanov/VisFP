@@ -11,6 +11,7 @@ using VisFP.Models.TaskProblemViewModels;
 using VisFP.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using VisFP.BusinessObjects;
 
 namespace VisFP.Controllers
 {
@@ -22,6 +23,7 @@ namespace VisFP.Controllers
         protected abstract string AreaName { get; }
         protected abstract DbTaskType ControllerTaskType { get; }
         protected abstract ILogger Logger { get; }
+        protected abstract ITaskModule TaskModule { get; }
 
         public TaskProblemController(
             UserManager<ApplicationUser> userManager,
@@ -43,8 +45,6 @@ namespace VisFP.Controllers
             };
             return View("TaskShared/Index", model);
         }
-
-        public abstract Task<IActionResult> Task(int id, Guid? problemId);
 
         public async Task<IActionResult> ExamVariant()
         {
@@ -86,7 +86,80 @@ namespace VisFP.Controllers
             }
         }
 
-        protected abstract Task<ExamVariantViewModel> AddTasksToVariant(ApplicationUser user, DbControlVariant variant);
+        public async Task<IActionResult> Task(int id, Guid? problemId)
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (!problemId.HasValue) //тренировочна€ задача
+                {
+                    var templateTask = _dbContext
+                        .GetTasksForUser(user, false, ControllerTaskType.TaskTypeId)
+                        .FirstOrDefault(x => x.TaskNumber == id);
+                    var problem = await TaskModule.CreateNewProblemAsync(templateTask);
+
+                    DbTaskProblem dbProblem = CreateDbProblem(user, templateTask, problem);
+                    await _dbContext.TaskProblems.AddAsync(dbProblem);
+                    await _dbContext.SaveChangesAsync();
+
+                    TaskInfoViewModel viewModel = new TaskInfoViewModel(new TaskBaseInfo
+                    {
+                        GotRightAnswer = false,
+                        IsControlProblem = false,
+                        LeftAttempts = templateTask.MaxAttempts,
+                        ProblemId = dbProblem.ProblemId
+                    }, problem.ProblemComponents);
+                    return View("TaskShared/TaskView", viewModel);
+                }
+                else
+                {
+                    var currentProblem = await _dbContext
+                        .TaskProblems
+                        .Include(x => x.Task)
+                        .Include(x => x.Attempts)
+                        .FirstOrDefaultAsync(x => x.ProblemId == problemId.Value);
+                    if (currentProblem != null)
+                    {
+                        var problemComponents = await TaskModule.GetExistingProblemAsync(currentProblem);
+
+
+                        if (currentProblem.VariantId == null)
+                        {
+                            TaskInfoViewModel viewModel = new TaskInfoViewModel(new TaskBaseInfo
+                            {
+                                GotRightAnswer = currentProblem.Attempts?.Any(x => x.IsCorrect) ?? false,
+                                IsControlProblem = false,
+                                LeftAttempts = currentProblem.MaxAttempts - (currentProblem.Attempts?.Count ?? 0),
+                                ProblemId = currentProblem.ProblemId
+                            }, problemComponents);
+                            return View("TaskShared/TaskView", viewModel);
+                        }
+                        else
+                        {
+                            var currentVariant = await _dbContext
+                                       .Variants
+                                       .FirstOrDefaultAsync(x => x.VariantId == currentProblem.VariantId);
+                            var examViewModel = new ExamTaskInfoViewModel(new TaskBaseInfo
+                            {
+                                GotRightAnswer = currentProblem.Attempts?.Any(x => x.IsCorrect) ?? false,
+                                IsControlProblem = true,
+                                LeftAttempts = currentProblem.MaxAttempts - (currentProblem.Attempts?.Count ?? 0),
+                                ProblemId = currentProblem.ProblemId
+                            },
+                            problemComponents,
+                            _dbContext.GetVariantProblems(currentVariant));
+                            return View("TaskShared/ExamTaskView", examViewModel);
+                        }
+                    }
+                    else
+                        return Error();
+                }
+            }
+            catch (Exception ex)
+            {
+                return Error();
+            }
+        }
 
         [HttpPost]
         public async Task<JsonResult> Answer(AnswerViewModel avm)
@@ -133,5 +206,62 @@ namespace VisFP.Controllers
             }
             return new JsonResult("«адача не найдена или недоступна текущему пользователю") { StatusCode = 404 };
         }
+
+        public IActionResult Error()
+        {
+            return View();
+        }
+
+        #region helpers
+
+        private DbTaskProblem CreateDbProblem(ApplicationUser user, DbTask templateTask, ProblemResult problem)
+        {
+            var mainModule = problem.ProblemComponents.GetComponent<MainInfoComponent>();
+            var dbProblem = new DbTaskProblem
+            {
+                AnswerType = mainModule.AnswerType,
+                MaxAttempts = templateTask.MaxAttempts,
+                CreateDate = DateTime.Now,
+                ExternalProblemId = problem.ExternalProblemId,
+                Generation = mainModule.Generation,
+                RightAnswer = problem.Answer,
+                TaskId = templateTask.TaskId,
+                TaskNumber = templateTask.TaskNumber,
+                TaskQuestion = mainModule.TaskQuestion,
+                TaskTitle = templateTask.TaskTitle,
+                UserId = user.Id
+            };
+            return dbProblem;
+        }
+
+        private async Task<ExamVariantViewModel> AddTasksToVariant(ApplicationUser user, DbControlVariant variant)
+        {
+            var templateTasks = _dbContext.GetTasksForUser(user, true, ControllerTaskType.TaskTypeId);
+
+            List<DbTaskProblem> problems = new List<DbTaskProblem>();
+            foreach (var template in templateTasks) //√енерим задачи
+            {
+                var problem = await TaskModule.CreateNewProblemAsync(template);
+                problems.Add(CreateDbProblem(user, template, problem));
+            }
+            await _dbContext.TaskProblems.AddRangeAsync(problems);
+            await _dbContext.SaveChangesAsync();
+            ExamVariantViewModel model = new ExamVariantViewModel
+            {
+                CreateDate = variant.CreateDate,
+                Problems = new List<ExamProblem>(
+                    problems.Select(
+                        x => new ExamProblem
+                        {
+                            ProblemId = x.ProblemId,
+                            State = ProblemState.Unfinished,
+                            TaskNumber = x.TaskNumber,
+                            TaskTitle = x.TaskTitle
+                        })).OrderBy(x => x.TaskNumber)
+            };
+            return model;
+        }
+
+        #endregion
     }
 }
