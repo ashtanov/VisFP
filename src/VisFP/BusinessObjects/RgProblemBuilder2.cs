@@ -60,22 +60,6 @@ namespace VisFP.BusinessObjects
                         throw new Exception("Не удалось за 10 попыток сгенерировать грамматику с нужными цепочками");
                 }
             }
-            //формируем объект для записи в базу основную
-            //var dbTaskProblem = new DbTaskProblem
-            //{
-            //    RightAnswer = tp.GetAnswer(),
-            //    Task = templateTask,
-            //    User = user,
-            //    MaxAttempts = templateTask.MaxAttempts,
-            //    AnswerType = tp.AnswerType,
-            //    CreateDate = DateTime.Now,
-            //    TaskQuestion = tp.GetTaskDescription(),
-            //    Variant = variant,
-            //    Generation = generation,
-            //    TaskNumber = templateTask.TaskNumber,
-            //    TaskTitle = templateTask.TaskTitle,
-            //    ExternalProblemId = cTask.Id
-            //};
 
             return new RGProblemResult {
                 Grammar = tp.CurrentGrammar,

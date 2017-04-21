@@ -10,7 +10,8 @@ namespace VisFP.Data.DBModels
     public class RgTask
     {
         public Guid Id { get; set; }
-
+        public string TaskTitle { get; set; }
+        public int TaskNumber { get; set; }
         [Display(Name = "Количество терминалов в алфавите")]
         public int AlphabetTerminalsCount { get; set; }
         [Display(Name = "Количество нетерминалов в алфавите")]
@@ -26,5 +27,7 @@ namespace VisFP.Data.DBModels
 
         public Guid? FixedGrammarId { get; set; }
         public RGrammar FixedGrammar { get; set; }
+
+        public bool IsSeed { get; set; }
     }
 }

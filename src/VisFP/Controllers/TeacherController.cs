@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -7,9 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using VisFP.Data.DBModels;
 using VisFP.Data;
-using Microsoft.AspNetCore.Http;
-using System.IO;
-using VisFP.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace VisFP.Controllers
@@ -108,7 +104,7 @@ namespace VisFP.Controllers
 
         }
 
-        public async Task<IActionResult> TeacherRgTaskList(string typeName, bool isControl)
+        public async Task<IActionResult> TeacherTaskList(string typeName, bool isControl)
         {
             try
             {

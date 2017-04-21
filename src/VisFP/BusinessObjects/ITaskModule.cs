@@ -14,9 +14,40 @@ namespace VisFP.BusinessObjects
         public string Answer { get; set; }
     }
 
+    public interface ITaskSetting
+    {
+        string Name { get; }
+        Type ValueType { get; }
+    }
+    public class TaskSetting<T> : ITaskSetting
+    {
+        public string Name { get; set; }
+        public T Value { get; set; }
+
+        public Type ValueType
+        {
+            get
+            {
+                return typeof(T);
+            }
+        }
+    }
+
+    public class NewTaskResult
+    {
+        public Guid ExternalTaskId { get; set; }
+        public string TaskTitle { get; set;  }
+        public int TaskNumber { get; set; }
+    }
+
     public interface ITaskModule
     {
         Task<ProblemResult> CreateNewProblemAsync(DbTask taskTemplate);
         Task<ComponentRepository> GetExistingProblemAsync(DbTaskProblem problem);
+        Task<List<List<ITaskSetting>>> GetAllTasksSettingsAsync(List<Guid> externalTaskIds);
+        Task<List<ITaskSetting>> GetTaskSettingsAsync(Guid externalTaskId);
+        Task SaveTaskSettingsAsync(Guid externalTaskId, List<ITaskSetting> updatedSettings);
+        Task<List<NewTaskResult>> CreateNewTaskSetAsync();
+        Task EnshureCreated();
     }
 }
