@@ -200,7 +200,7 @@ namespace VisFP.Controllers
                     else
                     {
                         await _userManager.AddToRoleAsync(user, Enum.GetName(typeof(DbRole), newUser.Role));
-                        await _dbContext.SetRgTasksToNewTeacherAsync(user.Id);
+                        //await _dbContext.SetRgTasksToNewTeacherAsync(user.Id);
                         await _dbContext.SaveChangesAsync();
                     }
                     return RedirectToAction("Index", "Admin");

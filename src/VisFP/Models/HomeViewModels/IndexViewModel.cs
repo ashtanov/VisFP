@@ -14,7 +14,7 @@ namespace VisFP.Models.HomeViewModels
         public int TasksCount { get; set; }
     }
 
-    public class MainPageViewModel
+    public class IndexViewModel
     {
         public bool IsAdmin { get; set; }
         public bool IsTeacher { get; set; }

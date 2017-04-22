@@ -28,7 +28,7 @@ namespace VisFP.Models.AdminViewModels
             Id = user.Id;
         }
     }
-    public class AdminMainPageViewModel
+    public class AdminIndexViewModel
     {
         public IEnumerable<UserForView> AllUsers { get; set; }
         public string Error { get; set; }

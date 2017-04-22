@@ -1,7 +1,7 @@
 ﻿@model ExamTaskInfoViewModel
 
 @{
-    ViewData["Title"] = Model.TaskTitle;
+    ViewData["Title"] = Model.MainInfo.TaskTitle;
 }
 <div class="list-group">
     <span class="list-group-item" style="background-color:darkred; color:white; text-align:center">Контрольное задание</span>
@@ -12,7 +12,7 @@
         <ul class="list-inline">
             @foreach (var problem in Model.OtherProblems)
             {
-                if (Model.ProblemId == problem.ProblemId)
+                if (Model.BaseInfo.ProblemId == problem.ProblemId)
                 {
                     <li><button class="btn btn-sm btn-primary">@problem.TaskNumber</button></li>
                 }

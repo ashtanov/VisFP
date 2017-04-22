@@ -20,24 +20,42 @@ namespace VisFP.Controllers
     {
         protected readonly UserManager<ApplicationUser> _userManager;
         protected readonly ApplicationDbContext _dbContext;
-        protected abstract string AreaName { get; }
-        protected abstract DbTaskType ControllerTaskType { get; }
-        protected abstract ILogger Logger { get; }
-        protected abstract ITaskModule TaskModule { get; }
+        protected ITaskModule _taskModule;
+        protected readonly ILogger _logger;
 
         public TaskProblemController(
             UserManager<ApplicationUser> userManager,
-            ApplicationDbContext dbContext)
+            ApplicationDbContext dbContext,
+            ILoggerFactory loggerFactory)
         {
             _userManager = userManager;
             _dbContext = dbContext;
+            _logger = loggerFactory.CreateLogger(GetType());
+        }
+
+        protected abstract RgTaskModule SetCurrentModule();
+
+        public Guid TaskTypeId
+        {
+            get
+            {
+                return ModulesRepository.GetModuleId(TaskModule.GetType());
+            }
+        }
+
+        protected ITaskModule TaskModule
+        {
+            get
+            {
+                return _taskModule ?? (_taskModule = SetCurrentModule());
+            }
         }
 
         public async Task<IActionResult> Index()
         {
-            ViewData["Title"] = AreaName;
+            ViewData["Title"] = TaskModule.GetModuleNameToView();
             var user = await _userManager.GetUserAsync(User);
-            var tasksList = _dbContext.GetTasksForUser(user, false, ControllerTaskType.TaskTypeId);
+            var tasksList = _dbContext.GetTasksForUser(user, false, TaskTypeId);
             var model = new TaskListViewModel
             {
                 TaskControllerName = GetType().Name.Replace("Controller", ""),
@@ -51,11 +69,11 @@ namespace VisFP.Controllers
             try
             {
                 var user = await _userManager.GetUserAsync(User);
-                if (_dbContext.Variants.Any(x => x.User == user && !x.IsFinished && x.TaskTypeId == ControllerTaskType.TaskTypeId)) //если нет текущего варианта
+                if (_dbContext.Variants.Any(x => x.User == user && !x.IsFinished && x.TaskTypeId == TaskTypeId)) //если нет текущего варианта
                 {
                     var variant = await _dbContext
                         .Variants
-                        .Where(x => x.User == user && x.TaskTypeId == ControllerTaskType.TaskTypeId)
+                        .Where(x => x.User == user && x.TaskTypeId == TaskTypeId)
                         .OrderByDescending(x => x.CreateDate).FirstOrDefaultAsync();
                     ExamVariantViewModel model = new ExamVariantViewModel
                     {
@@ -70,7 +88,7 @@ namespace VisFP.Controllers
                     {
                         CreateDate = DateTime.Now,
                         IsFinished = false,
-                        TaskTypeId = ControllerTaskType.TaskTypeId,
+                        TaskTypeId = TaskTypeId,
                         User = user
                     };
                     await _dbContext.Variants.AddAsync(variant);
@@ -81,7 +99,7 @@ namespace VisFP.Controllers
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex.ToString());
+                _logger.LogError(ex.ToString());
                 throw;
             }
         }
@@ -94,7 +112,7 @@ namespace VisFP.Controllers
                 if (!problemId.HasValue) //тренировочная задача
                 {
                     var templateTask = _dbContext
-                        .GetTasksForUser(user, false, ControllerTaskType.TaskTypeId)
+                        .GetTasksForUser(user, false, TaskTypeId)
                         .FirstOrDefault(x => x.TaskNumber == id);
                     var problem = await TaskModule.CreateNewProblemAsync(templateTask);
 
@@ -140,14 +158,15 @@ namespace VisFP.Controllers
                                        .Variants
                                        .FirstOrDefaultAsync(x => x.VariantId == currentProblem.VariantId);
                             var examViewModel = new ExamTaskInfoViewModel(new TaskBaseInfo
-                            {
-                                GotRightAnswer = currentProblem.Attempts?.Any(x => x.IsCorrect) ?? false,
-                                IsControlProblem = true,
-                                LeftAttempts = currentProblem.MaxAttempts - (currentProblem.Attempts?.Count ?? 0),
-                                ProblemId = currentProblem.ProblemId
-                            },
-                            problemComponents,
-                            _dbContext.GetVariantProblems(currentVariant));
+                                {
+                                    GotRightAnswer = currentProblem.Attempts?.Any(x => x.IsCorrect) ?? false,
+                                    IsControlProblem = true,
+                                    LeftAttempts = currentProblem.MaxAttempts - (currentProblem.Attempts?.Count ?? 0),
+                                    ProblemId = currentProblem.ProblemId
+                                },
+                                problemComponents,
+                                _dbContext.GetVariantProblems(currentVariant)
+                            );
                             return View("TaskShared/ExamTaskView", examViewModel);
                         }
                     }
@@ -214,7 +233,7 @@ namespace VisFP.Controllers
 
         #region helpers
 
-        private DbTaskProblem CreateDbProblem(ApplicationUser user, DbTask templateTask, ProblemResult problem)
+        private DbTaskProblem CreateDbProblem(ApplicationUser user, DbTask templateTask, ProblemResult problem, Guid? variantId = null)
         {
             var mainModule = problem.ProblemComponents.GetComponent<MainInfoComponent>();
             var dbProblem = new DbTaskProblem
@@ -229,20 +248,21 @@ namespace VisFP.Controllers
                 TaskNumber = templateTask.TaskNumber,
                 TaskQuestion = mainModule.TaskQuestion,
                 TaskTitle = templateTask.TaskTitle,
-                UserId = user.Id
+                UserId = user.Id,
+                VariantId = variantId
             };
             return dbProblem;
         }
 
         private async Task<ExamVariantViewModel> AddTasksToVariant(ApplicationUser user, DbControlVariant variant)
         {
-            var templateTasks = _dbContext.GetTasksForUser(user, true, ControllerTaskType.TaskTypeId);
+            var templateTasks = _dbContext.GetTasksForUser(user, true, TaskTypeId);
 
             List<DbTaskProblem> problems = new List<DbTaskProblem>();
             foreach (var template in templateTasks) //Генерим задачи
             {
                 var problem = await TaskModule.CreateNewProblemAsync(template);
-                problems.Add(CreateDbProblem(user, template, problem));
+                problems.Add(CreateDbProblem(user, template, problem, variant.VariantId));
             }
             await _dbContext.TaskProblems.AddRangeAsync(problems);
             await _dbContext.SaveChangesAsync();

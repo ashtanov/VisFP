@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using VisFP.BusinessObjects;
 using VisFP.Data.DBModels;
 using VisFP.Models.TaskProblemViewModels;
 
@@ -26,55 +27,68 @@ namespace VisFP.Data
             }
         }
 
-        private static Dictionary<string, DbTaskType> _taskTypes;
-        public static Dictionary<string, DbTaskType> TaskTypes
+        public static async Task SetTasksToNewTeacherAsync(this ApplicationDbContext _dbContext, 
+            ITaskModule module, 
+            Guid teacherTaskId,
+            bool isControl)
         {
-            get
+            var taskSet = await module.CreateNewTaskSetAsync();
+            var currModuleId = ModulesRepository.GetModuleId(module.GetType());
+            var dbSet = await _dbContext
+                .Tasks
+                .Where(x => x.TaskTypeId == currModuleId && x.TeacherTaskId == null)
+                .ToListAsync();
+            var joinedTasks = taskSet.Join(dbSet, x => x.TaskNumber, y => y.TaskNumber, (rg, db) => new { extId = rg.ExternalTaskId, db = db });
+            foreach (var task in joinedTasks)
             {
-                if (_taskTypes != null)
-                    return _taskTypes;
-                else
-                    throw new NotImplementedException();
-            }
-            set
-            {
-                _taskTypes = value;
+                _dbContext.Add(new DbTask
+                {
+                    ExternalTaskId = task.extId,
+                    MaxAttempts = task.db.MaxAttempts,
+                    TaskNumber = task.db.TaskNumber,
+                    TaskTitle = task.db.TaskTitle,
+                    TaskTypeId = task.db.TaskTypeId,
+                    FailTryScore = task.db.FailTryScore,
+                    SuccessScore = task.db.SuccessScore,
+                    TeacherTaskId = teacherTaskId,
+                    IsControl = isControl
+                });
             }
         }
 
-        public static async Task SetRgTasksToNewTeacherAsync(this ApplicationDbContext _dbContext, string teacherId)
-        {
-            List<RgTask> newTasks = new List<RgTask>();
-            var ttlink = new DbTeacherTask
-            {
-                TeacherId = teacherId
-            };
-            _dbContext.TeacherTasks.Add(ttlink);
-            foreach (var task in _dbContext
-                .RgTasks
-                .Include(x => x.TaskType)
-                .Where(x => x.TeacherTaskId == null))
-            {
-                newTasks.Add(new RgTask
-                {
-                    AlphabetTerminalsCount = task.AlphabetTerminalsCount,
-                    AlphabetNonTerminalsCount = task.AlphabetNonTerminalsCount,
-                    ChainMinLength = task.ChainMinLength,
-                    IsGrammarGenerated = true,
-                    MaxAttempts = task.MaxAttempts,
-                    TaskNumber = task.TaskNumber,
-                    TaskTitle = task.TaskTitle,
-                    TaskType = task.TaskType,
-                    TerminalRuleCount = task.TerminalRuleCount,
-                    NonTerminalRuleCount = task.NonTerminalRuleCount,
-                    FailTryScore = task.FailTryScore,
-                    SuccessScore = task.SuccessScore,
-                    TeacherTaskId = ttlink.Id,
-                    IsControl = task.IsControl
-                });
-            }
-            await _dbContext.RgTasks.AddRangeAsync(newTasks);
-        }
+        //public static async Task SetRgTasksToNewTeacherAsync(this ApplicationDbContext _dbContext, string teacherId)
+        //{
+        //    List<RgTask> newTasks = new List<RgTask>();
+        //    var ttlink = new DbTeacherTask
+        //    {
+        //        TeacherId = teacherId
+        //    };
+        //    _dbContext.TeacherTasks.Add(ttlink);
+        //    foreach (var task in _dbContext
+        //        .RgTasks
+        //        .Include(x => x.TaskType)
+        //        .Where(x => x.TeacherTaskId == null))
+        //    {
+        //        newTasks.Add(new RgTask
+        //        {
+        //            AlphabetTerminalsCount = task.AlphabetTerminalsCount,
+        //            AlphabetNonTerminalsCount = task.AlphabetNonTerminalsCount,
+        //            ChainMinLength = task.ChainMinLength,
+        //            IsGrammarGenerated = true,
+        //            MaxAttempts = task.MaxAttempts,
+        //            TaskNumber = task.TaskNumber,
+        //            TaskTitle = task.TaskTitle,
+        //            TaskType = task.TaskType,
+        //            TerminalRuleCount = task.TerminalRuleCount,
+        //            NonTerminalRuleCount = task.NonTerminalRuleCount,
+        //            FailTryScore = task.FailTryScore,
+        //            SuccessScore = task.SuccessScore,
+        //            TeacherTaskId = ttlink.Id,
+        //            IsControl = task.IsControl
+        //        });
+        //    }
+        //    await _dbContext.RgTasks.AddRangeAsync(newTasks);
+        //}
 
         public static IEnumerable<DbTask> GetTasksForUser(this ApplicationDbContext _dbContext, ApplicationUser user, bool isControl, Guid taskTypeId)
         {

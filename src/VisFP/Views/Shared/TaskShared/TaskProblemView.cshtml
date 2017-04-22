@@ -1,15 +1,15 @@
 ﻿@model TaskInfoViewModel
 <hr />
-<h3 style="margin-left:100px">@Model.TaskTitle</h3>
+<h3 style="margin-left:100px">@Model.MainInfo.TaskTitle</h3>
 <hr />
 <div class="col-lg-5">
     <div class="panel">
         <dl class="dl-horizontal">
             <dt style="font-size:large">
-                @Html.DisplayNameFor(model => model.TaskQuestion)
+                @Html.DisplayNameFor(model => model.MainInfo.TaskQuestion)
             </dt>
             <dd style="font-size:large">
-                @Html.Raw(Model.TaskQuestion)
+                @Html.Raw(Model.MainInfo.TaskQuestion)
             </dd>
         </dl>
     </div>

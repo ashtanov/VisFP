@@ -13,6 +13,7 @@ namespace VisFP.Models.TaskProblemViewModels
             :base(taskBase, components)
         {
             BaseInfo.IsControlProblem = true;
+            OtherProblems = otherProblems;
         }
     }
 }

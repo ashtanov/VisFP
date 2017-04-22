@@ -74,7 +74,9 @@ namespace VisFP.Data
             builder.Entity<DbTeacherTask>(entity =>
             {
                 entity.HasKey(x => x.Id);
-                entity.HasOne(x => x.Teacher).WithMany(x => x.TeacherTasks).HasForeignKey(x => x.TeacherId);
+                entity.HasOne(x => x.Teacher)
+                    .WithOne(x => x.TeacherTasks)
+                    .HasForeignKey<DbTeacherTask>(x => x.TeacherId);
             });
 
             builder.Entity<DbTaskType>(entity =>

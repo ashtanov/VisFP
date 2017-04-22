@@ -1,4 +1,4 @@
-﻿@model IEnumerable<UserGroup>
+﻿@model TeacherIndexViewModel
 @{
     ViewData["Title"] = "Преподавательская зона";
 }
@@ -12,23 +12,36 @@
         <div class="panel-body">
             <table class="table">
                 <tr>
-                    <th></th>
-                    <th>Регулярные граматики</th>
-                    <th>Конечные автоматы</th>
-                    <th>Сети Петри</th>
-                </tr>
-                <tr>
+                    <th>Название модуля</th>
                     <th>Тестовый вариант</th>
-                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="false" asp-route-typeName="@Constants.RgType" class="btn btn-info">Изменить</a></td>
-                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="false" asp-route-typeName="@Constants.FsmType" class="btn btn-info">Изменить</a></td>
-                    <td><button class="btn btn-info" disabled>Изменить</button></td>
-                </tr>
-                <tr>
                     <th>Контрольный вариант</th>
-                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="true" asp-route-typeName="@Constants.RgType" class="btn btn-info">Изменить</a></td>
-                    <td><a asp-action="TeacherRgTaskList" asp-route-isControl="true" asp-route-typeName="@Constants.FsmType" class="btn btn-info">Изменить</a></td>
-                    <td><button class="btn btn-info">Изменить</button></td>
                 </tr>
+                @foreach (var module in Model.Modules)
+                {
+                    <tr>
+                        <th>@module.TypeNameForView</th>
+                        <td>
+                            @if (module.TestAvailable)
+                            {
+                                <a asp-action="TeacherTaskList" asp-route-isControl="false" asp-route-typeName="@module.TypeName" class="btn btn-info">Изменить</a>
+                            }
+                            else
+                            { 
+                                <button class="btn" disabled>Недоступно</button>
+                            }
+                        </td>
+                        <td>
+                            @if (module.ControlAvailable)
+                            {
+                                <a asp-action="TeacherTaskList" asp-route-isControl="true" asp-route-typeName="@module.TypeName" class="btn btn-info">Изменить</a>
+                            }
+                            else
+                            {
+                                <button class="btn" disabled>Недоступно</button>
+                            }
+                        </td>
+                    </tr>
+                }
             </table>
         </div>
     </div>
@@ -44,7 +57,7 @@
         <th>Пользователи</th>
         <th>Id группы</th>
     </tr>
-    @foreach (var group in Model)
+    @foreach (var group in Model.Groups)
     {
         <tr>
             <td>

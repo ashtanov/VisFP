@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using VisFP.Data;
 using VisFP.Data.DBModels;
 using VisFP.Utils;
 
@@ -64,7 +62,7 @@ namespace VisFP.BusinessObjects
             return new RGProblemResult {
                 Grammar = tp.CurrentGrammar,
                 Generation = generation,
-                AnswerType = tp.AnswerType,
+                AnswerType = rgTask.AnswerType,
                 ProblemAnswer = tp.GetAnswer(),
                 ProblemQuestion = tp.GetTaskDescription()
             };
@@ -136,8 +134,6 @@ namespace VisFP.BusinessObjects
 
         public abstract void SetCurrentChain(RgTask templateTask);
 
-        public abstract TaskAnswerType AnswerType { get; }
-
         public abstract bool ConditionUntilForGrammar();
 
         public abstract string GetAnswer();
@@ -207,11 +203,6 @@ namespace VisFP.BusinessObjects
             return string.Join(" ", CurrentGrammar.Alph.NonTerminals.Except(CurrentGrammar.ReachableNonterminals.Value).OrderBy(z => z));
         }
 
-        public override TaskAnswerType AnswerType
-        {
-            get { return TaskAnswerType.SymbolsAnswer; }
-        }
-
         public override string GetTaskDescription()
         {
             return "Отметьте ВСЕ недостижимые символы (нетерминалы)";
@@ -231,11 +222,6 @@ namespace VisFP.BusinessObjects
         public override string GetAnswer()
         {
             return string.Join(" ", CurrentGrammar.Alph.NonTerminals.Except(CurrentGrammar.GeneratingNonterminals.Value).OrderBy(z => z));
-        }
-
-        public override TaskAnswerType AnswerType
-        {
-            get { return TaskAnswerType.SymbolsAnswer; }
         }
 
         public override string GetTaskDescription()
@@ -259,11 +245,6 @@ namespace VisFP.BusinessObjects
             return string.Join(" ", CurrentGrammar.CyclicNonterminals.Value.OrderBy(z => z));
         }
 
-        public override TaskAnswerType AnswerType
-        {
-            get { return TaskAnswerType.SymbolsAnswer; }
-        }
-
         public override string GetTaskDescription()
         {
             return "Отметьте ВСЕ циклические символы (нетерминалы)";
@@ -283,11 +264,6 @@ namespace VisFP.BusinessObjects
         public override string GetAnswer()
         {
             return YesNoAnswer ? "yes" : "no";
-        }
-
-        public override TaskAnswerType AnswerType
-        {
-            get { return TaskAnswerType.YesNoAnswer; }
         }
 
         public override string GetTaskDescription()
@@ -311,11 +287,6 @@ namespace VisFP.BusinessObjects
             return YesNoAnswer ? "yes" : "no";
         }
 
-        public override TaskAnswerType AnswerType
-        {
-            get { return TaskAnswerType.YesNoAnswer; }
-        }
-
         public override string GetTaskDescription()
         {
             return "Является ли язык, порожденный заданной грамматикой, пустым?";
@@ -335,11 +306,6 @@ namespace VisFP.BusinessObjects
         public override string GetAnswer()
         {
             return CurrentGrammar.RulesForChainRepresentable(CurrentChain.Chain).SerializeJsonListOfStrings();
-        }
-
-        public override TaskAnswerType AnswerType
-        {
-            get { return TaskAnswerType.TextMulty; }
         }
 
         public override string GetTaskDescription()
@@ -363,11 +329,6 @@ namespace VisFP.BusinessObjects
         public override string GetAnswer()
         {
             return YesNoAnswer ? "yes" : "no";
-        }
-
-        public override TaskAnswerType AnswerType
-        {
-            get { return TaskAnswerType.YesNoAnswer; }
         }
 
         public override string GetTaskDescription()
@@ -397,11 +358,6 @@ namespace VisFP.BusinessObjects
         public override string GetAnswer()
         {
             return YesNoAnswer ? "yes" : "no";
-        }
-
-        public override TaskAnswerType AnswerType
-        {
-            get { return TaskAnswerType.YesNoAnswer; }
         }
 
         public override string GetTaskDescription()

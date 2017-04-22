@@ -17,11 +17,19 @@ namespace VisFP.BusinessObjects
     public interface ITaskSetting
     {
         string Name { get; }
+        string NameForView { get; }
         Type ValueType { get; }
+    }
+
+    public class TaskSettingsSet
+    {
+        public Guid TaskId { get; set; }
+        public List<ITaskSetting> TaskSettings { get; set; }
     }
     public class TaskSetting<T> : ITaskSetting
     {
         public string Name { get; set; }
+        public string NameForView { get; set; }
         public T Value { get; set; }
 
         public Type ValueType
@@ -36,18 +44,21 @@ namespace VisFP.BusinessObjects
     public class NewTaskResult
     {
         public Guid ExternalTaskId { get; set; }
-        public string TaskTitle { get; set;  }
+        public string TaskTitle { get; set; }
         public int TaskNumber { get; set; }
+        public TaskAnswerType AnswerType { get; set; }
     }
 
     public interface ITaskModule
     {
+        string GetModuleName();
+        string GetModuleNameToView();
         Task<ProblemResult> CreateNewProblemAsync(DbTask taskTemplate);
         Task<ComponentRepository> GetExistingProblemAsync(DbTaskProblem problem);
-        Task<List<List<ITaskSetting>>> GetAllTasksSettingsAsync(List<Guid> externalTaskIds);
-        Task<List<ITaskSetting>> GetTaskSettingsAsync(Guid externalTaskId);
+        Task<List<TaskSettingsSet>> GetAllTasksSettingsAsync(List<Guid> externalTaskIds);
+        Task<TaskSettingsSet> GetTaskSettingsAsync(Guid externalTaskId);
         Task SaveTaskSettingsAsync(Guid externalTaskId, List<ITaskSetting> updatedSettings);
         Task<List<NewTaskResult>> CreateNewTaskSetAsync();
-        Task EnshureCreated();
+        Task<List<NewTaskResult>> GetSeedTasks();
     }
 }

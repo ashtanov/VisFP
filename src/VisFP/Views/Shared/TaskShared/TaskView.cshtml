@@ -1,7 +1,7 @@
 ﻿@model TaskInfoViewModel
 
 @{
-    ViewData["Title"] = Model.TaskTitle;
+    ViewData["Title"] = Model.MainInfo.TaskTitle;
 }
 
 @{ await Html.RenderPartialAsync("TaskShared/TaskProblemView", Model); }

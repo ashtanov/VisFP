@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using VisFP.Data.DBModels;
 using VisFP.Data;
 using Microsoft.EntityFrameworkCore;
+using VisFP.Models.TeacherViewModels;
 
 namespace VisFP.Controllers
 {
@@ -29,7 +30,20 @@ namespace VisFP.Controllers
                 .UserGroups
                 .Where(x => x.Creator == user)
                 .Include(x => x.Members);
-            return View(groups);
+            var modules = _dbContext.TaskTypes.Include(x => x.Tasks);
+            var mfv = modules.Select(x => new TaskModuleType
+            {
+                TypeName = x.TaskTypeName,
+                TypeNameForView = x.TaskTypeNameToView,
+                ControlAvailable = x.Tasks.Any(y => y.IsControl && y.TeacherTaskId != null),
+                TestAvailable = x.Tasks.Any(y => y.IsControl && y.TeacherTaskId != null)
+            });
+            var viewModel = new TeacherIndexViewModel
+            {
+                Groups = groups,
+                Modules = mfv
+            };
+            return View(viewModel);
         }
 
         [HttpGet]
@@ -112,58 +126,73 @@ namespace VisFP.Controllers
                 var ttlink = await _dbContext
                     .TeacherTasks
                     .SingleAsync(x => x.Teacher == user);
-                var tasks = _dbContext
-                    .RgTasks
-                    .Where(x => x.IsControl == isControl
-                    && x.TaskTypeId == DbWorker.TaskTypes[typeName].TaskTypeId
-                    && x.TeacherTaskId == ttlink.Id);
-                ViewData["Type"] = DbWorker.TaskTypes[typeName]?.TaskTypeNameToView;
 
-                return View(tasks.OrderBy(x => x.TaskNumber));
+                var module = ModulesRepository.GetTaskModuleByName(typeName);
+                var moduleId = ModulesRepository.GetModuleId(module.GetType());
+
+                var tasks = _dbContext
+                    .Tasks
+                    .Where(x => x.IsControl == isControl
+                    && x.TaskTypeId == moduleId
+                    && x.TeacherTaskId == ttlink.Id);
+                ViewData["Type"] = module.GetModuleNameToView();
+
+                var mTasks = await module.GetAllTasksSettingsAsync(await tasks.Select(x => x.ExternalTaskId).ToListAsync());
+                var allSettings = mTasks.Join(tasks,
+                            x => x.TaskId,
+                            y => y.ExternalTaskId,
+                            (mt, dbt) => new CombinedTaskViewModel
+                            {
+                                InternalSettings = dbt,
+                                ExternalSettings = mt.TaskSettings
+                            }).OrderBy(x => x.InternalSettings.TaskNumber);
+
+                var viewModel = new ModuleTaskSettingsViewModel { Tasks = allSettings };
+                return View(viewModel);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
                 return StatusCode(404);
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> EditRgTask(Guid taskId)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            var task = await _dbContext
-                .RgTasks
-                .FirstOrDefaultAsync(x => x.TaskId == taskId);
-            if (task != null)
-            {
-                return View(task);
-            }
-            return StatusCode(404);
-        }
+        //[HttpGet]
+        //public async Task<IActionResult> EditRgTask(Guid taskId)
+        //{
+        //    var user = await _userManager.GetUserAsync(User);
+        //    var task = await _dbContext
+        //        .RgTasks
+        //        .FirstOrDefaultAsync(x => x.TaskId == taskId);
+        //    if (task != null)
+        //    {
+        //        return View(task);
+        //    }
+        //    return StatusCode(404);
+        //}
 
-        [HttpPost]
-        public async Task<IActionResult> EditRgTask(RgTask task)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            var oldTask = await _dbContext
-                .RgTasks
-                .Include(x => x.TaskType)
-                .FirstOrDefaultAsync(x => x.TaskId == task.TaskId);
-            if (oldTask != null)
-            {
-                oldTask.AlphabetNonTerminalsCount = task.AlphabetNonTerminalsCount;
-                oldTask.AlphabetTerminalsCount = task.AlphabetTerminalsCount;
-                oldTask.ChainMinLength = task.ChainMinLength;
-                oldTask.MaxAttempts = task.MaxAttempts;
-                oldTask.NonTerminalRuleCount = task.NonTerminalRuleCount;
-                oldTask.TerminalRuleCount = task.TerminalRuleCount;
-                oldTask.FailTryScore = task.FailTryScore;
-                oldTask.SuccessScore = task.SuccessScore;
-                await _dbContext.SaveChangesAsync();
-                return RedirectToAction(nameof(TeacherRgTaskList), new { isControl = oldTask.IsControl, typeName = oldTask.TaskType.TaskTypeName });
-            }
-            return StatusCode(404);
-        }
+        //[HttpPost]
+        //public async Task<IActionResult> EditRgTask(RgTask task)
+        //{
+        //    var user = await _userManager.GetUserAsync(User);
+        //    var oldTask = await _dbContext
+        //        .RgTasks
+        //        .Include(x => x.TaskType)
+        //        .FirstOrDefaultAsync(x => x.TaskId == task.TaskId);
+        //    if (oldTask != null)
+        //    {
+        //        oldTask.AlphabetNonTerminalsCount = task.AlphabetNonTerminalsCount;
+        //        oldTask.AlphabetTerminalsCount = task.AlphabetTerminalsCount;
+        //        oldTask.ChainMinLength = task.ChainMinLength;
+        //        oldTask.MaxAttempts = task.MaxAttempts;
+        //        oldTask.NonTerminalRuleCount = task.NonTerminalRuleCount;
+        //        oldTask.TerminalRuleCount = task.TerminalRuleCount;
+        //        oldTask.FailTryScore = task.FailTryScore;
+        //        oldTask.SuccessScore = task.SuccessScore;
+        //        await _dbContext.SaveChangesAsync();
+        //        return RedirectToAction(nameof(TeacherRgTaskList), new { isControl = oldTask.IsControl, typeName = oldTask.TaskType.TaskTypeName });
+        //    }
+        //    return StatusCode(404);
+        //}
     }
 }

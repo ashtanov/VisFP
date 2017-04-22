@@ -42,7 +42,7 @@ namespace VisFP.Controllers
                     var userRole = (DbRole)Enum.Parse(typeof(DbRole), roles.First());
                     users.Add(new UserForView(u, userRole));
                 }
-                var model = new AdminMainPageViewModel
+                var model = new AdminIndexViewModel
                 {
                     AllUsers = users,
                 };

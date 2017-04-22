@@ -1,0 +1,72 @@
+﻿@model ModuleTaskSettingsViewModel
+
+@{
+    ViewData["Title"] = $"Задачи  модуля '{ViewData["Type"]}'";
+}
+
+<h2>@ViewData["Title"]</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Tasks.First().InternalSettings.TaskNumber)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tasks.First().InternalSettings.TaskTitle)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tasks.First().InternalSettings.MaxAttempts)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tasks.First().InternalSettings.SuccessScore)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tasks.First().InternalSettings.FailTryScore)
+            </th>
+            @foreach (var setting in Model.Tasks.First().ExternalSettings)
+            {
+                <th>
+                    @setting.NameForView
+                </th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Tasks)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(model => item.InternalSettings.TaskNumber)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => item.InternalSettings.TaskTitle)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => item.InternalSettings.MaxAttempts)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => item.InternalSettings.SuccessScore)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => item.InternalSettings.FailTryScore)
+                </td>
+                @foreach (var setting in item.ExternalSettings)
+                {
+                    <td>
+                        @if (setting.ValueType == typeof(int))
+                        {
+                            @((setting as VisFP.BusinessObjects.TaskSetting<int>).Value)
+                        }
+                        else if (setting.ValueType == typeof(string))
+                        {
+                            @((setting as VisFP.BusinessObjects.TaskSetting<string>).Value)
+                        }
+                    </td>
+                }
+                <td>
+                    <a class="btn btn-sm btn-warning" asp-action="EditRgTask" asp-route-taskId="@item.InternalSettings.TaskId">Изменить</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

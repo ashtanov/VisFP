@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using VisFP.BusinessObjects;
 using VisFP.Data.DBModels;
 
 namespace VisFP.Data
@@ -16,6 +19,7 @@ namespace VisFP.Data
             {
                 var dbcontext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 dbcontext.Database.EnsureCreated();
+                
                 var manager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
@@ -37,31 +41,23 @@ namespace VisFP.Data
                 else
                     DbWorker.BaseGroupId = baseGroup.GroupId;
 
-                await AddOrSetTasksTypes(scope, dbcontext);
-                if (dbcontext.RgTasks.Count(x => x.TaskType == DbWorker.TaskTypes[Constants.RgType]) == 0)
-                    AddRgTasks(dbcontext);
-                if (dbcontext.RgTasks.Count(x => x.TaskType == DbWorker.TaskTypes[Constants.FsmType]) == 0)
-                    AddFsmTasks(dbcontext);
+                //init modules
+                var rgModuleId = ModulesRepository.RegisterModule(
+                    new RgTaskModule(services.GetRequiredService<IServiceScopeFactory>()),
+                    dbcontext);
+                if (dbcontext.Tasks.Count(x => x.TaskTypeId == rgModuleId) == 0)
+                    await InitializeRgTasks(dbcontext);
+
+                //Добавление админа
                 if (dbcontext.Users.Count() == 0)
                     await AddRolesAndUsers(manager, roleManager, dbcontext);
+
+                
+                //if (dbcontext.RgTasks.Count(x => x.TaskType == DbWorker.TaskTypes[Constants.FsmType]) == 0)
+                //    AddFsmTasks(dbcontext);
+
                 await dbcontext.SaveChangesAsync();
             }
-        }
-        private static async Task AddOrSetTasksTypes(IServiceScope scope, ApplicationDbContext dbcontext)
-        {
-            if (dbcontext.TaskTypes.Count() == 0)
-            {
-                var dbcontext2 = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                await dbcontext2.TaskTypes.AddRangeAsync(
-                    new[]
-                    {
-                        new DbTaskType { TaskTypeName = Constants.RgType, TaskTypeNameToView = "Регулярные грамматики" },
-                        new DbTaskType { TaskTypeName = Constants.FsmType, TaskTypeNameToView = "Конечные автоматы" },
-                        new DbTaskType { TaskTypeName = Constants.PetryNetType, TaskTypeNameToView = "Сети петри" }
-                    });
-                await dbcontext2.SaveChangesAsync();
-            }
-            DbWorker.TaskTypes = dbcontext.TaskTypes.ToDictionary(x => x.TaskTypeName);
         }
 
         private static async Task AddRolesAndUsers(UserManager<ApplicationUser> manager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context)
@@ -73,245 +69,132 @@ namespace VisFP.Data
             var adminUser = new ApplicationUser { UserName = "Admin", RealName = "Администратор", UserGroupId = DbWorker.BaseGroupId };
             await manager.CreateAsync(adminUser, "q1w2e3r4");
             await manager.AddToRoleAsync(adminUser, Enum.GetName(typeof(DbRole), DbRole.Admin));
-            await context.SetRgTasksToNewTeacherAsync(adminUser.Id);
 
-            //var simpleUser = new ApplicationUser { UserName = "Test", RealName = "Тест Тестович", UserGroupId = DbWorker.BaseGroupId };
-            //await manager.CreateAsync(simpleUser, "1234");
-            //await manager.AddToRoleAsync(simpleUser, Enum.GetName(typeof(DbRole), DbRole.User));
-
-            //var teacherUser = new ApplicationUser { UserName = "Teacher", RealName = "Преподаватель", UserGroupId = DbWorker.BaseGroupId };
-            //await manager.CreateAsync(teacherUser, "1234");
-            //await manager.AddToRoleAsync(teacherUser, Enum.GetName(typeof(DbRole), DbRole.Teacher));
+            var ttlink = await context.TeacherTasks.SingleOrDefaultAsync(x => x.TeacherId == adminUser.Id);
+            if (ttlink == null)
+            {
+                ttlink = new DbTeacherTask
+                {
+                    TeacherId = adminUser.Id
+                };
+                context.TeacherTasks.Add(ttlink);
+            }
+            await context.SetTasksToNewTeacherAsync(ModulesRepository.GetModule<RgTaskModule>(), ttlink.Id, true);
+            await context.SetTasksToNewTeacherAsync(ModulesRepository.GetModule<RgTaskModule>(), ttlink.Id, false);
         }
 
-        private static void AddRgTasks(ApplicationDbContext dbcontext)
+        private static async Task InitializeRgTasks(ApplicationDbContext dbcontext)
         {
-            var currentTaskType = DbWorker.TaskTypes[Constants.RgType];
-            for (int i = 0; i < 2; ++i)
+            var rgModule = ModulesRepository.GetModule<RgTaskModule>();
+            var currentTaskTypeId = ModulesRepository.GetModuleId<RgTaskModule>();
+            var seedTasks = await rgModule.GetSeedTasks();
+            List<DbTask> tasks = new List<DbTask>();
+            foreach (var seedTask in seedTasks)
             {
-                bool isControl = i % 2 == 0;
-                dbcontext.RgTasks.Add(new RgTask
+                tasks.Add(new DbTask
                 {
-                    TaskTitle = "Недостижимые символы",
-                    TaskType = currentTaskType,
-                    NonTerminalRuleCount = 7,
-                    IsGrammarGenerated = true,
-                    TerminalRuleCount = 3,
-                    AlphabetNonTerminalsCount = 5,
-                    AlphabetTerminalsCount = 3,
+                    TaskTitle = seedTask.TaskTitle,
+                    TaskTypeId = currentTaskTypeId,
                     SuccessScore = 5,
                     FailTryScore = 0,
-                    MaxAttempts = 3,
-                    TaskNumber = 1,
-                    IsControl = isControl
-                });
-
-                dbcontext.RgTasks.Add(new RgTask
-                {
-                    TaskTitle = "Пустые символы",
-                    TaskType = currentTaskType,
-                    IsGrammarGenerated = true,
-                    NonTerminalRuleCount = 7,
-                    TerminalRuleCount = 3,
-                    AlphabetNonTerminalsCount = 5,
-                    AlphabetTerminalsCount = 3,
-                    SuccessScore = 5,
-                    FailTryScore = 0,
-                    MaxAttempts = 3,
-                    TaskNumber = 2,
-                    IsControl = isControl
-                });
-
-                dbcontext.RgTasks.Add(new RgTask
-                {
-                    TaskTitle = "Циклические символы",
-                    TaskType = currentTaskType,
-                    IsGrammarGenerated = true,
-                    NonTerminalRuleCount = 7,
-                    TerminalRuleCount = 3,
-                    AlphabetNonTerminalsCount = 5,
-                    AlphabetTerminalsCount = 3,
-                    SuccessScore = 5,
-                    FailTryScore = 0,
-                    MaxAttempts = 3,
-                    TaskNumber = 3,
-                    IsControl = isControl
-                });
-
-                dbcontext.RgTasks.Add(new RgTask
-                {
-                    TaskTitle = "Приведенные грамматики",
-                    TaskType = currentTaskType,
-                    IsGrammarGenerated = true,
-                    NonTerminalRuleCount = 7,
-                    TerminalRuleCount = 2,
-                    AlphabetNonTerminalsCount = 4,
-                    AlphabetTerminalsCount = 2,
-                    SuccessScore = 5,
-                    FailTryScore = 0,
-                    MaxAttempts = 1,
-                    TaskNumber = 4,
-                    IsControl = isControl
-                });
-
-                dbcontext.RgTasks.Add(new RgTask
-                {
-                    TaskTitle = "Пустые языки",
-                    TaskType = currentTaskType,
-                    IsGrammarGenerated = true,
-                    NonTerminalRuleCount = 7,
-                    TerminalRuleCount = 2,
-                    AlphabetNonTerminalsCount = 3,
-                    AlphabetTerminalsCount = 2,
-                    SuccessScore = 5,
-                    FailTryScore = 0,
-                    MaxAttempts = 1,
-                    TaskNumber = 5,
-                    IsControl = isControl
-                });
-
-                dbcontext.RgTasks.Add(new RgTask
-                {
-                    TaskTitle = "Построение цепочки",
-                    TaskType = currentTaskType,
-                    IsGrammarGenerated = true,
-                    NonTerminalRuleCount = 7,
-                    TerminalRuleCount = 2,
-                    AlphabetNonTerminalsCount = 3,
-                    AlphabetTerminalsCount = 2,
-                    SuccessScore = 5,
-                    FailTryScore = 0,
-                    MaxAttempts = 3,
-                    TaskNumber = 6,
-                    ChainMinLength = 5,
-                    IsControl = isControl
-                });
-
-                dbcontext.RgTasks.Add(new RgTask
-                {
-                    TaskTitle = "Выводима ли цепочка?",
-                    TaskType = currentTaskType,
-                    IsGrammarGenerated = true,
-                    NonTerminalRuleCount = 7,
-                    TerminalRuleCount = 2,
-                    AlphabetNonTerminalsCount = 3,
-                    AlphabetTerminalsCount = 2,
-                    SuccessScore = 5,
-                    FailTryScore = 0,
-                    MaxAttempts = 1,
-                    TaskNumber = 7,
-                    ChainMinLength = 6,
-                    IsControl = isControl
-                });
-
-                dbcontext.RgTasks.Add(new RgTask
-                {
-                    TaskTitle = "Выводима ли цепочка двумя и более способами?",
-                    TaskType = currentTaskType,
-                    IsGrammarGenerated = true,
-                    NonTerminalRuleCount = 7,
-                    TerminalRuleCount = 2,
-                    AlphabetNonTerminalsCount = 3,
-                    AlphabetTerminalsCount = 2,
-                    SuccessScore = 5,
-                    FailTryScore = 0,
-                    MaxAttempts = 1,
-                    TaskNumber = 8,
-                    ChainMinLength = 6,
-                    IsControl = isControl
+                    MaxAttempts = seedTask.AnswerType == TaskAnswerType.YesNoAnswer ? 1 : 3,
+                    TaskNumber = seedTask.TaskNumber,
+                    IsControl = false,
+                    ExternalTaskId = seedTask.ExternalTaskId
                 });
             }
+            await dbcontext.Tasks.AddRangeAsync(tasks);
         }
 
-        private static void AddFsmTasks(ApplicationDbContext dbcontext)
-        {
-            var currentTaskType = DbWorker.TaskTypes[Constants.FsmType];
-            for (int i = 0; i < 2; ++i)
-            {
-                bool isControl = i % 2 == 0;
-                dbcontext.RgTasks.Add(new RgTask
-                {
-                    TaskTitle = "Непустые языки",
-                    TaskType = currentTaskType,
-                    NonTerminalRuleCount = 7,
-                    IsGrammarGenerated = true,
-                    TerminalRuleCount = 3,
-                    AlphabetNonTerminalsCount = 5,
-                    AlphabetTerminalsCount = 3,
-                    SuccessScore = 5,
-                    FailTryScore = 0,
-                    MaxAttempts = 1,
-                    TaskNumber = 1,
-                    IsControl = isControl
-                });
+        //private static void AddFsmTasks(ApplicationDbContext dbcontext)
+        //{
+        //    var currentTaskType = DbWorker.TaskTypes[Constants.FsmType];
+        //    for (int i = 0; i < 2; ++i)
+        //    {
+        //        bool isControl = i % 2 == 0;
+        //        dbcontext.RgTasks.Add(new RgTask
+        //        {
+        //            TaskTitle = "Непустые языки",
+        //            TaskType = currentTaskType,
+        //            NonTerminalRuleCount = 7,
+        //            IsGrammarGenerated = true,
+        //            TerminalRuleCount = 3,
+        //            AlphabetNonTerminalsCount = 5,
+        //            AlphabetTerminalsCount = 3,
+        //            SuccessScore = 5,
+        //            FailTryScore = 0,
+        //            MaxAttempts = 1,
+        //            TaskNumber = 1,
+        //            IsControl = isControl
+        //        });
 
-                dbcontext.RgTasks.Add(new RgTask
-                {
-                    TaskTitle = "Построение цепочки",
-                    TaskType = currentTaskType,
-                    NonTerminalRuleCount = 5,
-                    IsGrammarGenerated = true,
-                    TerminalRuleCount = 2,
-                    AlphabetNonTerminalsCount = 4,
-                    AlphabetTerminalsCount = 2,
-                    ChainMinLength = 6,
-                    SuccessScore = 5,
-                    FailTryScore = 0,
-                    MaxAttempts = 3,
-                    TaskNumber = 2,
-                    IsControl = isControl
-                });
+        //        dbcontext.RgTasks.Add(new RgTask
+        //        {
+        //            TaskTitle = "Построение цепочки",
+        //            TaskType = currentTaskType,
+        //            NonTerminalRuleCount = 5,
+        //            IsGrammarGenerated = true,
+        //            TerminalRuleCount = 2,
+        //            AlphabetNonTerminalsCount = 4,
+        //            AlphabetTerminalsCount = 2,
+        //            ChainMinLength = 6,
+        //            SuccessScore = 5,
+        //            FailTryScore = 0,
+        //            MaxAttempts = 3,
+        //            TaskNumber = 2,
+        //            IsControl = isControl
+        //        });
 
-                dbcontext.RgTasks.Add(new RgTask
-                {
-                    TaskTitle = "Бесконечные языки",
-                    TaskType = currentTaskType,
-                    NonTerminalRuleCount = 5,
-                    IsGrammarGenerated = true,
-                    TerminalRuleCount = 3,
-                    AlphabetNonTerminalsCount = 5,
-                    AlphabetTerminalsCount = 3,
-                    SuccessScore = 5,
-                    FailTryScore = 0,
-                    MaxAttempts = 1,
-                    TaskNumber = 3,
-                    IsControl = isControl
-                });
+        //        dbcontext.RgTasks.Add(new RgTask
+        //        {
+        //            TaskTitle = "Бесконечные языки",
+        //            TaskType = currentTaskType,
+        //            NonTerminalRuleCount = 5,
+        //            IsGrammarGenerated = true,
+        //            TerminalRuleCount = 3,
+        //            AlphabetNonTerminalsCount = 5,
+        //            AlphabetTerminalsCount = 3,
+        //            SuccessScore = 5,
+        //            FailTryScore = 0,
+        //            MaxAttempts = 1,
+        //            TaskNumber = 3,
+        //            IsControl = isControl
+        //        });
 
-                dbcontext.RgTasks.Add(new RgTask
-                {
-                    TaskTitle = "Детерминированность автомата",
-                    TaskType = currentTaskType,
-                    NonTerminalRuleCount = 7,
-                    IsGrammarGenerated = true,
-                    TerminalRuleCount = 3,
-                    AlphabetNonTerminalsCount = 5,
-                    AlphabetTerminalsCount = 3,
-                    SuccessScore = 5,
-                    FailTryScore = 0,
-                    MaxAttempts = 1,
-                    TaskNumber = 4,
-                    IsControl = isControl
-                });
+        //        dbcontext.RgTasks.Add(new RgTask
+        //        {
+        //            TaskTitle = "Детерминированность автомата",
+        //            TaskType = currentTaskType,
+        //            NonTerminalRuleCount = 7,
+        //            IsGrammarGenerated = true,
+        //            TerminalRuleCount = 3,
+        //            AlphabetNonTerminalsCount = 5,
+        //            AlphabetTerminalsCount = 3,
+        //            SuccessScore = 5,
+        //            FailTryScore = 0,
+        //            MaxAttempts = 1,
+        //            TaskNumber = 4,
+        //            IsControl = isControl
+        //        });
 
-                dbcontext.RgTasks.Add(new RgTask
-                {
-                    TaskTitle = "Допустимость цепочки",
-                    TaskType = currentTaskType,
-                    NonTerminalRuleCount = 6,
-                    IsGrammarGenerated = true,
-                    TerminalRuleCount = 3,
-                    AlphabetNonTerminalsCount = 4,
-                    AlphabetTerminalsCount = 2,
-                    SuccessScore = 5,
-                    ChainMinLength = 6,
-                    FailTryScore = 0,
-                    MaxAttempts = 1,
-                    TaskNumber = 5,
-                    IsControl = isControl
-                });
-            }
+        //        dbcontext.RgTasks.Add(new RgTask
+        //        {
+        //            TaskTitle = "Допустимость цепочки",
+        //            TaskType = currentTaskType,
+        //            NonTerminalRuleCount = 6,
+        //            IsGrammarGenerated = true,
+        //            TerminalRuleCount = 3,
+        //            AlphabetNonTerminalsCount = 4,
+        //            AlphabetTerminalsCount = 2,
+        //            SuccessScore = 5,
+        //            ChainMinLength = 6,
+        //            FailTryScore = 0,
+        //            MaxAttempts = 1,
+        //            TaskNumber = 5,
+        //            IsControl = isControl
+        //        });
+        //    }
 
-        }
+        //}
     }
 }

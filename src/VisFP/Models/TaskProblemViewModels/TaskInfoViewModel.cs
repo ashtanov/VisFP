@@ -62,6 +62,7 @@ namespace VisFP.Models.TaskProblemViewModels
         
         public ComponentRepository(MainInfoComponent main)
         {
+            _components = new List<IComponent>();
             _components.Add(main);
         }
         public void AddComponent(IComponent component)
