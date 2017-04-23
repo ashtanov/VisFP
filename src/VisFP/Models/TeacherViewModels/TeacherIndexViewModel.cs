@@ -10,9 +10,11 @@ namespace VisFP.Models.TeacherViewModels
     public class TaskModuleType
     {
         public string TypeName { get; set; }
+        public Guid TypeId { get; set; }
         public string TypeNameForView { get; set; }
         public bool ControlAvailable { get; set; }
         public bool TestAvailable { get; set; }
+        public bool ModuleAvailable { get; set; }
     }
 
     public class TeacherIndexViewModel

@@ -404,5 +404,10 @@ namespace VisFP.BusinessObjects
         {
             return true;
         }
+
+        public bool IsAvailableAddTask()
+        {
+            return false;
+        }
     }
 }

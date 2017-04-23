@@ -15,6 +15,7 @@
                     <th>Название модуля</th>
                     <th>Тестовый вариант</th>
                     <th>Контрольный вариант</th>
+                    <th>Доступность студентам</th>
                 </tr>
                 @foreach (var module in Model.Modules)
                 {
@@ -39,6 +40,24 @@
                             {
                                 <button class="btn" disabled>Недоступно</button>
                             }
+                        </td>
+                        <td>
+                            <form method="post" asp-action="OnOffModule">
+                                <input type="hidden" name="typeId" value="@module.TypeId" />
+                                @if (module.ModuleAvailable)
+                                {
+                                    <p style="color:green">Доступен</p>
+                                    <input type="hidden" name="enable" value="false" />
+                                    <button type="submit"  class="btn btn-sm btn-danger">Отключить</button>
+                                }
+                                else
+                                {
+                                    <p style="color:red">НЕ доступен</p>
+                                    <input type="hidden" name="enable" value="true" />
+                                    <button type="submit" class="btn btn-sm btn-success">Включить</button>
+                                }
+                            </form>
+                           
                         </td>
                     </tr>
                 }

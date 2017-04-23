@@ -53,14 +53,17 @@ namespace VisFP.Controllers
             {
                 List<TaskTypeViewModel> ttmodels = new List<TaskTypeViewModel>();
 
-                foreach (var t in _dbContext.TaskTypes.ToList()) { 
-
-                    ttmodels.Add(new TaskTypeViewModel
-                     {
-                         TaskTypeControllerName = t.TaskTypeName,
-                         TaskTypeName = t.TaskTypeNameToView,
-                         TasksCount = _dbContext.GetTasksForUser(user, true, t.TaskTypeId).Count()
-                     });
+                foreach (var t in _dbContext.TaskTypes.ToList())
+                {
+                    var tasks = _dbContext.GetTasksForUser(user, true, t.TaskTypeId);
+                    if (tasks != null) {
+                        ttmodels.Add(new TaskTypeViewModel
+                        {
+                            TaskTypeControllerName = t.TaskTypeName,
+                            TaskTypeName = t.TaskTypeNameToView,
+                            TasksCount = tasks.Count()
+                         });
+                    }
                 }
 
                 return View(

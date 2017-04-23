@@ -73,17 +73,24 @@ namespace VisFP.Data
             await manager.CreateAsync(adminUser, "q1w2e3r4");
             await manager.AddToRoleAsync(adminUser, Enum.GetName(typeof(DbRole), DbRole.Admin));
 
-            var ttlink = await context.TeacherTasks.SingleOrDefaultAsync(x => x.TeacherId == adminUser.Id);
-            if (ttlink == null)
-            {
-                ttlink = new DbTeacherTask
-                {
-                    TeacherId = adminUser.Id
-                };
-                context.TeacherTasks.Add(ttlink);
-            }
+            
             foreach(var module in ModulesRepository.GetAllModules())
             {
+                var ttlink = await context
+                    .TeacherTasks
+                    .SingleOrDefaultAsync(x => 
+                            x.TeacherId == adminUser.Id && 
+                            x.TypeId == ModulesRepository.GetModuleId(module.GetType()));
+                if (ttlink == null)
+                {
+                    ttlink = new DbTeacherTaskType
+                    {
+                        TeacherId = adminUser.Id,
+                        IsAvailable = true,
+                        TypeId = ModulesRepository.GetModuleId(module.GetType())
+                    };
+                    context.TeacherTasks.Add(ttlink);
+                }
                 if (module.IsAvailableTestProblems())
                     await context.SetTasksToNewTeacherAsync(module, ttlink.Id, false);
                 if (module.IsAvailableControlProblems())

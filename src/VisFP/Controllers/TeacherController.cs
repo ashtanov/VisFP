@@ -32,13 +32,15 @@ namespace VisFP.Controllers
                 .UserGroups
                 .Where(x => x.Creator == user)
                 .Include(x => x.Members);
-            var modules = _dbContext.TaskTypes.Include(x => x.Tasks);
+            var modules = _dbContext.TaskTypes.Include(x => x.Tasks).Include(x => x.TeacherTaskTypes);
             var mfv = modules.Select(x => new TaskModuleType
             {
                 TypeName = x.TaskTypeName,
+                TypeId = x.TaskTypeId,
                 TypeNameForView = x.TaskTypeNameToView,
                 ControlAvailable = x.Tasks.Any(y => y.IsControl && y.TeacherTaskId != null),
-                TestAvailable = x.Tasks.Any(y => y.IsControl && y.TeacherTaskId != null)
+                TestAvailable = x.Tasks.Any(y => y.IsControl && y.TeacherTaskId != null),
+                ModuleAvailable = x.TeacherTaskTypes.Any(y => y.TeacherId == user.Id && y.IsAvailable)
             });
             var viewModel = new TeacherIndexViewModel
             {
@@ -95,6 +97,16 @@ namespace VisFP.Controllers
             return RedirectToAction(nameof(EditGroup), new { id = groupId });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> OnOffModule(bool enable, Guid typeId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var currentModuleLink = await _dbContext.TeacherTasks.SingleAsync(x => x.TypeId == typeId && x.TeacherId == user.Id);
+            currentModuleLink.IsAvailable = enable;
+            await _dbContext.SaveChangesAsync();
+            return RedirectToAction("Index");
+        }
+
         [HttpGet]
         public IActionResult CreateGroup()
         {
@@ -124,19 +136,19 @@ namespace VisFP.Controllers
         {
             try
             {
-                var user = await _userManager.GetUserAsync(User);
-                var ttlink = await _dbContext
-                    .TeacherTasks
-                    .SingleAsync(x => x.Teacher == user);
 
+                var user = await _userManager.GetUserAsync(User);
                 var module = ModulesRepository.GetTaskModuleByName(typeName);
                 var moduleId = ModulesRepository.GetModuleId(module.GetType());
+
+                var ttlink = await _dbContext
+                    .TeacherTasks
+                    .SingleAsync(x => x.Teacher == user && x.TypeId == moduleId);
 
                 var tasks = _dbContext
                     .Tasks
                     .Where(x => x.IsControl == isControl
-                    && x.TaskTypeId == moduleId
-                    && x.TeacherTaskId == ttlink.Id);
+                        && x.TeacherTaskId == ttlink.Id);
                 ViewData["Type"] = module.GetModuleNameToView();
 
                 var mTasks = await module.GetAllTasksSettingsAsync(await tasks.Select(x => x.ExternalTaskId).ToListAsync());

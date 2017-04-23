@@ -15,7 +15,7 @@ namespace VisFP.Data
         public DbSet<DbTaskProblem> TaskProblems { get; set; }
         public DbSet<DbControlVariant> Variants { get; set; }
         public DbSet<DbAttempt> Attempts { get; set; }
-        public DbSet<DbTeacherTask> TeacherTasks { get; set; }
+        public DbSet<DbTeacherTaskType> TeacherTasks { get; set; }
         public DbSet<DbTaskType> TaskTypes { get; set; }
 
         //База для модуля РГ
@@ -71,12 +71,11 @@ namespace VisFP.Data
                 entity.HasOne(x => x.TaskType).WithMany(x => x.Variants).HasForeignKey(x => x.TaskTypeId);
                 entity.HasOne(x => x.User).WithMany(y => y.ControlVariants).HasForeignKey(p => p.UserId).OnDelete(Microsoft.EntityFrameworkCore.Metadata.DeleteBehavior.Cascade);
             });
-            builder.Entity<DbTeacherTask>(entity =>
+            builder.Entity<DbTeacherTaskType>(entity =>
             {
                 entity.HasKey(x => x.Id);
-                entity.HasOne(x => x.Teacher)
-                    .WithOne(x => x.TeacherTasks)
-                    .HasForeignKey<DbTeacherTask>(x => x.TeacherId);
+                entity.HasOne(x => x.Teacher).WithMany(x => x.TeacherTasks).HasForeignKey(x => x.TeacherId);
+                entity.HasOne(x => x.Type).WithMany(x => x.TeacherTaskTypes).HasForeignKey(x => x.TypeId);
             });
 
             builder.Entity<DbTaskType>(entity =>

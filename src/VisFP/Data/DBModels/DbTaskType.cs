@@ -15,5 +15,6 @@ namespace VisFP.Data.DBModels
 
         public ICollection<DbTask> Tasks { get; set; }
         public ICollection<DbControlVariant> Variants { get; set; }
+        public ICollection<DbTeacherTaskType> TeacherTaskTypes { get; set; }
     }
 }

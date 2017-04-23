@@ -17,8 +17,7 @@ namespace VisFP.Data.DBModels
         public ICollection<DbControlVariant> ControlVariants { get; set; }
         public ICollection<UserGroup> OwnedGroups { get; set; } //группы, которые создал пользователь
 
-        public Guid TeacherTasksId { get; set; }
-        public DbTeacherTask TeacherTasks { get; set; }  
+        public ICollection<DbTeacherTaskType> TeacherTasks { get; set; }  
 
         public Guid UserGroupId { get; set; }
         public UserGroup UserGroup { get; set; } //группа, к которой привязан пользователь

@@ -200,13 +200,15 @@ namespace VisFP.Controllers
                     else
                     {
                         await _userManager.AddToRoleAsync(user, Enum.GetName(typeof(DbRole), newUser.Role));
-                        var ttlink = new DbTeacherTask
-                        {
-                            TeacherId = user.Id
-                        };
-                        await _dbContext.TeacherTasks.AddAsync(ttlink);
                         foreach (var module in ModulesRepository.GetAllModules())
                         {
+                            var ttlink = new DbTeacherTaskType
+                            {
+                                TeacherId = user.Id,
+                                IsAvailable = true,
+                                TypeId = ModulesRepository.GetModuleId(module.GetType())
+                            };
+                            await _dbContext.TeacherTasks.AddAsync(ttlink);
                             if (module.IsAvailableTestProblems())
                                 await _dbContext.SetTasksToNewTeacherAsync(module, ttlink.Id, false);
                             if (module.IsAvailableControlProblems())

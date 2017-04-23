@@ -56,40 +56,6 @@ namespace VisFP.Data
             }
         }
 
-        //public static async Task SetRgTasksToNewTeacherAsync(this ApplicationDbContext _dbContext, string teacherId)
-        //{
-        //    List<RgTask> newTasks = new List<RgTask>();
-        //    var ttlink = new DbTeacherTask
-        //    {
-        //        TeacherId = teacherId
-        //    };
-        //    _dbContext.TeacherTasks.Add(ttlink);
-        //    foreach (var task in _dbContext
-        //        .RgTasks
-        //        .Include(x => x.TaskType)
-        //        .Where(x => x.TeacherTaskId == null))
-        //    {
-        //        newTasks.Add(new RgTask
-        //        {
-        //            AlphabetTerminalsCount = task.AlphabetTerminalsCount,
-        //            AlphabetNonTerminalsCount = task.AlphabetNonTerminalsCount,
-        //            ChainMinLength = task.ChainMinLength,
-        //            IsGrammarGenerated = true,
-        //            MaxAttempts = task.MaxAttempts,
-        //            TaskNumber = task.TaskNumber,
-        //            TaskTitle = task.TaskTitle,
-        //            TaskType = task.TaskType,
-        //            TerminalRuleCount = task.TerminalRuleCount,
-        //            NonTerminalRuleCount = task.NonTerminalRuleCount,
-        //            FailTryScore = task.FailTryScore,
-        //            SuccessScore = task.SuccessScore,
-        //            TeacherTaskId = ttlink.Id,
-        //            IsControl = task.IsControl
-        //        });
-        //    }
-        //    await _dbContext.RgTasks.AddRangeAsync(newTasks);
-        //}
-
         public static IEnumerable<DbTask> GetTasksForUser(this ApplicationDbContext _dbContext, ApplicationUser user, bool isControl, Guid taskTypeId)
         {
             string teacherId;
@@ -101,10 +67,11 @@ namespace VisFP.Data
             var tasks = _dbContext
                 .TeacherTasks
                 .Include(x => x.Tasks)
-                .Single(x => x.TeacherId == teacherId)
-                .Tasks
-                .Where(x => x.IsControl == isControl && x.TaskTypeId == taskTypeId);
-            return tasks;
+                .Single(x => x.TeacherId == teacherId && x.TypeId == taskTypeId);
+            if(tasks.IsAvailable || user.UserGroupId == BaseGroupId)
+                return tasks.Tasks
+                    .Where(x => x.IsControl == isControl);
+            return null;
         }
 
         public static IOrderedEnumerable<ExamProblem> GetVariantProblems(this ApplicationDbContext _dbContext, DbControlVariant variant)

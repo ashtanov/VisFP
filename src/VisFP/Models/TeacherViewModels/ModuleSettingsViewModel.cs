@@ -15,6 +15,7 @@ namespace VisFP.Models.TeacherViewModels
 
     public class ModuleTaskSettingsViewModel
     {
+        public bool IsAvailableAddNew { get; set; } 
         public IEnumerable<CombinedTaskViewModel> Tasks { get; set; }
     }
 }

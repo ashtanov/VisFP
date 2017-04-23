@@ -26,7 +26,7 @@ namespace VisFP.Data.DBModels
         public DbTaskType TaskType { get; set; }
 
         public Guid? TeacherTaskId { get; set; }
-        public DbTeacherTask TeacherTask { get; set; }
+        public DbTeacherTaskType TeacherTask { get; set; }
 
         public Guid ExternalTaskId { get; set; }
 
