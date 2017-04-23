@@ -98,12 +98,13 @@ namespace VisFP.Data
             else
                 teacherId = _dbContext.UserGroups
                     .Single(x => x.GroupId == user.UserGroupId).CreatorId;
-            return _dbContext
+            var tasks = _dbContext
                 .TeacherTasks
                 .Include(x => x.Tasks)
                 .Single(x => x.TeacherId == teacherId)
                 .Tasks
                 .Where(x => x.IsControl == isControl && x.TaskTypeId == taskTypeId);
+            return tasks;
         }
 
         public static IOrderedEnumerable<ExamProblem> GetVariantProblems(this ApplicationDbContext _dbContext, DbControlVariant variant)

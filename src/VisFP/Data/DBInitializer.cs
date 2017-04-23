@@ -42,20 +42,23 @@ namespace VisFP.Data
                     DbWorker.BaseGroupId = baseGroup.GroupId;
 
                 //init modules
-                var rgModuleId = ModulesRepository.RegisterModule(
-                    new RgTaskModule(services.GetRequiredService<IServiceScopeFactory>()),
-                    dbcontext);
-                if (dbcontext.Tasks.Count(x => x.TaskTypeId == rgModuleId) == 0)
-                    await InitializeRgTasks(dbcontext);
-
+                {
+                    var rgModuleId = ModulesRepository.RegisterModule(
+                        new RgTaskModule(services.GetRequiredService<IServiceScopeFactory>()),
+                        dbcontext);
+                    if (!await dbcontext.Tasks.AnyAsync(x => x.TaskTypeId == rgModuleId))
+                        await InitializeDbTasksForModule(dbcontext, rgModuleId);
+                }
+                {
+                    var fsmModuleId = ModulesRepository.RegisterModule(
+                        new FsmTaskModule(services.GetRequiredService<IServiceScopeFactory>()),
+                        dbcontext);
+                    if (!await dbcontext.Tasks.AnyAsync(x => x.TaskTypeId == fsmModuleId))
+                        await InitializeDbTasksForModule(dbcontext, fsmModuleId);
+                }
                 //Добавление админа
                 if (dbcontext.Users.Count() == 0)
                     await AddRolesAndUsers(manager, roleManager, dbcontext);
-
-                
-                //if (dbcontext.RgTasks.Count(x => x.TaskType == DbWorker.TaskTypes[Constants.FsmType]) == 0)
-                //    AddFsmTasks(dbcontext);
-
                 await dbcontext.SaveChangesAsync();
             }
         }
@@ -79,14 +82,18 @@ namespace VisFP.Data
                 };
                 context.TeacherTasks.Add(ttlink);
             }
-            await context.SetTasksToNewTeacherAsync(ModulesRepository.GetModule<RgTaskModule>(), ttlink.Id, true);
-            await context.SetTasksToNewTeacherAsync(ModulesRepository.GetModule<RgTaskModule>(), ttlink.Id, false);
+            foreach(var module in ModulesRepository.GetAllModules())
+            {
+                if (module.IsAvailableTestProblems())
+                    await context.SetTasksToNewTeacherAsync(module, ttlink.Id, false);
+                if (module.IsAvailableControlProblems())
+                    await context.SetTasksToNewTeacherAsync(module, ttlink.Id, true);
+            }
         }
 
-        private static async Task InitializeRgTasks(ApplicationDbContext dbcontext)
+        private static async Task InitializeDbTasksForModule(ApplicationDbContext dbcontext, Guid moduleId)
         {
-            var rgModule = ModulesRepository.GetModule<RgTaskModule>();
-            var currentTaskTypeId = ModulesRepository.GetModuleId<RgTaskModule>();
+            var rgModule = ModulesRepository.GetTaskModuleById(moduleId);
             var seedTasks = await rgModule.GetSeedTasks();
             List<DbTask> tasks = new List<DbTask>();
             foreach (var seedTask in seedTasks)
@@ -94,7 +101,7 @@ namespace VisFP.Data
                 tasks.Add(new DbTask
                 {
                     TaskTitle = seedTask.TaskTitle,
-                    TaskTypeId = currentTaskTypeId,
+                    TaskTypeId = moduleId,
                     SuccessScore = 5,
                     FailTryScore = 0,
                     MaxAttempts = seedTask.AnswerType == TaskAnswerType.YesNoAnswer ? 1 : 3,

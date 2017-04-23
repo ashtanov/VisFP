@@ -1,0 +1,78 @@
+﻿@model CombinedTaskViewModel
+
+@{
+    ViewData["Title"] = $"Редактирование задачи {Model.InternalSettings.TaskNumber}. {Model.InternalSettings.TaskTitle}";
+}
+
+<h2>@ViewData["Title"]</h2>
+@if (Model.InternalSettings.IsControl)
+{
+    <h3 style="color:red;">Задача контроля</h3>
+}
+else
+{
+    <h3 style="color:green;">Задача теста</h3>
+}
+<hr />
+
+<form asp-action="EditTask">
+    <div class="form-horizontal">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" name="intSettings.TaskId" value="@Model.InternalSettings.TaskId" />
+        <div class="form-group">
+            <label asp-for="InternalSettings.MaxAttempts" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input name="intSettings.MaxAttempts" type="number" value="@Model.InternalSettings.MaxAttempts" class="form-control" />
+                <span asp-validation-for="InternalSettings.MaxAttempts" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="InternalSettings.SuccessScore" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input name="intSettings.SuccessScore" type="number" value="@Model.InternalSettings.SuccessScore" class="form-control" />
+                <span asp-validation-for="InternalSettings.SuccessScore" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="InternalSettings.FailTryScore" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input name="intSettings.FailTryScore" type="number" value="@Model.InternalSettings.FailTryScore" class="form-control" />
+                <span asp-validation-for="InternalSettings.FailTryScore" class="text-danger" />
+            </div>
+        </div>
+        @{ var i = 0;}
+        @foreach (var setting in Model.ExternalSettings)
+        {
+            <div class="form-group">
+                <label class="col-md-2 control-label">@setting.NameForView</label>
+                <div class="col-md-10">
+                    @if (setting.ValueType == typeof(int))
+                    {
+                        <input name="extSettings[@i].Name" class="form-control" type="hidden" value="@setting.Name" />
+                        <input name="extSettings[@i].Value" class="form-control" type="number" value="@((setting as VisFP.BusinessObjects.TaskSetting<int>).Value)" />
+                    }
+                    else if (setting.ValueType == typeof(string))
+                    {
+                        <input name="extSettings[@i].Name" class="form-control" type="hidden" value="@setting.Name" />
+                        <input name="extSettings[@i].Value" class="form-control" value="@((setting as VisFP.BusinessObjects.TaskSetting<string>).Value)" />
+                    }
+                    
+                </div>
+            </div>
+            i++;
+        }
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Сохранить" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-action="Index">Вернуться</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

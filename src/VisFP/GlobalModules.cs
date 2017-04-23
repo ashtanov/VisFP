@@ -25,6 +25,11 @@ namespace VisFP
             return (T)modules.SingleOrDefault(x => x.GetType() == typeof(T));
         }
 
+        public static ITaskModule GetModule(Type T)
+        {
+            return modules.SingleOrDefault(x => x.GetType() == T);
+        }
+
         public static Guid RegisterModule(ITaskModule module, ApplicationDbContext context)
         {
             var moduleName = module.GetModuleName();
@@ -63,6 +68,16 @@ namespace VisFP
             if (moduleNames.TryGetValue(name, out module))
                 return module;
             return null;
+        }
+
+        public static ITaskModule GetTaskModuleById(Guid id)
+        {
+            return GetModule(modulesId.SingleOrDefault(x => x.Value == id).Key);
+        }
+
+        public static ICollection<ITaskModule> GetAllModules()
+        {
+            return modules;
         }
     }
 }

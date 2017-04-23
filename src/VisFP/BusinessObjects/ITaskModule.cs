@@ -26,6 +26,13 @@ namespace VisFP.BusinessObjects
         public Guid TaskId { get; set; }
         public List<ITaskSetting> TaskSettings { get; set; }
     }
+
+    public class SettingValue
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
+
     public class TaskSetting<T> : ITaskSetting
     {
         public string Name { get; set; }
@@ -53,11 +60,13 @@ namespace VisFP.BusinessObjects
     {
         string GetModuleName();
         string GetModuleNameToView();
+        bool IsAvailableTestProblems();
+        bool IsAvailableControlProblems();
         Task<ProblemResult> CreateNewProblemAsync(DbTask taskTemplate);
         Task<ComponentRepository> GetExistingProblemAsync(DbTaskProblem problem);
         Task<List<TaskSettingsSet>> GetAllTasksSettingsAsync(List<Guid> externalTaskIds);
         Task<TaskSettingsSet> GetTaskSettingsAsync(Guid externalTaskId);
-        Task SaveTaskSettingsAsync(Guid externalTaskId, List<ITaskSetting> updatedSettings);
+        Task SaveTaskSettingsAsync(Guid externalTaskId, ICollection<SettingValue> updatedSettings);
         Task<List<NewTaskResult>> CreateNewTaskSetAsync();
         Task<List<NewTaskResult>> GetSeedTasks();
     }

@@ -13,6 +13,7 @@ namespace VisFP.Data.DBModels
         public string TaskTitle { get; set; }
         public int TaskNumber { get; set; }
         public TaskAnswerType AnswerType { get; set; }
+        public string Type { get; set; }
 
         [Display(Name = "Количество терминалов в алфавите")]
         public int AlphabetTerminalsCount { get; set; }

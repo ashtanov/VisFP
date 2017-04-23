@@ -47,7 +47,8 @@ namespace VisFP
                     sqlConnectionString,
                     b => b.MigrationsAssembly("AspNet5MultipleProject")
                 ));
-
+            //services.AddDbContext<ApplicationDbContext>(options =>
+            //    options.UseInMemoryDatabase());
             services.AddIdentity<ApplicationUser, IdentityRole>(
                 o =>
                 {

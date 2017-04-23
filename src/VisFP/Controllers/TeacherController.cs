@@ -8,6 +8,8 @@ using VisFP.Data.DBModels;
 using VisFP.Data;
 using Microsoft.EntityFrameworkCore;
 using VisFP.Models.TeacherViewModels;
+using System.Collections.Generic;
+using VisFP.BusinessObjects;
 
 namespace VisFP.Controllers
 {
@@ -157,42 +159,46 @@ namespace VisFP.Controllers
             }
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> EditRgTask(Guid taskId)
-        //{
-        //    var user = await _userManager.GetUserAsync(User);
-        //    var task = await _dbContext
-        //        .RgTasks
-        //        .FirstOrDefaultAsync(x => x.TaskId == taskId);
-        //    if (task != null)
-        //    {
-        //        return View(task);
-        //    }
-        //    return StatusCode(404);
-        //}
+        [HttpGet]
+        public async Task<IActionResult> EditTask(Guid taskId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var task = await _dbContext
+                .Tasks
+                .FirstOrDefaultAsync(x => x.TaskId == taskId);
+            if (task != null)
+            {
+                var module = ModulesRepository.GetTaskModuleById(task.TaskTypeId);
+                var mTask = await module.GetTaskSettingsAsync(task.ExternalTaskId);
+                var viewModel = new CombinedTaskViewModel
+                {
+                    InternalSettings = task,
+                    ExternalSettings = mTask.TaskSettings
+                };
+                return View(viewModel);
+            }
+            return StatusCode(404);
+        }
 
-        //[HttpPost]
-        //public async Task<IActionResult> EditRgTask(RgTask task)
-        //{
-        //    var user = await _userManager.GetUserAsync(User);
-        //    var oldTask = await _dbContext
-        //        .RgTasks
-        //        .Include(x => x.TaskType)
-        //        .FirstOrDefaultAsync(x => x.TaskId == task.TaskId);
-        //    if (oldTask != null)
-        //    {
-        //        oldTask.AlphabetNonTerminalsCount = task.AlphabetNonTerminalsCount;
-        //        oldTask.AlphabetTerminalsCount = task.AlphabetTerminalsCount;
-        //        oldTask.ChainMinLength = task.ChainMinLength;
-        //        oldTask.MaxAttempts = task.MaxAttempts;
-        //        oldTask.NonTerminalRuleCount = task.NonTerminalRuleCount;
-        //        oldTask.TerminalRuleCount = task.TerminalRuleCount;
-        //        oldTask.FailTryScore = task.FailTryScore;
-        //        oldTask.SuccessScore = task.SuccessScore;
-        //        await _dbContext.SaveChangesAsync();
-        //        return RedirectToAction(nameof(TeacherRgTaskList), new { isControl = oldTask.IsControl, typeName = oldTask.TaskType.TaskTypeName });
-        //    }
-        //    return StatusCode(404);
-        //}
+        [HttpPost]
+        public async Task<IActionResult> EditTask(DbTask intSettings, ICollection<SettingValue> extSettings)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var oldTask = await _dbContext
+                .Tasks
+                .Include(x => x.TaskType)
+                .SingleOrDefaultAsync(x => x.TaskId == intSettings.TaskId);
+            if (oldTask != null)
+            {
+                oldTask.MaxAttempts = intSettings.MaxAttempts;
+                oldTask.FailTryScore = intSettings.FailTryScore;
+                oldTask.SuccessScore = intSettings.SuccessScore;
+                var module = ModulesRepository.GetTaskModuleById(oldTask.TaskTypeId);
+                await module.SaveTaskSettingsAsync(oldTask.ExternalTaskId, extSettings);
+                await _dbContext.SaveChangesAsync();
+                return RedirectToAction(nameof(TeacherTaskList), new { isControl = oldTask.IsControl, typeName = oldTask.TaskType.TaskTypeName });
+            }
+            return StatusCode(404);
+        }
     }
 }

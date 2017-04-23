@@ -12,8 +12,8 @@ namespace VisFP.BusinessObjects
 {
     public class RgTaskModule : ITaskModule
     {
-        private IServiceScopeFactory _scopeFactory { get; set; }
-        private static RgProblemBuilder2 _problemBuilder = new RgProblemBuilder2();
+        protected IServiceScopeFactory _scopeFactory { get; set; }
+        protected RgProblemBuilder2 _problemBuilder = new RgProblemBuilder2();
 
         /// <summary>
         /// Создание модуля
@@ -23,12 +23,11 @@ namespace VisFP.BusinessObjects
             _scopeFactory = scopeFactory;
         }
 
-        public string GetModuleName()
+        public virtual string GetModuleName()
         {
             return Constants.RgType;
-
         }
-        public string GetModuleNameToView()
+        public virtual string GetModuleNameToView()
         {
             return "Регулярные грамматики";
         }
@@ -71,23 +70,8 @@ namespace VisFP.BusinessObjects
                     SymbolsForAnswer = problem.Grammar.Alph.NonTerminals
                 };
                 ComponentRepository repository = new ComponentRepository(mainComponent);
-                repository.AddComponent(new TaskInfoTopComponent
-                {
-                    Header = "Алфавит",
-                    Fields =
-                        new Dictionary<string, string>
-                        {
-                        { "Терминалы", string.Join(", ", problem.Grammar.Alph.Terminals) },
-                        { "Нетерминалы", string.Join(", ",  problem.Grammar.Alph.NonTerminals) },
-                        { "Начальное состояние",  problem.Grammar.Alph.InitState.ToString() }
-                        }
-                });
-                repository.AddComponent(new TaskInfoListComponent
-                {
-                    Header = "Правила",
-                    Items = problem.Grammar.Rules.Select(x => x.ToString()),
-                    IsOrdered = true
-                });
+                repository.AddComponent(GetTopComponent(problem.Grammar));
+                repository.AddComponent(GetListComponent(problem.Grammar));
                 repository.AddComponent(new GraphComponent
                 {
                     Graph = (new GrammarGraph(problem.Grammar))
@@ -123,23 +107,8 @@ namespace VisFP.BusinessObjects
                     SymbolsForAnswer = cGrammar.Alph.NonTerminals
                 };
                 repository = new ComponentRepository(mainComponent);
-                repository.AddComponent(new TaskInfoTopComponent
-                {
-                    Header = "Алфавит",
-                    Fields =
-                        new Dictionary<string, string>
-                        {
-                        { "Терминалы", string.Join(", ", cGrammar.Alph.Terminals) },
-                        { "Нетерминалы", string.Join(", ",  cGrammar.Alph.NonTerminals) },
-                        { "Начальное состояние",  cGrammar.Alph.InitState.ToString() }
-                        }
-                });
-                repository.AddComponent(new TaskInfoListComponent
-                {
-                    Header = "Правила",
-                    Items = cGrammar.Rules.Select(x => x.ToString()),
-                    IsOrdered = true
-                });
+                repository.AddComponent(GetTopComponent(cGrammar));
+                repository.AddComponent(GetListComponent(cGrammar));
                 repository.AddComponent(new GraphComponent
                 {
                     Graph = (new GrammarGraph(cGrammar))
@@ -183,17 +152,17 @@ namespace VisFP.BusinessObjects
             };
         }
 
-        public async Task SaveTaskSettingsAsync(Guid externalTaskId, List<ITaskSetting> updatedSettings)
+        public async Task SaveTaskSettingsAsync(Guid externalTaskId, ICollection<SettingValue> updatedSettings)
         {
             using (var scope = _scopeFactory.CreateScope())
             using (var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
             {
                 var task = await dbContext.RgTasks.SingleAsync(x => x.Id == externalTaskId);
-                task.AlphabetNonTerminalsCount = (updatedSettings.Single(x => x.Name == nameof(task.AlphabetNonTerminalsCount)) as TaskSetting<int>).Value;
-                task.AlphabetTerminalsCount = (updatedSettings.Single(x => x.Name == nameof(task.AlphabetTerminalsCount)) as TaskSetting<int>).Value;
-                task.ChainMinLength = (updatedSettings.Single(x => x.Name == nameof(task.ChainMinLength)) as TaskSetting<int>).Value;
-                task.NonTerminalRuleCount = (updatedSettings.Single(x => x.Name == nameof(task.NonTerminalRuleCount)) as TaskSetting<int>).Value;
-                task.TerminalRuleCount = (updatedSettings.Single(x => x.Name == nameof(task.TerminalRuleCount)) as TaskSetting<int>).Value;
+                task.AlphabetNonTerminalsCount = int.Parse(updatedSettings.Single(x => x.Name == nameof(task.AlphabetNonTerminalsCount)).Value);
+                task.AlphabetTerminalsCount = int.Parse(updatedSettings.Single(x => x.Name == nameof(task.AlphabetTerminalsCount)).Value);
+                task.ChainMinLength = int.Parse(updatedSettings.Single(x => x.Name == nameof(task.ChainMinLength)).Value);
+                task.NonTerminalRuleCount = int.Parse(updatedSettings.Single(x => x.Name == nameof(task.NonTerminalRuleCount)).Value);
+                task.TerminalRuleCount = int.Parse(updatedSettings.Single(x => x.Name == nameof(task.TerminalRuleCount)).Value);
                 await dbContext.SaveChangesAsync();
             }
         }
@@ -204,7 +173,7 @@ namespace VisFP.BusinessObjects
             using (var scope = _scopeFactory.CreateScope())
             using (var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
             {
-                var baseTasks = await dbContext.RgTasks.Where(x => x.IsSeed).ToListAsync();
+                var baseTasks = await dbContext.RgTasks.Where(x => x.IsSeed && x.Type == GetModuleName()).ToListAsync();
                 foreach (var bTask in baseTasks)
                 {
                     newTasks.Add(new RgTask
@@ -242,7 +211,7 @@ namespace VisFP.BusinessObjects
             using (var scope = _scopeFactory.CreateScope())
             using (var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
             {
-                seedTasks = await dbContext.RgTasks.Where(x => x.IsSeed).ToListAsync();
+                seedTasks = await dbContext.RgTasks.Where(x => x.IsSeed && x.Type == GetModuleName()).ToListAsync();
             }
             return seedTasks
                 .Select(x =>
@@ -271,117 +240,169 @@ namespace VisFP.BusinessObjects
             using (var scope = _scopeFactory.CreateScope())
             using (var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
             {
-                if (await dbContext.RgTasks.CountAsync() == 0)
+                var currentModule = GetModuleName();
+                if (!await dbContext.RgTasks.AnyAsync(x => x.Type == currentModule))
                 {
-                    dbContext.RgTasks.Add(new RgTask
-                    {
-                        TaskTitle = "Недостижимые символы",
-                        NonTerminalRuleCount = 7,
-                        IsGrammarGenerated = true,
-                        TerminalRuleCount = 3,
-                        AlphabetNonTerminalsCount = 5,
-                        AlphabetTerminalsCount = 3,
-                        TaskNumber = 1,
-                        IsSeed = true,
-                        AnswerType = TaskAnswerType.SymbolsAnswer
-                    });
-
-                    dbContext.RgTasks.Add(new RgTask
-                    {
-                        TaskTitle = "Пустые символы",
-                        IsGrammarGenerated = true,
-                        NonTerminalRuleCount = 7,
-                        TerminalRuleCount = 3,
-                        AlphabetNonTerminalsCount = 5,
-                        AlphabetTerminalsCount = 3,
-                        TaskNumber = 2,
-                        IsSeed = true,
-                        AnswerType = TaskAnswerType.SymbolsAnswer
-                    });
-
-                    dbContext.RgTasks.Add(new RgTask
-                    {
-                        TaskTitle = "Циклические символы",
-                        IsGrammarGenerated = true,
-                        NonTerminalRuleCount = 7,
-                        TerminalRuleCount = 3,
-                        AlphabetNonTerminalsCount = 5,
-                        AlphabetTerminalsCount = 3,
-                        TaskNumber = 3,
-                        IsSeed = true,
-                        AnswerType = TaskAnswerType.SymbolsAnswer
-                    });
-
-                    dbContext.RgTasks.Add(new RgTask
-                    {
-                        TaskTitle = "Приведенные грамматики",
-                        IsGrammarGenerated = true,
-                        NonTerminalRuleCount = 7,
-                        TerminalRuleCount = 2,
-                        AlphabetNonTerminalsCount = 4,
-                        AlphabetTerminalsCount = 2,
-                        TaskNumber = 4,
-                        IsSeed = true,
-                        AnswerType = TaskAnswerType.YesNoAnswer
-                    });
-
-                    dbContext.RgTasks.Add(new RgTask
-                    {
-                        TaskTitle = "Пустые языки",
-                        IsGrammarGenerated = true,
-                        NonTerminalRuleCount = 7,
-                        TerminalRuleCount = 2,
-                        AlphabetNonTerminalsCount = 3,
-                        AlphabetTerminalsCount = 2,
-                        TaskNumber = 5,
-                        IsSeed = true,
-                        AnswerType = TaskAnswerType.YesNoAnswer
-                    });
-
-                    dbContext.RgTasks.Add(new RgTask
-                    {
-                        TaskTitle = "Построение цепочки",
-                        IsGrammarGenerated = true,
-                        NonTerminalRuleCount = 7,
-                        TerminalRuleCount = 2,
-                        AlphabetNonTerminalsCount = 3,
-                        AlphabetTerminalsCount = 2,
-                        TaskNumber = 6,
-                        ChainMinLength = 5,
-                        IsSeed = true,
-                        AnswerType = TaskAnswerType.TextMulty
-                    });
-
-                    dbContext.RgTasks.Add(new RgTask
-                    {
-                        TaskTitle = "Выводима ли цепочка?",
-                        IsGrammarGenerated = true,
-                        NonTerminalRuleCount = 7,
-                        TerminalRuleCount = 2,
-                        AlphabetNonTerminalsCount = 3,
-                        AlphabetTerminalsCount = 2,
-                        TaskNumber = 7,
-                        ChainMinLength = 6,
-                        IsSeed = true,
-                        AnswerType = TaskAnswerType.YesNoAnswer
-                    });
-
-                    dbContext.RgTasks.Add(new RgTask
-                    {
-                        TaskTitle = "Выводима ли цепочка двумя и более способами?",
-                        IsGrammarGenerated = true,
-                        NonTerminalRuleCount = 7,
-                        TerminalRuleCount = 2,
-                        AlphabetNonTerminalsCount = 3,
-                        AlphabetTerminalsCount = 2,
-                        TaskNumber = 8,
-                        ChainMinLength = 6,
-                        IsSeed = true,
-                        AnswerType = TaskAnswerType.YesNoAnswer
-                    });
+                    var init = GetInitModuleTasks();
+                    await dbContext.RgTasks.AddRangeAsync(init);
                     await dbContext.SaveChangesAsync();
                 }
             }
+        }
+
+        protected virtual List<RgTask> GetInitModuleTasks()
+        {
+            var result = new List<RgTask>();
+            result.Add(new RgTask
+            {
+                TaskTitle = "Недостижимые символы",
+                Type = GetModuleName(),
+                NonTerminalRuleCount = 7,
+                IsGrammarGenerated = true,
+                TerminalRuleCount = 3,
+                AlphabetNonTerminalsCount = 5,
+                AlphabetTerminalsCount = 3,
+                TaskNumber = 1,
+                IsSeed = true,
+                AnswerType = TaskAnswerType.SymbolsAnswer
+            });
+
+            result.Add(new RgTask
+            {
+                TaskTitle = "Пустые символы",
+                Type = GetModuleName(),
+                IsGrammarGenerated = true,
+                NonTerminalRuleCount = 7,
+                TerminalRuleCount = 3,
+                AlphabetNonTerminalsCount = 5,
+                AlphabetTerminalsCount = 3,
+                TaskNumber = 2,
+                IsSeed = true,
+                AnswerType = TaskAnswerType.SymbolsAnswer
+            });
+
+            result.Add(new RgTask
+            {
+                TaskTitle = "Циклические символы",
+                Type = GetModuleName(),
+                IsGrammarGenerated = true,
+                NonTerminalRuleCount = 7,
+                TerminalRuleCount = 3,
+                AlphabetNonTerminalsCount = 5,
+                AlphabetTerminalsCount = 3,
+                TaskNumber = 3,
+                IsSeed = true,
+                AnswerType = TaskAnswerType.SymbolsAnswer
+            });
+
+            result.Add(new RgTask
+            {
+                TaskTitle = "Приведенные грамматики",
+                Type = GetModuleName(),
+                IsGrammarGenerated = true,
+                NonTerminalRuleCount = 7,
+                TerminalRuleCount = 2,
+                AlphabetNonTerminalsCount = 4,
+                AlphabetTerminalsCount = 2,
+                TaskNumber = 4,
+                IsSeed = true,
+                AnswerType = TaskAnswerType.YesNoAnswer
+            });
+
+            result.Add(new RgTask
+            {
+                TaskTitle = "Пустые языки",
+                Type = GetModuleName(),
+                IsGrammarGenerated = true,
+                NonTerminalRuleCount = 7,
+                TerminalRuleCount = 2,
+                AlphabetNonTerminalsCount = 3,
+                AlphabetTerminalsCount = 2,
+                TaskNumber = 5,
+                IsSeed = true,
+                AnswerType = TaskAnswerType.YesNoAnswer
+            });
+
+            result.Add(new RgTask
+            {
+                TaskTitle = "Построение цепочки",
+                Type = GetModuleName(),
+                IsGrammarGenerated = true,
+                NonTerminalRuleCount = 7,
+                TerminalRuleCount = 2,
+                AlphabetNonTerminalsCount = 3,
+                AlphabetTerminalsCount = 2,
+                TaskNumber = 6,
+                ChainMinLength = 5,
+                IsSeed = true,
+                AnswerType = TaskAnswerType.TextMulty
+            });
+
+            result.Add(new RgTask
+            {
+                TaskTitle = "Выводима ли цепочка?",
+                Type = GetModuleName(),
+                IsGrammarGenerated = true,
+                NonTerminalRuleCount = 7,
+                TerminalRuleCount = 2,
+                AlphabetNonTerminalsCount = 3,
+                AlphabetTerminalsCount = 2,
+                TaskNumber = 7,
+                ChainMinLength = 6,
+                IsSeed = true,
+                AnswerType = TaskAnswerType.YesNoAnswer
+            });
+
+            result.Add(new RgTask
+            {
+                TaskTitle = "Выводима ли цепочка двумя и более способами?",
+                Type = GetModuleName(),
+                IsGrammarGenerated = true,
+                NonTerminalRuleCount = 7,
+                TerminalRuleCount = 2,
+                AlphabetNonTerminalsCount = 3,
+                AlphabetTerminalsCount = 2,
+                TaskNumber = 8,
+                ChainMinLength = 6,
+                IsSeed = true,
+                AnswerType = TaskAnswerType.YesNoAnswer
+            });
+            return result;
+        }
+
+        protected virtual TaskInfoTopComponent GetTopComponent(RegularGrammar grammar)
+        {
+            return new TaskInfoTopComponent
+            {
+                Header = "Алфавит",
+                Fields =
+                        new Dictionary<string, string>
+                        {
+                            { "Терминалы", string.Join(", ", grammar.Alph.Terminals) },
+                            { "Нетерминалы", string.Join(", ",  grammar.Alph.NonTerminals) },
+                            { "Начальное состояние",  grammar.Alph.InitState.ToString() }
+                        }
+            };
+        }
+
+        protected virtual TaskInfoListComponent GetListComponent(RegularGrammar grammar)
+        {
+            return new TaskInfoListComponent
+            {
+                Header = "Правила",
+                Items = grammar.Rules.Select(x => x.ToString()),
+                IsOrdered = true
+            };
+        }
+
+        public bool IsAvailableTestProblems()
+        {
+            return true;
+        }
+
+        public bool IsAvailableControlProblems()
+        {
+            return true;
         }
     }
 }

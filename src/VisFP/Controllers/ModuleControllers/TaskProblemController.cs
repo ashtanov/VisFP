@@ -58,7 +58,7 @@ namespace VisFP.Controllers
             var tasksList = _dbContext.GetTasksForUser(user, false, TaskTypeId);
             var model = new TaskListViewModel
             {
-                TaskControllerName = GetType().Name.Replace("Controller", ""),
+                TaskControllerName = _taskModule.GetModuleName(),
                 TasksList = tasksList.Select(x => new Tuple<int, string>(x.TaskNumber, x.TaskTitle))
             };
             return View("TaskShared/Index", model);
@@ -139,8 +139,6 @@ namespace VisFP.Controllers
                     if (currentProblem != null)
                     {
                         var problemComponents = await TaskModule.GetExistingProblemAsync(currentProblem);
-
-
                         if (currentProblem.VariantId == null)
                         {
                             TaskInfoViewModel viewModel = new TaskInfoViewModel(new TaskBaseInfo
