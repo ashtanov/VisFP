@@ -26,18 +26,22 @@ namespace VisFP.BusinessObjects
     {
         public string options
         {
-            get { return 
+            get { return
+//@"{
+//    nodes: { borderWidth: 2 },
+//    layout: {
+//        hierarchical: {
+//            direction: 'LR'
+//        },
+//    },
+//    physics: {
+//        enabled: false
+//    }
+//}";
 @"{
-    nodes: { borderWidth: 2 },
-    layout: {
-        hierarchical: {
-            direction: 'LR'
-        },
-    },
-    physics: {
-        enabled: false
-    }
-}"; }
+    nodes: { borderWidth: 2 }
+}";
+            }
         }
         public PetryNetGraph(PetryNet net)
         {

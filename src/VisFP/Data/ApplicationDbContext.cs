@@ -18,10 +18,13 @@ namespace VisFP.Data
         public DbSet<DbTeacherTaskType> TeacherTasks { get; set; }
         public DbSet<DbTaskType> TaskTypes { get; set; }
 
-        //База для модуля РГ
+        //База для модуля РГ и КА
         public DbSet<RgTask> RgTasks { get; set; }
         public DbSet<RgTaskProblem> RgTaskProblems { get; set; }
         public DbSet<RGrammar> RGrammars { get; set; }
+
+        //База для модуля ПН
+        public DbSet<PnTask> PnTasks { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -99,6 +102,11 @@ namespace VisFP.Data
             builder.Entity<RGrammar>(entity =>
             {
                 entity.HasKey(x => x.GrammarId);
+            });
+
+            builder.Entity<PnTask>(entity =>
+            {
+                entity.HasKey(x => x.Id);
             });
         }
     }

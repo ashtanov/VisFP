@@ -10,6 +10,8 @@ namespace VisFP.Data.DBModels
         SymbolsAnswer,
         YesNoAnswer,
         Text,
-        TextMulty
+        TextMulty,
+        CheckBoxAnswer,
+        RadioAnswer
     }
 }
