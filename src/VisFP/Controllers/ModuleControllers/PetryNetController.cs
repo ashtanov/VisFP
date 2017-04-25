@@ -1,59 +1,24 @@
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Threading.Tasks;
-//using Microsoft.AspNetCore.Identity;
-//using Microsoft.AspNetCore.Mvc;
-//using Microsoft.Extensions.Logging;
-//using VisFP.Data;
-//using VisFP.Data.DBModels;
-//using VisFP.Models.TaskProblemViewModels;
+ï»¿using VisFP.Data;
+using Microsoft.AspNetCore.Identity;
+using VisFP.Data.DBModels;
+using Microsoft.Extensions.Logging;
+using VisFP.BusinessObjects;
 
-//namespace VisFP.Controllers
-//{
-//    public class PetryNetController : TaskProblemController
-//    {
-//        private ILogger _logger;
-//        public PetryNetController(
-//            UserManager<ApplicationUser> userManager, 
-//            ApplicationDbContext dbContext, 
-//            ILoggerFactory loggerFactory) : base(userManager, dbContext)
-//        {
-//            _logger = loggerFactory.CreateLogger<PetryNetController>();
-//        }
+namespace VisFP.Controllers
+{
+    public class PetryNetController : TaskProblemController
+    {
+        public PetryNetController(
+            UserManager<ApplicationUser> userManager,
+            ApplicationDbContext dbContext,
+            ILoggerFactory loggerFactory)
+            : base(userManager, dbContext, loggerFactory)
+        {
+        }
 
-//        protected override string AreaName
-//        {
-//            get
-//            {
-//                return "Ñåòè Ïåòðè";
-//            }
-//        }
-
-//        protected override DbTaskType ControllerTaskType
-//        {
-//            get
-//            {
-//                return DbWorker.TaskTypes[Constants.PetryNetType];
-//            }
-//        }
-
-//        protected override ILogger Logger
-//        {
-//            get
-//            {
-//                return _logger;
-//            }
-//        }
-
-//        public override Task<IActionResult> Task(int id, Guid? problemId)
-//        {
-//            throw new NotImplementedException();
-//        }
-
-//        protected override Task<ExamVariantViewModel> AddTasksToVariant(ApplicationUser user, DbControlVariant variant)
-//        {
-//            throw new NotImplementedException();
-//        }
-//    }
-//}
+        protected override ITaskModule SetCurrentModule()
+        {
+            return ModulesRepository.GetModule<PnTaskModule>();
+        }
+    }
+}

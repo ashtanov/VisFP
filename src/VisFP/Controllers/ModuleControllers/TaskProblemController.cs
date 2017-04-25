@@ -33,7 +33,7 @@ namespace VisFP.Controllers
             _logger = loggerFactory.CreateLogger(GetType());
         }
 
-        protected abstract RgTaskModule SetCurrentModule();
+        protected abstract ITaskModule SetCurrentModule();
 
         public Guid TaskTypeId
         {
@@ -189,7 +189,7 @@ namespace VisFP.Controllers
                 int totalAttempts = _dbContext.Attempts.Count(x => x.ProblemId == problem.ProblemId);
                 if (totalAttempts < problem.MaxAttempts)
                 {
-                    if (problem.AnswerType == TaskAnswerType.SymbolsAnswer)
+                    if (problem.AnswerType == TaskAnswerType.SymbolsAnswer || problem.AnswerType == TaskAnswerType.CheckBoxAnswer)
                     {
                         avm.Answer = avm.Answer != null
                             ? string.Join(" ", avm.Answer.Split(' ').OrderBy(x => x))

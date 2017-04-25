@@ -133,7 +133,7 @@ function handleAnswer(answerResult) {
 }
 
 function deleteVariant(variant, userid) {
-    var conf = confirm("Удалить выбраный вариант?");
+    var conf = confirm("Удалить выбранный вариант?");
     if (conf) {
         $.ajax({
             type: "POST",

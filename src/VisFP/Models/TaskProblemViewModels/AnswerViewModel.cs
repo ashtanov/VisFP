@@ -14,6 +14,7 @@ namespace VisFP.Models.TaskProblemViewModels
         public bool IsControl { get; set; }
         public bool GotRightAnswer { get; set; }
         public IEnumerable<char> SymbolsCheckBox { get; set; }
+        public IEnumerable<string> AnswerList { get; set; }
         public TaskAnswerType AnswerType { get; set; }
     }
 }

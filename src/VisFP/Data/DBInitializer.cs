@@ -56,6 +56,13 @@ namespace VisFP.Data
                     if (!await dbcontext.Tasks.AnyAsync(x => x.TaskTypeId == fsmModuleId))
                         await InitializeDbTasksForModule(dbcontext, fsmModuleId);
                 }
+                {
+                    var pnModuleId = ModulesRepository.RegisterModule(
+                        new PnTaskModule(services.GetRequiredService<IServiceScopeFactory>()),
+                        dbcontext);
+                    if (!await dbcontext.Tasks.AnyAsync(x => x.TaskTypeId == pnModuleId))
+                        await InitializeDbTasksForModule(dbcontext, pnModuleId);
+                }
                 //Добавление админа
                 if (dbcontext.Users.Count() == 0)
                     await AddRolesAndUsers(manager, roleManager, dbcontext);

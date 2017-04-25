@@ -53,10 +53,17 @@ else
                     }
                     else if (setting.ValueType == typeof(string))
                     {
+                        var value = (setting as VisFP.BusinessObjects.TaskSetting<string>).Value;
                         <input name="extSettings[@i].Name" class="form-control" type="hidden" value="@setting.Name" />
-                        <input name="extSettings[@i].Value" class="form-control" value="@((setting as VisFP.BusinessObjects.TaskSetting<string>).Value)" />
+                        <textarea name="extSettings[@i].Value" rows="@(value.Length > 40 ? (value.Length / 40).ToString() : "1")" class="form-control">@value</textarea>
                     }
-                    
+                    else if (setting.ValueType == typeof(List<string>))
+                    {
+                        var list = (setting as VisFP.BusinessObjects.TaskSetting<List<string>>).Value;
+                        <input name="extSettings[@i].Name" class="form-control" type="hidden" value="@setting.Name" />
+                        <textarea rows="@(list.Count*2).ToString()" name="extSettings[@i].Value" class="form-control">@(string.Join("\n", list))</textarea>
+                    }
+
                 </div>
             </div>
             i++;

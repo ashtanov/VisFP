@@ -9,6 +9,7 @@ using VisFP.Models.HomeViewModels;
 using VisFP.BusinessObjects;
 using VisFP.Data;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace VisFP.Controllers
 {
@@ -25,7 +26,7 @@ namespace VisFP.Controllers
         public async Task<IActionResult> Index()
         {
             // (t 1 , p 2 ), (t 1 , p 3 ), (t 1 , p 5 ), (t 2 , p 5 ), (t 3 , p 4 ), (t 4 , p 2 ), (t 4 , p 3 ) 
-            PetryNetGraph png = new PetryNetGraph(new PetryNet(
+            var petryNet = new PetryNet(
                 P: new[] { "p1", "p2", "p3", "p4", "p5" },
                 T: new[] { "t1", "t2", "t3", "t4" },
                 F: new[]
@@ -43,7 +44,9 @@ namespace VisFP.Controllers
                     new PetryFlowLink { from = "t3", to = "p4" },
                     new PetryFlowLink { from = "t4", to = "p2" },
                     new PetryFlowLink { from = "t4", to = "p3" }
-                }));
+                });
+            var o = petryNet.Serialize();
+            PetryNetGraph png = new PetryNetGraph(PetryNet.Deserialize(o));
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {

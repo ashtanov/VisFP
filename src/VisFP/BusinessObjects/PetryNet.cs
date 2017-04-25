@@ -28,5 +28,16 @@ namespace VisFP.BusinessObjects
             this.F = new PetryFlowLink[F.Length];
             F.CopyTo(this.F, 0);
         }
+        public string Serialize()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
+
+        public static PetryNet Deserialize(string json)
+        {
+            return JsonConvert.DeserializeObject<PetryNet>(json);
+        }
     }
+
+
 }

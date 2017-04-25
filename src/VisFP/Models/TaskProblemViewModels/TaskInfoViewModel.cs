@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Threading.Tasks;
 using VisFP.BusinessObjects;
 using VisFP.Data.DBModels;
 
@@ -51,7 +50,8 @@ namespace VisFP.Models.TaskProblemViewModels
                 SymbolsCheckBox = MainInfo.SymbolsForAnswer,
                 AnswerType = MainInfo.AnswerType,
                 IsControl = BaseInfo.IsControlProblem,
-                GotRightAnswer = BaseInfo.GotRightAnswer
+                GotRightAnswer = BaseInfo.GotRightAnswer,
+                AnswerList = MainInfo.AnswersList
             };
         }
     }
@@ -90,6 +90,7 @@ namespace VisFP.Models.TaskProblemViewModels
         public string TaskQuestion { get; set; }
         public TaskAnswerType AnswerType { get; set; }
         public IEnumerable<char> SymbolsForAnswer { get; set; }
+        public List<string> AnswersList { get; set; }
         public int Generation { get; set; }
     }
 

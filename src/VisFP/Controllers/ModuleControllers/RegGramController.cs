@@ -18,7 +18,7 @@ namespace VisFP.Controllers
         {
         }
 
-        protected override RgTaskModule SetCurrentModule()
+        protected override ITaskModule SetCurrentModule()
         {
             return ModulesRepository.GetModule<RgTaskModule>();
         }

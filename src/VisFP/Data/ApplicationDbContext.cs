@@ -25,6 +25,7 @@ namespace VisFP.Data
 
         //База для модуля ПН
         public DbSet<PnTask> PnTasks { get; set; }
+        public DbSet<PnTaskProblem> PnTaskProblems { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -105,6 +106,11 @@ namespace VisFP.Data
             });
 
             builder.Entity<PnTask>(entity =>
+            {
+                entity.HasKey(x => x.Id);
+            });
+
+            builder.Entity<PnTaskProblem>(entity =>
             {
                 entity.HasKey(x => x.Id);
             });

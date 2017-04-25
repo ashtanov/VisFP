@@ -13,15 +13,21 @@
             </dd>
         </dl>
     </div>
-    @{ await Html.RenderPartialAsync("TaskShared/TaskInfo", Model.TopInfo); }
+    @if (Model.TopInfo != null)
+    {
+        await Html.RenderPartialAsync("TaskShared/TaskInfo", Model.TopInfo);
+    }
     @{ await Html.RenderPartialAsync("TaskShared/AcceptAnswerView", Model.GetAnswerModel()); }
 </div>
-<div class="col-lg-2">
-    @{ await Html.RenderPartialAsync("TaskShared/TaskInfoList", Model.ListInfo); }
-</div>
-<div class="col-lg-5">
-    @if (Model.Graph != null)
-    {
-        await Html.RenderPartialAsync("TaskShared/GraphView", Model.Graph);
-    }
-</div>
+@if (Model.ListInfo != null)
+{
+    <div class="col-lg-2">
+        @{ await Html.RenderPartialAsync("TaskShared/TaskInfoList", Model.ListInfo); }
+    </div>
+}
+@if (Model.Graph != null)
+{
+    <div class="col-lg-5">
+        @{await Html.RenderPartialAsync("TaskShared/GraphView", Model.Graph); }
+    </div>
+}
