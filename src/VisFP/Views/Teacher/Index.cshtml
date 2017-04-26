@@ -46,13 +46,13 @@
                                 <input type="hidden" name="typeId" value="@module.TypeId" />
                                 @if (module.ModuleAvailable)
                                 {
-                                    <p style="color:green">Доступен</p>
+                                    <strong style="color:green">Доступен</strong>
                                     <input type="hidden" name="enable" value="false" />
                                     <button type="submit"  class="btn btn-sm btn-danger">Отключить</button>
                                 }
                                 else
                                 {
-                                    <p style="color:red">НЕ доступен</p>
+                                    <strong style="color:red">НЕ доступен</strong>
                                     <input type="hidden" name="enable" value="true" />
                                     <button type="submit" class="btn btn-sm btn-success">Включить</button>
                                 }

@@ -10,6 +10,17 @@ var svgLine = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
 '</svg>';
 var svgLineImage = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgLine);
 
+function getCircleWithText(text) {
+    var l = String(text).length;
+    var svgCircle = '<svg xmlns="http://www.w3.org/2000/svg"  width="100" height="100">' +
+  '<g transform="transtale(80,80)">' +
+    '<circle stroke="#2B7AE9" stroke-width="4px" fill="#97C2FC" cx="50%" cy="50%" r="47"></circle>' +
+    '<text font-size="50" stroke-width="1px" dy=".3em" x="' + String(40 - (l * 10)) + '%" y="50%">' + text + '</text>' +
+  '</g>' +
+'</svg>';
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgCircle);
+}
+
 onload = function () {
 
     $('#radioBtn a').on('click', function () {
@@ -90,6 +101,7 @@ onload = function () {
 
 function buildGraph(graph, options) {
     var container = document.getElementById('mynetwork');
+    //graph.nodes.forEach(function (x, y, z) { if (x.image != undefined) x.image = getCircleWithText(10); })
     graph.nodes.forEach(function (x, y, z) { if (x.image != undefined) x.image = eval(x.image); })
     if (options == undefined)
         options = globalOptions
@@ -127,6 +139,7 @@ function handleAnswer(answerResult) {
             $("#answerCorrectness").removeClass();
             $("#answerCorrectness").addClass("answer fail-answer");
         }
+        $("#resultAnswerPanel").show();
         $("#attemptsCount").html(answerResult.attemptsLeft);
         
     }
@@ -151,7 +164,7 @@ function deleteVariant(variant, userid) {
 function sendUserAnswer() {
     var data;
     if ($("#answerSymbols").length !== 0) {
-        data ={ 
+        data = {
             Answer: objToArray(
                 $(".answerCheckboxes")
                 .filter(function (i, x) { return x.checked; })
@@ -160,8 +173,7 @@ function sendUserAnswer() {
             TaskProblemId: $('#taskProblemId').val()
         };
     }
-    else if ($("#yesNoAnswer").length !== 0)
-    {
+    else if ($("#yesNoAnswer").length !== 0) {
         data = {
             Answer: $('#yesNoAnswer').val(),
             TaskProblemId: $('#taskProblemId').val()
@@ -173,6 +185,7 @@ function sendUserAnswer() {
             TaskProblemId: $('#taskProblemId').val()
         };
     }
+    $("#resultAnswerPanel").hide();
     $.ajax({
         type: "POST",
         url: "/RegGram/Answer",

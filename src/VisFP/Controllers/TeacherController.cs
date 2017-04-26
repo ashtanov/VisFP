@@ -39,7 +39,7 @@ namespace VisFP.Controllers
                 TypeId = x.TaskTypeId,
                 TypeNameForView = x.TaskTypeNameToView,
                 ControlAvailable = x.Tasks.Any(y => y.IsControl && y.TeacherTaskId != null),
-                TestAvailable = x.Tasks.Any(y => y.IsControl && y.TeacherTaskId != null),
+                TestAvailable = x.Tasks.Any(y => !y.IsControl && y.TeacherTaskId != null),
                 ModuleAvailable = x.TeacherTaskTypes.Any(y => y.TeacherId == user.Id && y.IsAvailable)
             });
             var viewModel = new TeacherIndexViewModel

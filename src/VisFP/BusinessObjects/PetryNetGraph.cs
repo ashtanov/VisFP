@@ -13,6 +13,12 @@ namespace VisFP.BusinessObjects
     }
 
     [JsonObject]
+    public class PetryEdge : Edge
+    {
+        public string value { get; set; }
+    }
+
+    [JsonObject]
     public class PetryNodeImage : PetryNode
     {
         public string image { get; set; }
@@ -26,7 +32,9 @@ namespace VisFP.BusinessObjects
     {
         public string options
         {
-            get { return
+            get
+            {
+                return
 //@"{
 //    nodes: { borderWidth: 2 },
 //    layout: {
@@ -46,16 +54,31 @@ namespace VisFP.BusinessObjects
         public PetryNetGraph(PetryNet net)
         {
             Dictionary<string, int> supp = new Dictionary<string, int>();
-            foreach(var node in net.P)
+
+            for (int i = 0; i < net.P.Length; ++i)
             {
-                supp.Add(node,supp.Count);
-                nodes.Add(
-                    new PetryNode
-                    {
-                        id = supp[node],
-                        label = node,
-                        shape = "dot"
-                    });
+                supp.Add(net.P[i], supp.Count);
+                if (net.Markup != null && !string.IsNullOrEmpty(net.Markup[i]) && net.Markup[i] != "0")
+                {
+                    nodes.Add(
+                        new PetryNodeImage
+                        {
+                            id = supp[net.P[i]],
+                            label = net.P[i],
+                            image = $"getCircleWithText({net.Markup[i]})",
+                            shape = "image"
+                        });
+                }
+                else
+                {
+                    nodes.Add(
+                        new PetryNode
+                        {
+                            id = supp[net.P[i]],
+                            label = net.P[i],
+                            shape = "dot"
+                        });
+                }
             }
             foreach (var node in net.T)
             {
@@ -71,12 +94,25 @@ namespace VisFP.BusinessObjects
             }
             foreach (var edge in net.F)
             {
-                edges.Add(new Edge
+                if (!string.IsNullOrEmpty(edge.w))
                 {
-                    label = "",
-                    from = supp[edge.from],
-                    to = supp[edge.to],
-                });
+                    edges.Add(new PetryEdge
+                    {
+                        label = edge.w,
+                        value = "10",
+                        from = supp[edge.from],
+                        to = supp[edge.to],
+                    });
+                }
+                else
+                {
+                    edges.Add(new Edge
+                    {
+                        label = "",
+                        from = supp[edge.from],
+                        to = supp[edge.to],
+                    });
+                }
             }
         }
 

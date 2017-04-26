@@ -11,6 +11,7 @@ namespace VisFP.BusinessObjects
     {
         public string from;
         public string to;
+        public string w;
     }
 
     [JsonObject]
@@ -19,7 +20,8 @@ namespace VisFP.BusinessObjects
         public readonly string[] P;
         public readonly string[] T;
         public readonly PetryFlowLink[] F;
-        public PetryNet(string[] P, string[] T, PetryFlowLink[] F)
+        public readonly string[] Markup;
+        public PetryNet(string[] P, string[] T, PetryFlowLink[] F, string[] markup = null)
         {
             this.P = new string[P.Length];
             P.CopyTo(this.P, 0);
@@ -27,6 +29,11 @@ namespace VisFP.BusinessObjects
             T.CopyTo(this.T, 0);
             this.F = new PetryFlowLink[F.Length];
             F.CopyTo(this.F, 0);
+            if (markup != null)
+            {
+                Markup = new string[markup.Length];
+                markup.CopyTo(Markup, 0);
+            }
         }
         public string Serialize()
         {

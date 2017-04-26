@@ -34,7 +34,7 @@ namespace VisFP.Controllers
                     new PetryFlowLink { from = "p1", to = "t1" },
                     new PetryFlowLink { from = "p2", to = "t2" },
                     new PetryFlowLink { from = "p3", to = "t2" },
-                    new PetryFlowLink { from = "p3", to = "t3" },
+                    new PetryFlowLink { from = "p3", to = "t3", w="2" },
                     new PetryFlowLink { from = "p4", to = "t4" },
                     new PetryFlowLink { from = "p5", to = "t2" },
                     new PetryFlowLink { from = "t1", to = "p2" },
@@ -44,7 +44,8 @@ namespace VisFP.Controllers
                     new PetryFlowLink { from = "t3", to = "p4" },
                     new PetryFlowLink { from = "t4", to = "p2" },
                     new PetryFlowLink { from = "t4", to = "p3" }
-                });
+                },
+                markup: new[] { "0", "100", "0", "0", "1" });
             var o = petryNet.Serialize();
             PetryNetGraph png = new PetryNetGraph(PetryNet.Deserialize(o));
             var user = await _userManager.GetUserAsync(User);
