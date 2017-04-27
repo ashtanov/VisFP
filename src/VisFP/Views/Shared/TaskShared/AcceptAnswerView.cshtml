@@ -48,52 +48,54 @@
             </div>
             break;
         case TaskAnswerType.RadioAnswer:
-            <div class="col-md-offset-2 col-md-7">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title" style="text-align:center">Выберите ответ</h3>
-                    </div>
-                    <div class="panel-body">
-                        <div class="input-group col-md-offset-3">
-                            <div id="radioBtn" class="btn-group">
-                                <a class="btn btn-success btn-lg notActive" data-toggle="yesNoAnswer" data-title="yes">Да</a>
-                                <a class="btn btn-success btn-lg notActive" data-toggle="yesNoAnswer" data-title="no">Нет</a>
-                            </div>
-                            <input type="hidden" name="yesNoAnswer" id="yesNoAnswer" value="">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            break;
-        case TaskAnswerType.CheckBoxAnswer:
-            <div class="col-md-11">
-                <div id="answerSymbols">
-                    @{ int i = 1;}
-                    @foreach (var nt in Model.AnswerList)
-                    {
-                        <div class="panel panel-default">
-                            <span class="button-checkbox">
-                                <button type="button" class="btn btn-success active" data-color="success"></button>&emsp;@nt
-                                <input class="hidden answerCheckboxes" autocomplete="off" type="checkbox" value="@(i++)">
-                            </span>
-                        </div>
-                    }
-                </div>
-            </div>
-                            break;
-                        default:
-                            <div class="col-md-offset-2 col-md-7">
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
-                                        <h3 class="panel-title" style="text-align:center">Введите ответ</h3>
-                                    </div>
-                                    <div class="panel-body">
-                                        <input id="answer" autocomplete="off" class="form-control" />
-                                    </div>
+            {
+                <div class="col-md-11">
+                    <div id="answerSymbols">
+                        @{ int i = 1;}
+                        <div class="funkyradio">
+                            @foreach (var nt in Model.AnswerList)
+                            {
+                                <div class="funkyradio-success">
+                                    <input class="answerCheckboxes" type="radio" autocomplete="off" name="checkbox" id="@($"checkbox{i}")" value="@i">
+                                    <label for="@($"checkbox{i++}")">@nt</label>
                                 </div>
-                            </div>
-                                break;
-                        }
+                            }
+                        </div>
+                    </div>
+                </div>
+                break;
+            }
+        case TaskAnswerType.CheckBoxAnswer:
+            {
+                <div class="col-md-11">
+                    <div id="answerSymbols">
+                        @{ int i = 1;}
+                        <div class="funkyradio">
+                            @foreach (var nt in Model.AnswerList)
+                            {
+                                <div class="funkyradio-success">
+                                    <input class="answerCheckboxes" type="checkbox" autocomplete="off" name="checkbox" id="@($"checkbox{i}")" value="@i">
+                                    <label for="@($"checkbox{i++}")">@nt</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                break;
+            }
+            default:
+                <div class="col-md-offset-2 col-md-7">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title" style="text-align:center">Введите ответ</h3>
+                        </div>
+                        <div class="panel-body">
+                            <input id="answer" autocomplete="off" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                    break;
+            }
     <div class="form-group">
         @if (Model.GotRightAnswer)
         {

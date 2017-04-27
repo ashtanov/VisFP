@@ -3,16 +3,13 @@
 <h3 style="margin-left:100px">@Model.MainInfo.TaskTitle</h3>
 <hr />
 <div class="col-lg-5">
-    <div class="panel">
-        <dl class="dl-horizontal">
-            <dt style="font-size:large">
-                @Html.DisplayNameFor(model => model.MainInfo.TaskQuestion)
-            </dt>
-            <dd style="font-size:large">
-                @Html.Raw(Model.MainInfo.TaskQuestion)
-            </dd>
-        </dl>
-    </div>
+        <p style="font-size:x-large; text-indent: 7%">
+            <strong>@Html.DisplayNameFor(model => model.MainInfo.TaskQuestion)</strong>
+        </p>
+        <p class="questionBox">
+            @Html.Raw(Model.MainInfo.TaskQuestion)
+        </p>
+    <hr />
     @if (Model.TopInfo != null)
     {
         await Html.RenderPartialAsync("TaskShared/TaskInfo", Model.TopInfo);

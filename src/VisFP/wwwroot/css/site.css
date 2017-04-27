@@ -158,3 +158,10 @@ div.table_description {
     cursor:default !important;
 }
 
+.questionBox {
+    font-size:large; 
+    background-color:#c1ffca; 
+    border-radius: 10px; 
+    padding: 10px;
+}
+

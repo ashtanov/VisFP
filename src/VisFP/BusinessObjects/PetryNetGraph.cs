@@ -65,7 +65,7 @@ namespace VisFP.BusinessObjects
                         {
                             id = supp[net.P[i]],
                             label = net.P[i],
-                            image = $"getCircleWithText({net.Markup[i]})",
+                            image = $"getCircleWithText('{net.Markup[i]}')",
                             shape = "image"
                         });
                 }

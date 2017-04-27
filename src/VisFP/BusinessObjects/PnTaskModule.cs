@@ -40,10 +40,19 @@ namespace VisFP.BusinessObjects
             {
                 var pnTask = await dbContext.PnTasks.SingleOrDefaultAsync(x => x.Id == taskTemplate.ExternalTaskId);
 
+                HashSet<int> rightAnswers = new HashSet<int>(pnTask.RightAnswers.Split(' ').Select(x => int.Parse(x)));
+                var answers = pnTask
+                    .Answers
+                    .DeserializeJsonListOfStrings()
+                    .Select((x, i) => new { ans = x, isR = rightAnswers.Contains(i + 1) }).ToList();
+                var r = new Random();
+                var permutate = answers.OrderBy(x => r.Next()).ToList();
+                var newanswers = permutate.Select(x => x.ans).ToList();
+
                 var problem = new PnTaskProblem
                 {
                     PetryNetJson = pnTask.PetryNetJson,
-                    Answers = pnTask.Answers,
+                    Answers = newanswers.SerializeJsonListOfStrings()
                 };
                 //записываем проблему в базу модуля
                 await dbContext.PnTaskProblems.AddAsync(problem);
@@ -55,18 +64,22 @@ namespace VisFP.BusinessObjects
                     TaskTitle = taskTemplate.TaskTitle,
                     AnswerType = pnTask.AnswerType,
                     SymbolsForAnswer = null,
-                    AnswersList = pnTask.Answers.DeserializeJsonListOfStrings()
+                    AnswersList = newanswers
                 };
                 ComponentRepository repository = new ComponentRepository(mainComponent);
+                var net = PetryNet.Deserialize(problem.PetryNetJson);
                 repository.AddComponent(new GraphComponent
                 {
-                    Graph = new PetryNetGraph(PetryNet.Deserialize(problem.PetryNetJson))
+                    Graph = new PetryNetGraph(net)
                 });
+                repository.AddComponent(GetTopComponent(net));
+                repository.AddComponent(GetListComponent(net));
+                var nra = permutate.Select((x, i) => new { x = x, cNum = i + 1 }).Where(x => x.x.isR).Select(x => x.cNum);
                 problemResult = new ProblemResult
                 {
                     ExternalProblemId = problem.Id,
                     ProblemComponents = repository,
-                    Answer = pnTask.RightAnswers
+                    Answer = string.Join(" ", nra)
                 };
             }
             return problemResult;
@@ -91,8 +104,36 @@ namespace VisFP.BusinessObjects
                 var currPN = PetryNet.Deserialize(pnProblem.PetryNetJson);
                 repository = new ComponentRepository(mainComponent);
                 repository.AddComponent(new GraphComponent { Graph = new PetryNetGraph(currPN) });
+                repository.AddComponent(GetTopComponent(currPN));
+                repository.AddComponent(GetListComponent(currPN));
             }
             return repository;
+        }
+
+        private static TaskInfoTopComponent GetTopComponent(PetryNet currPN)
+        {
+            var c = new TaskInfoTopComponent
+            {
+                Header = "Сеть Петри",
+                Fields = new Dictionary<string, string>
+                    {
+                        { "P", $"({string.Join(", ", currPN.P)})" },
+                        { "T", $"({string.Join(", ", currPN.T)})" }
+                    }
+            };
+            if (currPN.Markup != null)
+                c.Fields.Add("Маркировка", $"({string.Join(", ", currPN.Markup)})");
+            return c;
+        }
+        private static TaskInfoListComponent GetListComponent(PetryNet currPN)
+        {
+            var c = new TaskInfoListComponent
+            {
+                Header = "F",
+                Items = currPN.F.Select(x => $"({x.from},{x.to})"),
+                IsOrdered = false
+            };
+            return c;
         }
 
         public async Task<List<NewTaskResult>> CreateNewTaskSetAsync()
@@ -182,19 +223,20 @@ namespace VisFP.BusinessObjects
                 }
             }
         }
+        //PetryNetJson = "{\"P\":[\"p1\",\"p2\",\"p3\",\"p4\",\"p5\"],\"T\":[\"t1\",\"t2\",\"t3\",\"t4\"],\"F\":[{\"from\":\"p1\",\"to\":\"t1\"},{\"from\":\"p2\",\"to\":\"t2\"},{\"from\":\"p3\",\"to\":\"t2\"},{\"from\":\"p3\",\"to\":\"t3\"},{\"from\":\"p4\",\"to\":\"t4\"},{\"from\":\"p5\",\"to\":\"t2\"},{\"from\":\"t1\",\"to\":\"p2\"},{\"from\":\"t1\",\"to\":\"p3\"},{\"from\":\"t1\",\"to\":\"p5\"},{\"from\":\"t2\",\"to\":\"p5\"},{\"from\":\"t3\",\"to\":\"p4\"},{\"from\":\"t4\",\"to\":\"p2\"},{\"from\":\"t4\",\"to\":\"p3\"}]}",
 
         protected List<PnTask> GetInitModuleTasks()
         {
             var result = new List<PnTask>();
             result.Add(new PnTask
             {
-                Answers = new List<string> { "Длинный ответ означающий А", "Один два три четыре пять шесть семь восемь девять десять B", "тратата C", "ззз D" }.SerializeJsonListOfStrings(),
-                AnswerType = TaskAnswerType.CheckBoxAnswer,
-                PetryNetJson = "{\"P\":[\"p1\",\"p2\",\"p3\",\"p4\",\"p5\"],\"T\":[\"t1\",\"t2\",\"t3\",\"t4\"],\"F\":[{\"from\":\"p1\",\"to\":\"t1\"},{\"from\":\"p2\",\"to\":\"t2\"},{\"from\":\"p3\",\"to\":\"t2\"},{\"from\":\"p3\",\"to\":\"t3\"},{\"from\":\"p4\",\"to\":\"t4\"},{\"from\":\"p5\",\"to\":\"t2\"},{\"from\":\"t1\",\"to\":\"p2\"},{\"from\":\"t1\",\"to\":\"p3\"},{\"from\":\"t1\",\"to\":\"p5\"},{\"from\":\"t2\",\"to\":\"p5\"},{\"from\":\"t3\",\"to\":\"p4\"},{\"from\":\"t4\",\"to\":\"p2\"},{\"from\":\"t4\",\"to\":\"p3\"}]}",
-                Question = "Выберите A",
-                RightAnswers = "1",
+                Answers = new List<string> { "Задача о производителе/потребителе", "Задача о производителе/потребителе с ограниченным складом", "Задача о чтении/записи", "Задача об обедающих мудрецах" }.SerializeJsonListOfStrings(),
+                AnswerType = TaskAnswerType.RadioAnswer,
+                PetryNetJson = "{\"P\":[\"p0\",\"p1\",\"p2\",\"p3\",\"p4\",\"p5\"],\"T\":[\"t1\",\"t2\",\"t3\",\"t4\"],\"F\":[{\"from\":\"p1\",\"to\":\"t1\"},{\"from\":\"t1\",\"to\":\"p3\"},{\"from\":\"p3\",\"to\":\"t3\"},{\"from\":\"t3\",\"to\":\"p1\"},{\"from\":\"t3\",\"to\":\"p0\"},{\"from\":\"p0\",\"to\":\"t2\"},{\"from\":\"t2\",\"to\":\"p5\"},{\"from\":\"p5\",\"to\":\"t3\"},{\"from\":\"t2\",\"to\":\"p4\"},{\"from\":\"p4\",\"to\":\"t4\"},{\"from\":\"t4\",\"to\":\"p2\"},{\"from\":\"p2\",\"to\":\"t2\"}],\"markup\":[\"0\",\"1\",\"1\",\"0\",\"0\",\"N\"]}",
+                Question = "Выберите задачу, которую описывает данная модель",
+                RightAnswers = "2",
                 TaskNumber = 1,
-                TaskTitle = "Первак",
+                TaskTitle = "Определить задачу",
                 IsSeed = true
             });
             return result;
