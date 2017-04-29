@@ -61,9 +61,34 @@ else
                     {
                         var list = (setting as VisFP.BusinessObjects.TaskSetting<List<string>>).Value;
                         <input name="extSettings[@i].Name" class="form-control" type="hidden" value="@setting.Name" />
-                        <textarea rows="@(list.Count*2).ToString()" name="extSettings[@i].Value" class="form-control">@(string.Join("\n", list))</textarea>
-                    }
+                        if (list != null)
+                        {
+                            <textarea rows="@(list.Count * 2).ToString()" name="extSettings[@i].Value" class="form-control">@(string.Join("\n", list))</textarea>
+                        }
+                        else
+                        {
+                            <textarea rows="1" name="extSettings[@i].Value" class="form-control"></textarea>
+                        }
 
+                    }
+                    else if (setting.ValueType == typeof(TaskAnswerType))
+                    {
+                        var at = (setting as VisFP.BusinessObjects.TaskSetting<TaskAnswerType>).Value;
+                        <input name="extSettings[@i].Name" class="form-control" type="hidden" value="@setting.Name" />
+                        <select class="selectpicker" name="extSettings[@i].Value" title="Выберите тип ответа">
+                            @foreach (TaskAnswerType role in Enum.GetValues(typeof(TaskAnswerType)))
+                            {
+                                if (role == at)
+                                {
+                                    <option value="@(role)" selected> @role.GetDisplayName() </option>
+                                }
+                                else
+                                {
+                                    <option value="@(role)"> @role.GetDisplayName() </option>
+                                }
+                            }
+                        </select>
+                    }
                 </div>
             </div>
             i++;

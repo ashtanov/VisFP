@@ -40,20 +40,33 @@ namespace VisFP.BusinessObjects
             {
                 var pnTask = await dbContext.PnTasks.SingleOrDefaultAsync(x => x.Id == taskTemplate.ExternalTaskId);
 
-                HashSet<int> rightAnswers = new HashSet<int>(pnTask.RightAnswers.Split(' ').Select(x => int.Parse(x)));
-                var answers = pnTask
-                    .Answers
-                    .DeserializeJsonListOfStrings()
-                    .Select((x, i) => new { ans = x, isR = rightAnswers.Contains(i + 1) }).ToList();
-                var r = new Random();
-                var permutate = answers.OrderBy(x => r.Next()).ToList();
-                var newanswers = permutate.Select(x => x.ans).ToList();
-
-                var problem = new PnTaskProblem
+                PnTaskProblem problem;
+                List<string> permAnswers = null;
+                string answer = pnTask.RightAnswers;
+                if (pnTask.AnswerType == TaskAnswerType.CheckBoxAnswer || pnTask.AnswerType == TaskAnswerType.RadioAnswer)
                 {
-                    PetryNetJson = pnTask.PetryNetJson,
-                    Answers = newanswers.SerializeJsonListOfStrings()
-                };
+                    HashSet<int> rightAnswers = new HashSet<int>(pnTask.RightAnswers.Split(' ').Select(x => int.Parse(x)));
+                    var answers = pnTask
+                        .Answers
+                        .DeserializeJsonListOfStrings()
+                        .Select((x, i) => new { ans = x, isR = rightAnswers.Contains(i + 1) }).ToList();
+                    var r = new Random();
+                    var permutate = answers.OrderBy(x => r.Next()).ToList();
+                    permAnswers = permutate.Select(x => x.ans).ToList();
+                    answer = string.Join(" ", permutate.Select((x, i) => new { x = x, cNum = i + 1 }).Where(x => x.x.isR).Select(x => x.cNum));
+                    problem = new PnTaskProblem
+                    {
+                        PetryNetJson = pnTask.PetryNetJson,
+                        Answers = permAnswers.SerializeJsonListOfStrings()
+                    };
+                }
+                else
+                    problem = new PnTaskProblem
+                    {
+                        PetryNetJson = pnTask.PetryNetJson,
+                        Answers = pnTask.Answers
+                    };
+
                 //записываем проблему в базу модуля
                 await dbContext.PnTaskProblems.AddAsync(problem);
                 await dbContext.SaveChangesAsync();
@@ -64,7 +77,7 @@ namespace VisFP.BusinessObjects
                     TaskTitle = taskTemplate.TaskTitle,
                     AnswerType = pnTask.AnswerType,
                     SymbolsForAnswer = null,
-                    AnswersList = newanswers
+                    AnswersList = permAnswers
                 };
                 ComponentRepository repository = new ComponentRepository(mainComponent);
                 var net = PetryNet.Deserialize(problem.PetryNetJson);
@@ -74,12 +87,11 @@ namespace VisFP.BusinessObjects
                 });
                 repository.AddComponent(GetTopComponent(net));
                 repository.AddComponent(GetListComponent(net));
-                var nra = permutate.Select((x, i) => new { x = x, cNum = i + 1 }).Where(x => x.x.isR).Select(x => x.cNum);
                 problemResult = new ProblemResult
                 {
                     ExternalProblemId = problem.Id,
                     ProblemComponents = repository,
-                    Answer = string.Join(" ", nra)
+                    Answer = answer
                 };
             }
             return problemResult;
@@ -99,7 +111,7 @@ namespace VisFP.BusinessObjects
                     TaskQuestion = problem.TaskQuestion,
                     TaskTitle = problem.TaskTitle,
                     AnswerType = problem.AnswerType,
-                    AnswersList = pnProblem.Answers.DeserializeJsonListOfStrings()
+                    AnswersList = pnProblem.Answers?.DeserializeJsonListOfStrings()
                 };
                 var currPN = PetryNet.Deserialize(pnProblem.PetryNetJson);
                 repository = new ComponentRepository(mainComponent);
@@ -230,15 +242,38 @@ namespace VisFP.BusinessObjects
             var result = new List<PnTask>();
             result.Add(new PnTask
             {
-                Answers = new List<string> { "Задача о производителе/потребителе", "Задача о производителе/потребителе с ограниченным складом", "Задача о чтении/записи", "Задача об обедающих мудрецах" }.SerializeJsonListOfStrings(),
-                AnswerType = TaskAnswerType.RadioAnswer,
-                PetryNetJson = "{\"P\":[\"p0\",\"p1\",\"p2\",\"p3\",\"p4\",\"p5\"],\"T\":[\"t1\",\"t2\",\"t3\",\"t4\"],\"F\":[{\"from\":\"p1\",\"to\":\"t1\"},{\"from\":\"t1\",\"to\":\"p3\"},{\"from\":\"p3\",\"to\":\"t3\"},{\"from\":\"t3\",\"to\":\"p1\"},{\"from\":\"t3\",\"to\":\"p0\"},{\"from\":\"p0\",\"to\":\"t2\"},{\"from\":\"t2\",\"to\":\"p5\"},{\"from\":\"p5\",\"to\":\"t3\"},{\"from\":\"t2\",\"to\":\"p4\"},{\"from\":\"p4\",\"to\":\"t4\"},{\"from\":\"t4\",\"to\":\"p2\"},{\"from\":\"p2\",\"to\":\"t2\"}],\"markup\":[\"0\",\"1\",\"1\",\"0\",\"0\",\"N\"]}",
-                Question = "Выберите задачу, которую описывает данная модель",
-                RightAnswers = "2",
                 TaskNumber = 1,
                 TaskTitle = "Определить задачу",
+                Question = "Выберите задачу, которую описывает данная модель",
+                AnswerType = TaskAnswerType.RadioAnswer,
+                PetryNetJson = "{\"P\":[\"p0\",\"p1\",\"p2\",\"p3\",\"p4\",\"p5\"],\"T\":[\"t1\",\"t2\",\"t3\",\"t4\"],\"F\":[{\"from\":\"p1\",\"to\":\"t1\"},{\"from\":\"t1\",\"to\":\"p3\"},{\"from\":\"p3\",\"to\":\"t3\"},{\"from\":\"t3\",\"to\":\"p1\"},{\"from\":\"t3\",\"to\":\"p0\"},{\"from\":\"p0\",\"to\":\"t2\"},{\"from\":\"t2\",\"to\":\"p5\"},{\"from\":\"p5\",\"to\":\"t3\"},{\"from\":\"t2\",\"to\":\"p4\"},{\"from\":\"p4\",\"to\":\"t4\"},{\"from\":\"t4\",\"to\":\"p2\"},{\"from\":\"p2\",\"to\":\"t2\"}],\"markup\":[\"0\",\"1\",\"1\",\"0\",\"0\",\"N\"]}",
+                Answers = new List<string> { "Задача о производителе/потребителе", "Задача о производителе/потребителе с ограниченным складом", "Задача о чтении/записи", "Задача об обедающих мудрецах" }.SerializeJsonListOfStrings(),
+                RightAnswers = "2",
                 IsSeed = true
             });
+            result.Add(new PnTask
+            {
+                TaskNumber = 2,
+                TaskTitle = "Достижимые маркировки",
+                Question = "Выберите ВСЕ непосредственно достижимые маркировки",
+                AnswerType = TaskAnswerType.CheckBoxAnswer,
+                PetryNetJson = "{\"P\":[\"p1\",\"p2\",\"p3\"],\"T\":[\"t1\",\"t2\",\"t3\"],\"F\":[{\"from\":\"p1\",\"to\":\"t1\"},{\"from\":\"t1\",\"to\":\"p1\"},{\"from\":\"p1\",\"to\":\"t2\"},{\"from\":\"t2\",\"to\":\"p3\"},{\"from\":\"t2\",\"to\":\"p2\"},{\"from\":\"t1\",\"to\":\"p2\"},{\"from\":\"p2\",\"to\":\"t3\"},{\"from\":\"t3\",\"to\":\"p3\"},{\"from\":\"p3\",\"to\":\"t3\"}],\"markup\":[\"1\",\"1\",\"0\"]}",
+                Answers = new List<string> { "(1, 2, 0)", "(0, 2, 1)", "(0, 1, 1)", "(1, 0, 0)", "(2, 1, 0)" }.SerializeJsonListOfStrings(),
+                RightAnswers = "1 2",
+                IsSeed = true
+            });
+            result.Add(new PnTask
+            {
+                TaskNumber = 3,
+                TaskTitle = "Безопасность сети",
+                Question = "Является ли данная сеть безопасной?",
+                AnswerType = TaskAnswerType.YesNoAnswer,
+                PetryNetJson = "{\"P\":[\"p1\",\"p2\",\"p3\",\"p4\",\"p5\"],\"T\":[\"t1\",\"t2\",\"t3\"],\"F\":[{\"from\":\"t1\",\"to\":\"p1\"},{\"from\":\"p1\",\"to\":\"t2\"},{\"from\":\"t2\",\"to\":\"p3\"},{\"from\":\"p3\",\"to\":\"t2\"},{\"from\":\"t2\",\"to\":\"p2\"},{\"from\":\"p2\",\"to\":\"t3\"},{\"from\":\"t3\",\"to\":\"p4\"},{\"from\":\"p4\",\"to\":\"t2\"},{\"from\":\"t2\",\"to\":\"p5\"}],\"markup\":[\"0\",\"0\",\"1\",\"1\",\"1\"]}",
+                Answers = null,
+                RightAnswers = "no",
+                IsSeed = true
+            });
+
             return result;
         }
 
@@ -262,8 +297,9 @@ namespace VisFP.BusinessObjects
             List<ITaskSetting> settings = new List<ITaskSetting>();
             settings.Add(new TaskSetting<string> { Name = nameof(pnTask.PetryNetJson), NameForView = "Сеть Петри", Value = pnTask.PetryNetJson });
             settings.Add(new TaskSetting<string> { Name = nameof(pnTask.Question), NameForView = "Вопрос", Value = pnTask.Question });
-            settings.Add(new TaskSetting<List<string>> { Name = nameof(pnTask.Answers), NameForView = "Ответы (каждый на новой строке)", Value = pnTask.Answers.DeserializeJsonListOfStrings() });
+            settings.Add(new TaskSetting<List<string>> { Name = nameof(pnTask.Answers), NameForView = "Ответы (каждый на новой строке)", Value = pnTask.Answers?.DeserializeJsonListOfStrings() });
             settings.Add(new TaskSetting<string> { Name = nameof(pnTask.RightAnswers), NameForView = "Номера правильных ответов (через пробел, с 1)", Value = pnTask.RightAnswers });
+            settings.Add(new TaskSetting<TaskAnswerType> { Name = nameof(pnTask.AnswerType), NameForView = "Тип ответа", Value = pnTask.AnswerType });
             return settings;
         }
 
@@ -291,9 +327,10 @@ namespace VisFP.BusinessObjects
                 task.PetryNetJson = updatedSettings.Single(x => x.Name == nameof(task.PetryNetJson)).Value;
                 task.Answers = updatedSettings
                     .Single(x => x.Name == nameof(task.Answers))
-                    .Value
-                    .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
-                    .ToList().SerializeJsonListOfStrings();
+                    ?.Value
+                    ?.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                    ?.ToList()?.SerializeJsonListOfStrings();
+                task.AnswerType = (TaskAnswerType)Enum.Parse(typeof(TaskAnswerType), updatedSettings.Single(x => x.Name == nameof(task.AnswerType)).Value);
                 task.RightAnswers = string.Join(" ", updatedSettings.Single(x => x.Name == nameof(task.RightAnswers)).Value.Split(' ').OrderBy(x => x));
                 task.Question = updatedSettings.Single(x => x.Name == nameof(task.Question)).Value;
                 await dbContext.SaveChangesAsync();

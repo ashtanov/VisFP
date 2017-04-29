@@ -67,11 +67,19 @@
                         }
                         else if (setting.ValueType == typeof(List<string>))
                         {
-                            @foreach(var elem in (setting as VisFP.BusinessObjects.TaskSetting<List<string>>).Value)
+                            var list = (setting as VisFP.BusinessObjects.TaskSetting<List<string>>);
+                            if (list.Value != null)
                             {
-                                <span>@($"{elem}")</span>
-                                <br />
+                                @foreach (var elem in list.Value)
+                                {
+                                    <span>@($"{elem}")</span>
+                                    <br />
+                                }
                             }
+                        }
+                        else if (setting.ValueType == typeof(TaskAnswerType))
+                        {
+                            @((setting as VisFP.BusinessObjects.TaskSetting<TaskAnswerType>).Value.GetDisplayName())
                         }
                     </td>
                 }
