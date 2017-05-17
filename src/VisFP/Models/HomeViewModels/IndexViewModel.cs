@@ -19,7 +19,6 @@ namespace VisFP.Models.HomeViewModels
         public bool IsAdmin { get; set; }
         public bool IsTeacher { get; set; }
         public IEnumerable<TaskTypeViewModel> TaskTypes { get; set; }
-        public PetryNetGraph png { get; set; }
 
     }
 }

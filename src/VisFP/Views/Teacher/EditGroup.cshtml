@@ -84,7 +84,7 @@
         </div>
     </div>
     <div class="col-md-2">
-        <input type="button" value="Добавить пользователя" class="btn btn-primary" />
+        <a asp-action="CreateStudent" asp-controller="Account" asp-route-groupId="@Model.GroupId" class="btn btn-primary">Добавить пользователя</a>
     </div>
 </div>
 <div class="panel panel-default">

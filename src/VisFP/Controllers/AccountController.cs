@@ -127,31 +127,7 @@ namespace VisFP.Controllers
                                 .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                             foreach (var user in content)
                             {
-                                var pass = PasswordGenerator.Instance.GeneratePassword();
-                                var fio = user.Split(' ');
-                                var login =
-                                    Transliteration.Front(fio[0]) +
-                                    string.Join("", fio.Skip(1).Select(x => Transliteration.Front(x[0].ToString())));
-                                while (await _userManager.Users.AnyAsync(x => x.UserName == login))
-                                {
-                                    var value = _loginFinder.Match(login);
-                                    if (value.Groups.Count == 3)
-                                        login = value.Groups[1].Value + (int.Parse(value.Groups[2].Value) + 1);
-                                    else
-                                        login = login + 1;
-                                }
-                                var newUser = new ApplicationUser
-                                {
-                                    UserName = login,
-                                    Meta = $"Password:{pass}",
-                                    UserGroupId = groupId,
-                                    RealName = user
-                                };
-                                var res = await _userManager.CreateAsync(newUser, pass);
-                                if (!res.Succeeded)
-                                    _logger.LogError(string.Join(Environment.NewLine, res.Errors));
-                                else
-                                    await _userManager.AddToRoleAsync(newUser, "User");
+                                await CreateNewStudentUser(groupId, user);
                             }
                         }
                     }
@@ -163,6 +139,60 @@ namespace VisFP.Controllers
             }
             return RedirectToAction("EditGroup", "Teacher", new { id = groupId });
         }
+
+        private async Task CreateNewStudentUser(Guid groupId, string userName, string meta = "")
+        {
+            var pass = PasswordGenerator.Instance.GeneratePassword();
+            var fio = userName.Split(' ');
+            var login =
+                Transliteration.Front(fio[0]) +
+                string.Join("", fio.Skip(1).Select(x => Transliteration.Front(x[0].ToString())));
+            while (await _userManager.Users.AnyAsync(x => x.UserName == login))
+            {
+                var value = _loginFinder.Match(login);
+                if (value.Groups.Count == 3)
+                    login = value.Groups[1].Value + (int.Parse(value.Groups[2].Value) + 1);
+                else
+                    login = login + 1;
+            }
+            var newUser = new ApplicationUser
+            {
+                UserName = login,
+                Meta = $"Password:{pass}\t{meta ?? ""}",
+                UserGroupId = groupId,
+                RealName = userName
+            };
+            var res = await _userManager.CreateAsync(newUser, pass);
+            if (!res.Succeeded)
+                _logger.LogError(string.Join(Environment.NewLine, res.Errors));
+            else
+                await _userManager.AddToRoleAsync(newUser, "User");
+        }
+
+        [Authorize(Roles = "Admin, Teacher")]
+        [HttpGet]
+        public async Task<IActionResult> CreateStudent(Guid groupId)
+        {
+            var group = await _dbContext.UserGroups.SingleOrDefaultAsync(x => x.GroupId == groupId);
+            if (group != null)
+            {
+                return View(new CreateStudentViewModel
+                {
+                    GroupName = group.Name,
+                    GroupId = groupId
+                });
+            }
+            return StatusCode(404);
+        }
+
+        [Authorize(Roles = "Admin, Teacher")]
+        [HttpPost]
+        public async Task<IActionResult> CreateStudent(CreateStudentViewModel newUser)
+        {
+            await CreateNewStudentUser(newUser.GroupId, newUser.RealName, newUser.Meta);
+            return RedirectToAction("EditGroup", "Teacher", new { id = newUser.GroupId });
+        }
+
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
