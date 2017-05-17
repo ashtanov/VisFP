@@ -14,5 +14,6 @@ namespace VisFP.Data.DBModels
         public string Question { get; set; }
         public string PetryNetJson { get; set; }
         public string Answers { get; set; }
+        public bool MarkupShowed { get; set; }
     }
 }

@@ -71,6 +71,18 @@ else
                         }
 
                     }
+                    else if (setting.ValueType == typeof(bool))
+                    {
+                        var s = (setting as VisFP.BusinessObjects.TaskSetting<bool>).Value;
+                        <div class="input-group">
+                            <div id="radioBtn" class="btn-group">
+                                <a class="btn btn-success btn-lg @(s ? "" : "notActive")" data-toggle="yesNoAnswer" data-title="true">Да</a>
+                                <a class="btn btn-success btn-lg @(!s ? "" : "notActive")" data-toggle="yesNoAnswer" data-title="false">Нет</a>
+                            </div>
+                            <input type="hidden" name="extSettings[@i].Value" id="yesNoAnswer" value="@(s.ToString())">
+                        </div>
+                        <input name="extSettings[@i].Name" class="form-control" type="hidden" value="@setting.Name" />
+                    }
                     else if (setting.ValueType == typeof(TaskAnswerType))
                     {
                         var at = (setting as VisFP.BusinessObjects.TaskSetting<TaskAnswerType>).Value;

@@ -24,7 +24,7 @@
                         <td>
                             @if (module.TestAvailable)
                             {
-                                <a asp-action="TeacherTaskList" asp-route-isControl="false" asp-route-typeName="@module.TypeName" class="btn btn-info">Изменить</a>
+                                <a asp-action="TaskList" asp-route-isControl="false" asp-route-typeName="@module.TypeName" class="btn btn-info">Изменить</a>
                             }
                             else
                             { 
@@ -34,7 +34,7 @@
                         <td>
                             @if (module.ControlAvailable)
                             {
-                                <a asp-action="TeacherTaskList" asp-route-isControl="true" asp-route-typeName="@module.TypeName" class="btn btn-info">Изменить</a>
+                                <a asp-action="TaskList" asp-route-isControl="true" asp-route-typeName="@module.TypeName" class="btn btn-info">Изменить</a>
                             }
                             else
                             {

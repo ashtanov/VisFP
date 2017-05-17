@@ -132,7 +132,7 @@ namespace VisFP.Controllers
 
         }
 
-        public async Task<IActionResult> TeacherTaskList(string typeName, bool isControl)
+        public async Task<IActionResult> TaskList(string typeName, bool isControl)
         {
             try
             {
@@ -208,7 +208,7 @@ namespace VisFP.Controllers
                 var module = ModulesRepository.GetTaskModuleById(oldTask.TaskTypeId);
                 await module.SaveTaskSettingsAsync(oldTask.ExternalTaskId, extSettings);
                 await _dbContext.SaveChangesAsync();
-                return RedirectToAction(nameof(TeacherTaskList), new { isControl = oldTask.IsControl, typeName = oldTask.TaskType.TaskTypeName });
+                return RedirectToAction(nameof(TaskList), new { isControl = oldTask.IsControl, typeName = oldTask.TaskType.TaskTypeName });
             }
             return StatusCode(404);
         }

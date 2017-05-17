@@ -17,5 +17,6 @@ namespace VisFP.Data.DBModels
         public string Question { get; set; }
         public string RightAnswers { get; set; }
         public bool IsSeed { get; set; }
+        public bool ShowMarkup { get; set; }
     }
 }

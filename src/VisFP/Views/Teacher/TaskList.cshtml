@@ -65,6 +65,10 @@
                         {
                             @((setting as VisFP.BusinessObjects.TaskSetting<string>).Value)
                         }
+                        else if (setting.ValueType == typeof(bool))
+                        {
+                            @((setting as VisFP.BusinessObjects.TaskSetting<bool>).Value)
+                        }
                         else if (setting.ValueType == typeof(List<string>))
                         {
                             var list = (setting as VisFP.BusinessObjects.TaskSetting<List<string>>);
