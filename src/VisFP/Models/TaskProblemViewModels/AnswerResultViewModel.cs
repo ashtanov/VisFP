@@ -8,6 +8,7 @@ namespace VisFP.Models.TaskProblemViewModels
     public class AnswerResultViewModel
     {
         public bool IsCorrect { get; set; }
+        public bool IsVariantFinished { get; set; }
         public int AttemptsLeft { get; set; }
     }
 }

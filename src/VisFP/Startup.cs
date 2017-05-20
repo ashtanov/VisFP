@@ -42,13 +42,13 @@ namespace VisFP
             var sqlConnectionString = Configuration.GetConnectionString("DataAccessPostgreSqlProvider");
 
             // Add framework services.
-            //services.AddDbContext<ApplicationDbContext>(options =>
-            //    options.UseNpgsql(
-            //        sqlConnectionString,
-            //        b => b.MigrationsAssembly("AspNet5MultipleProject")
-            //    ));
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseInMemoryDatabase());
+                options.UseNpgsql(
+                    sqlConnectionString,
+                    b => b.MigrationsAssembly("AspNet5MultipleProject")
+                ));
+            //services.AddDbContext<ApplicationDbContext>(options =>
+            //    options.UseInMemoryDatabase());
             services.AddIdentity<ApplicationUser, IdentityRole>(
                 o =>
                 {

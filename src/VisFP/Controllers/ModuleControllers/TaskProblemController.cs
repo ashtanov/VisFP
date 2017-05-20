@@ -69,7 +69,7 @@ namespace VisFP.Controllers
             try
             {
                 var user = await _userManager.GetUserAsync(User);
-                if (_dbContext.Variants.Any(x => x.User == user && !x.IsFinished && x.TaskTypeId == TaskTypeId)) //если нет текущего варианта
+                if (_dbContext.Variants.Any(x => x.User == user && x.TaskTypeId == TaskTypeId)) //если нет текущего варианта
                 {
                     var variant = await _dbContext
                         .Variants
@@ -126,7 +126,8 @@ namespace VisFP.Controllers
                         IsControlProblem = false,
                         LeftAttempts = templateTask.MaxAttempts,
                         ProblemId = dbProblem.ProblemId
-                    }, problem.ProblemComponents);
+                    }, problem.ProblemComponents, TaskModule.GetModuleName());
+
                     return View("TaskShared/TaskView", viewModel);
                 }
                 else
@@ -147,7 +148,7 @@ namespace VisFP.Controllers
                                 IsControlProblem = false,
                                 LeftAttempts = currentProblem.MaxAttempts - (currentProblem.Attempts?.Count ?? 0),
                                 ProblemId = currentProblem.ProblemId
-                            }, problemComponents);
+                            }, problemComponents, TaskModule.GetModuleName());
                             return View("TaskShared/TaskView", viewModel);
                         }
                         else
@@ -163,6 +164,7 @@ namespace VisFP.Controllers
                                     ProblemId = currentProblem.ProblemId
                                 },
                                 problemComponents,
+                                TaskModule.GetModuleName(),
                                 _dbContext.GetVariantProblems(currentVariant)
                             );
                             return View("TaskShared/ExamTaskView", examViewModel);
@@ -182,7 +184,7 @@ namespace VisFP.Controllers
         public async Task<JsonResult> Answer(AnswerViewModel avm)
         {
             var user = await _userManager.GetUserAsync(User);
-            var problem = _dbContext.TaskProblems.FirstOrDefault(x => x.ProblemId == avm.TaskProblemId);
+            var problem = _dbContext.TaskProblems.Include(x => x.Variant).FirstOrDefault(x => x.ProblemId == avm.TaskProblemId);
 
             if (problem != null || problem.User != user) //задачи нет или задача не этого юзера
             {
@@ -210,12 +212,23 @@ namespace VisFP.Controllers
                             IsCorrect = isCorrect,
                             Problem = problem
                         });
+                    bool isFinished = false;
+                    if (problem.VariantId != null)
+                    {
+                        var problems = _dbContext.GetVariantProblems(problem.Variant);
+                        if(problems.All(x => x.State != ProblemState.Unfinished))
+                        {
+                            isFinished = true;
+                            problem.Variant.IsFinished = true;
+                        }
+                    }
                     await _dbContext.SaveChangesAsync();
                     return new JsonResult(
                         new AnswerResultViewModel
                         {
                             AttemptsLeft = problem.MaxAttempts - totalAttempts,
-                            IsCorrect = isCorrect
+                            IsCorrect = isCorrect,
+                            IsVariantFinished = isFinished
                         });
                 }
                 else

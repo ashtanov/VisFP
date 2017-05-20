@@ -3,5 +3,5 @@
 @{
     ViewData["Title"] = Model.MainInfo.TaskTitle;
 }
-
+<a class="btn btn-sm btn-default" style="margin-top: 1%" asp-action="Index"><strong>Назад к списку тренировочных задач</strong></a>
 @{ await Html.RenderPartialAsync("TaskShared/TaskProblemView", Model); }

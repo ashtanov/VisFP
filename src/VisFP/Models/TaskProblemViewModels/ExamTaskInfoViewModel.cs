@@ -8,9 +8,10 @@ namespace VisFP.Models.TaskProblemViewModels
 
         public ExamTaskInfoViewModel(
             TaskBaseInfo taskBase, 
-            ComponentRepository components, 
+            ComponentRepository components,
+            string moduleName, 
             IEnumerable<ExamProblem> otherProblems)
-            :base(taskBase, components)
+            :base(taskBase, components, moduleName)
         {
             BaseInfo.IsControlProblem = true;
             OtherProblems = otherProblems;

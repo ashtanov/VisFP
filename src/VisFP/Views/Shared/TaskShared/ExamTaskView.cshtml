@@ -4,8 +4,12 @@
     ViewData["Title"] = Model.MainInfo.TaskTitle;
 }
 <div class="list-group">
-    <span class="list-group-item" style="background-color:darkred; color:white; text-align:center">Контрольное задание</span>
+    <span class="list-group-item" style="background-color:darkred; color:white; text-align:center">
+        <a class="btn btn-sm btn-default" style="float: left;" asp-action="ExamVariant"><strong>Назад к списку контрольных задач</strong></a>
+        Контрольное задание
+    </span>
 </div>
+
 <row>
     <div class="col-md-1" style="font-size:large"><strong>Задачи:</strong></div>
     <div class="col-md-11">
@@ -36,4 +40,5 @@
         </ul>
     </div>
 </row>
+
 @{ await Html.RenderPartialAsync("TaskShared/TaskProblemView", Model); }

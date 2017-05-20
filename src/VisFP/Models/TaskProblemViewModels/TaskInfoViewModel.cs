@@ -17,7 +17,7 @@ namespace VisFP.Models.TaskProblemViewModels
     }
     public class TaskInfoViewModel
     {
-        public TaskInfoViewModel(TaskBaseInfo taskBase, ComponentRepository components)
+        public TaskInfoViewModel(TaskBaseInfo taskBase, ComponentRepository components, string moduleName)
         {
             if (taskBase == null)
                 throw new ArgumentNullException("TaskBaseInfo равен null!");
@@ -28,10 +28,11 @@ namespace VisFP.Models.TaskProblemViewModels
             TopInfo = components.GetComponent<TaskInfoTopComponent>();
             ListInfo = components.GetComponent<TaskInfoListComponent>();
             Graph = components.GetComponent<GraphComponent>();
+            ModuleName = moduleName;
         }
-        
-        public TaskBaseInfo BaseInfo { get; set; }
 
+        public TaskBaseInfo BaseInfo { get; set; }
+        public string ModuleName { get;set; }
         #region Components
 
         public MainInfoComponent MainInfo { get; set; }

@@ -141,6 +141,8 @@ function handleAnswer(answerResult) {
         }
         $("#resultAnswerPanel").show();
         $("#attemptsCount").html(answerResult.attemptsLeft);
+        if (answerResult.isVariantFinished)
+            alert("Тест пройден!");
         
     }
 }
