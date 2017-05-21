@@ -32,13 +32,13 @@ namespace VisFP.BusinessObjects
             return "Сети Петри";
         }
 
-        public async Task<ProblemResult> CreateNewProblemAsync(DbTask taskTemplate)
+        public async Task<ProblemResult> CreateNewProblemAsync(Guid externalTaskId)
         {
             ProblemResult problemResult;
             using (var scope = _scopeFactory.CreateScope())
             using (var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
             {
-                var pnTask = await dbContext.PnTasks.SingleOrDefaultAsync(x => x.Id == taskTemplate.ExternalTaskId);
+                var pnTask = await dbContext.PnTasks.SingleOrDefaultAsync(x => x.Id == externalTaskId);
 
                 PnTaskProblem problem;
                 List<string> permAnswers = null;
@@ -76,7 +76,7 @@ namespace VisFP.BusinessObjects
                 {
                     Generation = 0,
                     TaskQuestion = pnTask.Question,
-                    TaskTitle = taskTemplate.TaskTitle,
+                    TaskTitle = pnTask.TaskTitle,
                     AnswerType = pnTask.AnswerType,
                     SymbolsForAnswer = null,
                     AnswersList = permAnswers

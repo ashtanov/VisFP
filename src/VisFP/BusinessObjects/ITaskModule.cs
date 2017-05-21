@@ -63,7 +63,7 @@ namespace VisFP.BusinessObjects
         bool IsAvailableTestProblems();
         bool IsAvailableControlProblems();
         bool IsAvailableAddTask();
-        Task<ProblemResult> CreateNewProblemAsync(DbTask taskTemplate);
+        Task<ProblemResult> CreateNewProblemAsync(Guid externalTaskId);
         Task<ComponentRepository> GetExistingProblemAsync(DbTaskProblem problem);
         Task<List<TaskSettingsSet>> GetAllTasksSettingsAsync(List<Guid> externalTaskIds);
         Task<TaskSettingsSet> GetTaskSettingsAsync(Guid externalTaskId);

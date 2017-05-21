@@ -32,14 +32,14 @@ namespace VisFP.BusinessObjects
             return "Регулярные грамматики";
         }
 
-        public async Task<ProblemResult> CreateNewProblemAsync(DbTask taskTemplate)
+        public async Task<ProblemResult> CreateNewProblemAsync(Guid externalTaskId)
         {
             ProblemResult problemResult;
             using (var scope = _scopeFactory.CreateScope())
             using (var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
             {
-                var rgTask = await dbContext.RgTasks.SingleOrDefaultAsync(x => x.Id == taskTemplate.ExternalTaskId);
-                var problem = _problemBuilder.GenerateProblem(rgTask, taskTemplate.TaskNumber);
+                var rgTask = await dbContext.RgTasks.SingleOrDefaultAsync(x => x.Id == externalTaskId);
+                var problem = _problemBuilder.GenerateProblem(rgTask);
 
                 RGrammar cGrammar;
                 if (rgTask.IsGrammarGenerated)
@@ -65,7 +65,7 @@ namespace VisFP.BusinessObjects
                 {
                     Generation = problem.Generation,
                     TaskQuestion = problem.ProblemQuestion,
-                    TaskTitle = taskTemplate.TaskTitle,
+                    TaskTitle = rgTask.TaskTitle,
                     AnswerType = problem.AnswerType,
                     SymbolsForAnswer = problem.Grammar.Alph.NonTerminals
                 };

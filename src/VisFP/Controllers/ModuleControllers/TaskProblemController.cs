@@ -114,7 +114,7 @@ namespace VisFP.Controllers
                     var templateTask = _dbContext
                         .GetTasksForUser(user, false, TaskTypeId)
                         .FirstOrDefault(x => x.TaskNumber == id);
-                    var problem = await TaskModule.CreateNewProblemAsync(templateTask);
+                    var problem = await TaskModule.CreateNewProblemAsync(templateTask.ExternalTaskId);
 
                     DbTaskProblem dbProblem = CreateDbProblem(user, templateTask, problem);
                     await _dbContext.TaskProblems.AddAsync(dbProblem);
@@ -272,7 +272,7 @@ namespace VisFP.Controllers
             List<DbTaskProblem> problems = new List<DbTaskProblem>();
             foreach (var template in templateTasks) //Генерим задачи
             {
-                var problem = await TaskModule.CreateNewProblemAsync(template);
+                var problem = await TaskModule.CreateNewProblemAsync(template.ExternalTaskId);
                 problems.Add(CreateDbProblem(user, template, problem, variant.VariantId));
             }
             await _dbContext.TaskProblems.AddRangeAsync(problems);

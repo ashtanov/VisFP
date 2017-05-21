@@ -22,9 +22,9 @@ namespace VisFP.BusinessObjects
         {
         }
 
-        public RGProblemResult GenerateProblem(RgTask rgTask, int taskNumber)
+        public RGProblemResult GenerateProblem(RgTask rgTask)
         {
-            RgProblemTemplate tp = GetProblemTemplate(taskNumber);
+            RgProblemTemplate tp = GetProblemTemplate(rgTask.TaskNumber);
             Alphabet alphabet = tp.GetAlphabet(rgTask);
             int generation = 0;
             int chainTry = 0;
