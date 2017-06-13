@@ -281,19 +281,19 @@ namespace VisFP.BusinessObjects
                 AnswerType = TaskAnswerType.SymbolsAnswer
             });
 
-            result.Add(new RgTask
-            {
-                TaskTitle = "Циклические символы",
-                Type = GetModuleName(),
-                IsGrammarGenerated = true,
-                NonTerminalRuleCount = 7,
-                TerminalRuleCount = 3,
-                AlphabetNonTerminalsCount = 5,
-                AlphabetTerminalsCount = 3,
-                TaskNumber = 3,
-                IsSeed = true,
-                AnswerType = TaskAnswerType.SymbolsAnswer
-            });
+            //result.Add(new RgTask
+            //{
+            //    TaskTitle = "Циклические символы",
+            //    Type = GetModuleName(),
+            //    IsGrammarGenerated = true,
+            //    NonTerminalRuleCount = 7,
+            //    TerminalRuleCount = 3,
+            //    AlphabetNonTerminalsCount = 5,
+            //    AlphabetTerminalsCount = 3,
+            //    TaskNumber = 3,
+            //    IsSeed = true,
+            //    AnswerType = TaskAnswerType.SymbolsAnswer
+            //});
 
             result.Add(new RgTask
             {
@@ -304,7 +304,7 @@ namespace VisFP.BusinessObjects
                 TerminalRuleCount = 2,
                 AlphabetNonTerminalsCount = 4,
                 AlphabetTerminalsCount = 2,
-                TaskNumber = 4,
+                TaskNumber = 3,
                 IsSeed = true,
                 AnswerType = TaskAnswerType.YesNoAnswer
             });
@@ -318,7 +318,7 @@ namespace VisFP.BusinessObjects
                 TerminalRuleCount = 2,
                 AlphabetNonTerminalsCount = 3,
                 AlphabetTerminalsCount = 2,
-                TaskNumber = 5,
+                TaskNumber = 4,
                 IsSeed = true,
                 AnswerType = TaskAnswerType.YesNoAnswer
             });
@@ -332,7 +332,7 @@ namespace VisFP.BusinessObjects
                 TerminalRuleCount = 2,
                 AlphabetNonTerminalsCount = 3,
                 AlphabetTerminalsCount = 2,
-                TaskNumber = 6,
+                TaskNumber = 5,
                 ChainMinLength = 5,
                 IsSeed = true,
                 AnswerType = TaskAnswerType.TextMulty
@@ -347,7 +347,7 @@ namespace VisFP.BusinessObjects
                 TerminalRuleCount = 2,
                 AlphabetNonTerminalsCount = 3,
                 AlphabetTerminalsCount = 2,
-                TaskNumber = 7,
+                TaskNumber = 6,
                 ChainMinLength = 6,
                 IsSeed = true,
                 AnswerType = TaskAnswerType.YesNoAnswer
@@ -362,7 +362,7 @@ namespace VisFP.BusinessObjects
                 TerminalRuleCount = 2,
                 AlphabetNonTerminalsCount = 3,
                 AlphabetTerminalsCount = 2,
-                TaskNumber = 8,
+                TaskNumber = 7,
                 ChainMinLength = 6,
                 IsSeed = true,
                 AnswerType = TaskAnswerType.YesNoAnswer

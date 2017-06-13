@@ -78,22 +78,22 @@ namespace VisFP.BusinessObjects
                 case 2:
                     tp = new RgProblem2();
                     break;
+                //case 3:
+                //    tp = new RgProblem3();
+                //    break;
                 case 3:
-                    tp = new RgProblem3();
-                    break;
-                case 4:
                     tp = new RgProblem4();
                     break;
-                case 5:
+                case 4:
                     tp = new RgProblem5();
                     break;
-                case 6:
+                case 5:
                     tp = new RgProblem6();
                     break;
-                case 7:
+                case 6:
                     tp = new RgProblem7();
                     break;
-                case 8:
+                case 7:
                     tp = new RgProblem8();
                     break;
                 default:
@@ -233,27 +233,27 @@ namespace VisFP.BusinessObjects
         {
         }
     }
-    public class RgProblem3 : RgProblemTemplate
-    {
-        public override bool ConditionUntilForGrammar()
-        {
-            return CurrentGrammar.CyclicNonterminals.Value.Length == 0;
-        }
+    //public class RgProblem3 : RgProblemTemplate
+    //{
+    //    public override bool ConditionUntilForGrammar()
+    //    {
+    //        return CurrentGrammar.CyclicNonterminals.Value.Length == 0;
+    //    }
 
-        public override string GetAnswer()
-        {
-            return string.Join(" ", CurrentGrammar.CyclicNonterminals.Value.OrderBy(z => z));
-        }
+    //    public override string GetAnswer()
+    //    {
+    //        return string.Join(" ", CurrentGrammar.CyclicNonterminals.Value.OrderBy(z => z));
+    //    }
 
-        public override string GetTaskDescription()
-        {
-            return "Отметьте ВСЕ циклические символы (нетерминалы)";
-        }
+    //    public override string GetTaskDescription()
+    //    {
+    //        return "Отметьте ВСЕ циклические символы (нетерминалы)";
+    //    }
 
-        public override void SetCurrentChain(RgTask templateTask)
-        {
-        }
-    }
+    //    public override void SetCurrentChain(RgTask templateTask)
+    //    {
+    //    }
+    //}
     public class RgProblem4 : RgProblemTemplate
     {
         public override bool ConditionUntilForGrammar()

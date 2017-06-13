@@ -1,6 +1,9 @@
 ﻿@model TaskListViewModel
 <h1>@ViewData["Title"]</h1>
-<h2>Примеры задач</h2>
+@if (Model.TasksList.Any())
+{
+    <h2>Задачи для тренировки:</h2>
+}
 <ul>
     @foreach (var t in Model.TasksList.OrderBy(x => x.Item1))
     {
@@ -9,4 +12,4 @@
     }
 </ul>
 
-<a asp-action="ExamVariant" class="btn btn-warning btn-lg">Сдать контрольный тест</a>
+<a asp-action="ExamVariant" class="btn btn-success btn-lg">Сдать контрольный тест</a>

@@ -159,7 +159,7 @@ namespace VisFP.BusinessObjects
 
         public override string GetTaskDescription()
         {
-            return $"Допустима ли цепочка <strong>{CurrentChain.Chain}</strong> для данного КА?";
+            return $"Допустима ли цепочка <strong>{CurrentChain.Chain}</strong> данным КА?";
         }
 
         public override void SetCurrentChain(RgTask templateTask)

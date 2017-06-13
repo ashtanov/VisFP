@@ -74,7 +74,7 @@ namespace VisFP.BusinessObjects
 
             result.Add(new RgTask
             {
-                TaskTitle = "Построение цепочки",
+                TaskTitle = "Анализ цепочки",
                 Type = GetModuleName(),
                 NonTerminalRuleCount = 5,
                 IsGrammarGenerated = true,
